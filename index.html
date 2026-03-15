@@ -2,1585 +2,1995 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0a0e1a">
-<meta name="description" content="CyberDetective - لعبة تعليمية في مجال Cybersecurity">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#030608">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
-<title>CyberDetective - محقق الشبكات</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<title>CyberLab Pro — منصة التدريب الأمني</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════
+   ROOT & GLOBAL
+═══════════════════════════════════════ */
 :root {
-  --bg-deep: #04080f;
-  --bg-mid: #070d1a;
-  --bg-card: #0b1220;
-  --bg-card2: #0e1628;
-  --accent: #00ffe7;
-  --accent2: #ff3e6c;
-  --accent3: #f7c948;
-  --accent4: #7b5ea7;
-  --text: #c8deff;
-  --text-dim: #3a5070;
-  --green: #00ff9d;
-  --red: #ff3e6c;
-  --orange: #ff8c42;
-  --border: rgba(0,255,231,0.1);
-  --glow: 0 0 25px rgba(0,255,231,0.35);
+  --void: #030608;
+  --dark: #070c10;
+  --panel: #0a1018;
+  --card: #0d1520;
+  --border: rgba(0,200,150,0.12);
+  --border2: rgba(0,200,150,0.06);
+  --g1: #00c896;
+  --g2: #00a0ff;
+  --g3: #ff3860;
+  --g4: #ffd600;
+  --g5: #8b5cf6;
+  --txt: #9bb8c8;
+  --txt2: #4a6878;
+  --txt3: #1e3040;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Tajawal', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  background:var(--void);
+  color:var(--txt);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:default;
 }
 
-* { margin:0; padding:0; box-sizing:border-box; }
+/* ═══════════════════════════════════════
+   MATRIX BACKGROUND
+═══════════════════════════════════════ */
+#bgCanvas{position:fixed;inset:0;z-index:0;opacity:.07;pointer-events:none}
 
-body {
-  font-family: 'Cairo', sans-serif;
-  background: var(--bg-deep);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
+/* HEX GRID */
+.hex-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 0l28 16v32L28 64 0 48V16z' fill='none' stroke='rgba(0,200,150,0.04)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size:56px 100px;
+  animation:hexDrift 60s linear infinite;
+}
+@keyframes hexDrift{from{background-position:0 0}to{background-position:112px 200px}}
+
+/* SCAN LINE */
+.scanline{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,200,150,.015) 3px,rgba(0,200,150,.015) 4px);
 }
 
-/* ============================
-   MATRIX CANVAS BACKGROUND
-============================ */
-#matrixCanvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 0;
-  opacity: 0.13;
-  pointer-events: none;
-}
-
-/* Moving grid overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0,255,231,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,231,0.04) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridMove 20s linear infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-@keyframes gridMove {
-  0%   { background-position: 0 0; }
-  100% { background-position: 50px 50px; }
-}
-
-/* Scanline */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.03) 2px,
-    rgba(0,0,0,0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ============================
+/* ═══════════════════════════════════════
    PWA INSTALL BANNER
-============================ */
-#installBanner {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  background: linear-gradient(135deg, #0a1a2e, #061020);
-  border-bottom: 1px solid var(--accent);
-  box-shadow: 0 0 30px rgba(0,255,231,0.2);
-  z-index: 9999;
-  display: none;
-  padding: 0.6rem 1rem;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  animation: bannerSlide 0.5s cubic-bezier(0.34,1.56,0.64,1);
+═══════════════════════════════════════ */
+#installBanner{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(135deg,rgba(0,200,150,.15),rgba(0,160,255,.1));
+  border-bottom:1px solid var(--g1);
+  backdrop-filter:blur(20px);
+  display:none;
+  align-items:center;gap:.75rem;
+  padding:.6rem 1rem;
+  animation:bannerDrop .5s cubic-bezier(.34,1.56,.64,1);
+  flex-wrap:wrap;
 }
-@keyframes bannerSlide {
-  from { transform: translateY(-100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+#installBanner.vis{display:flex}
+@keyframes bannerDrop{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.ib-icon{font-size:1.4rem;flex-shrink:0}
+.ib-txt{flex:1;font-size:.78rem;color:var(--txt);line-height:1.4}
+.ib-txt strong{color:var(--g1)}
+.ib-install{
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  color:#000;font-family:var(--sans);font-weight:700;font-size:.78rem;
+  padding:.4rem 1.1rem;border:none;border-radius:20px;cursor:pointer;
+  white-space:nowrap;transition:.2s;
 }
-#installBanner.show { display: flex; }
-.banner-icon { font-size: 1.5rem; flex-shrink: 0; }
-.banner-text { flex: 1; font-size: 0.82rem; color: var(--text); }
-.banner-text strong { color: var(--accent); }
-.banner-install {
-  background: linear-gradient(135deg, var(--accent), #0088ff);
-  color: #000;
-  font-family: 'Cairo', sans-serif;
-  font-weight: 700;
-  font-size: 0.82rem;
-  padding: 0.45rem 1.2rem;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.banner-install:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,255,231,0.5); }
-.banner-close {
-  background: transparent;
-  color: var(--text-dim);
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  transition: color 0.2s;
-}
-.banner-close:hover { color: var(--red); }
+.ib-install:hover{transform:scale(1.05)}
+.ib-x{background:transparent;color:var(--txt2);border:none;font-size:1.1rem;cursor:pointer;padding:.2rem .4rem;transition:.2s}
+.ib-x:hover{color:var(--g3)}
 
-/* ============================
+/* ═══════════════════════════════════════
    SCREENS
-============================ */
-.screen { display: none; position: relative; z-index: 1; }
-.screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+═══════════════════════════════════════ */
+.screen{display:none;position:relative;z-index:1}
+.screen.on{display:block}
+.screen.flex-c{display:none}
+.screen.flex-c.on{display:flex;flex-direction:column;min-height:100vh;align-items:center;justify-content:center}
 
-/* ============================
-   LOGIN SCREEN
-============================ */
-#loginScreen {
-  align-items: center;
-  justify-content: center;
-  padding: 5rem 1.5rem 2rem;
-  min-height: 100vh;
+/* ═══════════════════════════════════════
+   ── BOOT / AUTH SCREEN ──
+═══════════════════════════════════════ */
+#boot{
+  min-height:100vh;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:5rem 1rem 2rem;
+  background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(0,200,150,.05) 0%,transparent 70%);
 }
+#boot.on{display:flex}
 
-/* Floating particles */
-.particles-wrap {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+.boot-logo{
+  position:relative;
+  width:100px;height:100px;
+  margin:0 auto 1.5rem;
 }
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  animation: floatParticle linear infinite;
-  opacity: 0;
+.bl-hex{
+  width:100px;height:100px;
+  background:linear-gradient(135deg,rgba(0,200,150,.15),rgba(0,160,255,.08));
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;
+  border:1px solid rgba(0,200,150,.3);
+  animation:hexSpin 8s linear infinite;
+  box-shadow:0 0 40px rgba(0,200,150,.2),inset 0 0 20px rgba(0,200,150,.05);
 }
-@keyframes floatParticle {
-  0%   { transform: translateY(100vh) rotate(0deg);   opacity: 0; }
-  10%  { opacity: 0.6; }
-  90%  { opacity: 0.3; }
-  100% { transform: translateY(-20px) rotate(360deg); opacity: 0; }
+@keyframes hexSpin{0%,100%{box-shadow:0 0 40px rgba(0,200,150,.2)}50%{box-shadow:0 0 60px rgba(0,200,150,.4)}}
+.bl-ring{
+  position:absolute;inset:-12px;
+  border:1px solid rgba(0,200,150,.15);
+  border-radius:50%;
+  animation:ringPulse 2.5s ease infinite;
 }
+@keyframes ringPulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.08);opacity:.8}}
 
-/* Orbiting rings behind logo */
-.orbit-wrap {
-  position: relative;
-  width: 120px; height: 120px;
-  margin: 0 auto 2rem;
+.boot-title{
+  font-size:clamp(1.8rem,6vw,3rem);
+  font-weight:900;
+  color:var(--g1);
+  text-align:center;
+  letter-spacing:-1px;
+  text-shadow:0 0 30px rgba(0,200,150,.5);
+  animation:titlePulse 4s ease infinite;
 }
-.orbit-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(0,255,231,0.2);
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
+@keyframes titlePulse{0%,100%{text-shadow:0 0 30px rgba(0,200,150,.4)}50%{text-shadow:0 0 50px rgba(0,200,150,.7),0 0 80px rgba(0,200,150,.3)}}
+.boot-sub{
+  font-family:var(--mono);
+  font-size:.72rem;
+  color:var(--txt2);
+  letter-spacing:3px;
+  text-align:center;
+  margin-top:.4rem;
+  text-transform:uppercase;
 }
-.orbit-ring:nth-child(1) { width: 120px; height: 120px; animation: spinRing 6s linear infinite; }
-.orbit-ring:nth-child(2) { width: 160px; height: 160px; animation: spinRing 10s linear infinite reverse; border-color: rgba(0,136,255,0.15); }
-.orbit-ring:nth-child(3) { width: 200px; height: 200px; animation: spinRing 15s linear infinite; border-color: rgba(123,94,167,0.12); }
-@keyframes spinRing {
-  from { transform: translate(-50%,-50%) rotate(0deg); }
-  to   { transform: translate(-50%,-50%) rotate(360deg); }
-}
-.orbit-dot {
-  position: absolute;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-}
-.orbit-ring:nth-child(2) .orbit-dot { background: #0088ff; box-shadow: 0 0 8px #0088ff; }
-.orbit-ring:nth-child(3) .orbit-dot { background: var(--accent4); box-shadow: 0 0 8px var(--accent4); }
-
-.logo-core {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 80px; height: 80px;
-  background: radial-gradient(circle, rgba(0,255,231,0.15), rgba(0,136,255,0.1));
-  border-radius: 50%;
-  border: 2px solid rgba(0,255,231,0.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 0 40px rgba(0,255,231,0.3), inset 0 0 20px rgba(0,255,231,0.05);
-  animation: logoPulse 3s ease-in-out infinite;
-}
-@keyframes logoPulse {
-  0%,100% { box-shadow: 0 0 40px rgba(0,255,231,0.3), inset 0 0 20px rgba(0,255,231,0.05); }
-  50%      { box-shadow: 0 0 60px rgba(0,255,231,0.5), inset 0 0 30px rgba(0,255,231,0.1); }
+.boot-tagline{
+  font-size:.85rem;
+  color:var(--txt2);
+  text-align:center;
+  margin:.6rem 0 2rem;
+  font-style:italic;
 }
 
-.game-title {
-  font-size: clamp(2rem,6vw,3.5rem);
-  font-weight: 900;
-  color: var(--accent);
-  text-shadow: 0 0 30px rgba(0,255,231,0.6), 0 0 60px rgba(0,255,231,0.2);
-  letter-spacing: -1px;
-  text-align: center;
-  animation: titleGlow 3s ease-in-out infinite;
+/* TERMINAL AUTH BOX */
+.auth-box{
+  background:rgba(10,16,24,.9);
+  border:1px solid var(--border);
+  border-radius:16px;
+  width:min(460px,100%);
+  overflow:hidden;
+  backdrop-filter:blur(24px);
+  box-shadow:0 0 80px rgba(0,0,0,.6),0 0 40px rgba(0,200,150,.05);
+  animation:boxAppear .8s cubic-bezier(.34,1.56,.64,1) .2s both;
 }
-@keyframes titleGlow {
-  0%,100% { text-shadow: 0 0 30px rgba(0,255,231,0.6), 0 0 60px rgba(0,255,231,0.2); }
-  50%      { text-shadow: 0 0 50px rgba(0,255,231,0.9), 0 0 80px rgba(0,255,231,0.4); }
+@keyframes boxAppear{from{transform:translateY(30px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+.auth-titlebar{
+  display:flex;align-items:center;gap:.5rem;
+  background:rgba(0,0,0,.4);
+  padding:.55rem 1rem;
+  border-bottom:1px solid var(--border2);
 }
-.game-subtitle {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.85rem;
-  color: var(--text-dim);
-  letter-spacing: 3px;
-  text-align: center;
-  margin-top: 0.3rem;
-  animation: typing 3s steps(20) 0.5s both;
-  overflow: hidden;
-  white-space: nowrap;
-  margin: 0.3rem auto 0;
-  width: fit-content;
+.titlebar-dot{width:10px;height:10px;border-radius:50%}
+.titlebar-dot:nth-child(1){background:#ff5f57}
+.titlebar-dot:nth-child(2){background:#ffbd2e}
+.titlebar-dot:nth-child(3){background:#28ca41}
+.titlebar-label{
+  font-family:var(--mono);font-size:.68rem;
+  color:var(--txt2);margin-right:auto;
 }
-@keyframes typing {
-  from { width: 0; }
-  to   { width: 100%; }
+.auth-body{padding:1.5rem}
+
+/* CHALLENGE LABEL */
+.chal-label{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);
+  border-radius:6px;padding:.25rem .6rem;
+  font-family:var(--mono);font-size:.62rem;color:var(--g1);
+  letter-spacing:1px;margin-bottom:1rem;
+  animation:labelBlink 3s ease infinite;
+}
+@keyframes labelBlink{0%,100%{border-color:rgba(0,200,150,.2)}50%{border-color:rgba(0,200,150,.5)}}
+.chal-dot{width:5px;height:5px;border-radius:50%;background:var(--g1);animation:dotAnim 1.2s ease infinite}
+@keyframes dotAnim{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* BOOT CHALLENGE — terminal puzzle */
+.challenge-q{
+  font-family:var(--mono);
+  font-size:.82rem;
+  color:var(--txt);
+  line-height:1.7;
+  margin-bottom:1rem;
+  padding:.8rem;
+  background:rgba(0,0,0,.3);
+  border-radius:8px;
+  border-right:3px solid var(--g1);
+}
+.challenge-q .hl{color:var(--g4);font-weight:700}
+.challenge-q .cmd{color:var(--g1)}
+.challenge-q .comm{color:var(--txt2)}
+
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
+.opt{
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:8px;padding:.65rem .7rem;
+  cursor:pointer;transition:.2s;
+  font-family:var(--mono);font-size:.68rem;
+  color:var(--txt);
+  position:relative;overflow:hidden;
+}
+.opt:hover{border-color:rgba(0,200,150,.3);background:rgba(0,200,150,.05);transform:translateY(-1px)}
+.opt.ok{border-color:var(--g1);background:rgba(0,200,150,.1);color:var(--g1);pointer-events:none}
+.opt.bad{border-color:var(--g3);background:rgba(255,56,96,.08);color:var(--g3);animation:shake .35s ease;pointer-events:none}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.opt.dim{pointer-events:none;opacity:.35}
+.opt-cmd{color:var(--g1);display:block;margin-bottom:.2rem}
+.opt-desc{color:var(--txt2);font-size:.6rem;display:block}
+
+.auth-feedback{
+  font-family:var(--mono);font-size:.7rem;
+  border-radius:6px;padding:.5rem .7rem;
+  margin-bottom:.8rem;display:none;line-height:1.6;
+}
+.auth-feedback.on{display:block}
+.auth-feedback.ok{background:rgba(0,200,150,.07);color:var(--g1);border:1px solid rgba(0,200,150,.2)}
+.auth-feedback.bad{background:rgba(255,56,96,.07);color:var(--g3);border:1px solid rgba(255,56,96,.2)}
+
+.btn-access{
+  width:100%;padding:.85rem;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  color:#000;font-family:var(--sans);font-weight:700;font-size:.95rem;
+  border:none;border-radius:10px;cursor:pointer;
+  box-shadow:0 0 25px rgba(0,200,150,.25);
+  transition:.25s;opacity:.3;pointer-events:none;
+  position:relative;overflow:hidden;
+}
+.btn-access::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+  transform:translateX(-100%);transition:.5s;
+}
+.btn-access:hover::before{transform:translateX(100%)}
+.btn-access.on{opacity:1;pointer-events:all}
+.btn-access.on:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(0,200,150,.45)}
+
+.dev-sig{
+  text-align:center;padding-top:1.2rem;margin-top:1.2rem;
+  border-top:1px solid var(--border2);
+}
+.dev-sig-by{font-family:var(--mono);font-size:.6rem;color:var(--txt3);letter-spacing:2px;margin-bottom:.3rem}
+.dev-sig-name{
+  font-size:.95rem;font-weight:700;
+  background:linear-gradient(90deg,var(--g1),var(--g2),var(--g5));
+  background-size:200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.dev-sig-role{font-family:var(--mono);font-size:.6rem;color:var(--txt2);margin-top:.2rem}
+
+/* ═══════════════════════════════════════
+   ── DASHBOARD ──
+═══════════════════════════════════════ */
+#dash{min-height:100vh;padding-top:56px}
+
+/* TOP NAV */
+.topnav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:56px;
+  background:rgba(7,12,16,.92);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  display:flex;align-items:center;
+  padding:0 1rem;gap:.75rem;
+}
+.nav-logo{
+  font-size:.95rem;font-weight:800;color:var(--g1);
+  text-shadow:0 0 10px rgba(0,200,150,.4);
+  white-space:nowrap;
+}
+.nav-sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
+.nav-score{
+  font-family:var(--mono);font-size:.75rem;color:var(--g4);
+  display:flex;align-items:center;gap:.3rem;
+}
+.nav-right{margin-right:auto;display:flex;align-items:center;gap:.5rem}
+.nav-badge{
+  font-family:var(--mono);font-size:.62rem;
+  padding:.2rem .6rem;border-radius:20px;
+  background:rgba(0,200,150,.1);color:var(--g1);
+  border:1px solid rgba(0,200,150,.2);
 }
 
-/* ---- LOGIN CARD ---- */
-.login-card {
-  background: rgba(11,18,32,0.85);
-  border: 1px solid rgba(0,255,231,0.15);
-  border-radius: 20px;
-  padding: 2rem 1.8rem;
-  max-width: 440px;
-  width: 100%;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 0 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,255,231,0.08);
-  position: relative;
-  overflow: hidden;
-  margin-top: 2rem;
-  animation: cardAppear 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
-}
-@keyframes cardAppear {
-  from { transform: translateY(30px) scale(0.95); opacity: 0; }
-  to   { transform: translateY(0) scale(1); opacity: 1; }
-}
-.login-card::before {
-  content: '';
-  position: absolute;
-  top: -1px; left: 20%; right: 20%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  animation: scanTop 3s ease-in-out infinite;
-}
-@keyframes scanTop {
-  0%,100% { opacity: 0.3; left: 20%; right: 20%; }
-  50%      { opacity: 1; left: 5%; right: 5%; }
+/* MODULE GRID */
+.dash-content{padding:1.5rem 1rem 3rem;max-width:960px;margin:0 auto}
+.dash-header{margin-bottom:1.5rem}
+.dash-title{font-size:1.5rem;font-weight:800;color:#e8f4ff;margin-bottom:.3rem}
+.dash-sub{font-size:.82rem;color:var(--txt2);line-height:1.6}
+.dash-sub span{color:var(--g1);font-family:var(--mono)}
+
+.modules-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:1rem;
 }
 
-/* Corner decorations */
-.corner { position: absolute; width: 16px; height: 16px; }
-.corner.tl { top: 10px; right: 10px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
-.corner.tr { top: 10px; left: 10px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
-.corner.bl { bottom: 10px; right: 10px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
-.corner.br { bottom: 10px; left: 10px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+/* MODULE CARD */
+.mod-card{
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.25s;
+  position:relative;
+}
+.mod-card:hover{border-color:var(--border);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.4),0 0 20px rgba(0,200,150,.05)}
+.mod-card.locked{opacity:.35;cursor:not-allowed}
+.mod-card.locked:hover{transform:none;box-shadow:none}
+.mod-card.done{border-color:rgba(0,200,150,.3)}
+.mod-card.done::before{content:'✓';position:absolute;top:.6rem;left:.75rem;color:var(--g1);font-size:.85rem;font-weight:900;z-index:2}
 
-.login-section-title {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 3px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  position: relative;
+.mod-header{
+  height:70px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
 }
-.login-section-title::after {
-  content: '';
-  display: block;
-  width: 40px; height: 1px;
-  background: var(--accent);
-  margin: 0.5rem auto 0;
-  opacity: 0.4;
+.mod-header-bg{
+  position:absolute;inset:0;opacity:.08;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
 }
-
-/* ---- CYBER PUZZLE ---- */
-.puzzle-container {
-  background: rgba(0,255,231,0.04);
-  border: 1px solid rgba(0,255,231,0.12);
-  border-radius: 14px;
-  padding: 1.3rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-.puzzle-header {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
-}
-.puzzle-badge {
-  background: rgba(0,255,231,0.12);
-  color: var(--accent);
-  font-size: 0.65rem;
-  font-family: 'Share Tech Mono', monospace;
-  letter-spacing: 1px;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  border: 1px solid rgba(0,255,231,0.2);
-  animation: badgePulse 2s ease infinite;
-}
-@keyframes badgePulse {
-  0%,100% { box-shadow: none; }
-  50%      { box-shadow: 0 0 12px rgba(0,255,231,0.3); }
-}
-.puzzle-question {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-}
-.puzzle-sub {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  margin-bottom: 1rem;
-  line-height: 1.6;
-  font-family: 'Share Tech Mono', monospace;
-}
-.puzzle-sub span { color: var(--accent3); }
-
-.puzzle-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-}
-.puzzle-opt {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px;
-  padding: 0.7rem;
-  cursor: pointer;
-  transition: all 0.25s;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-.puzzle-opt:hover {
-  border-color: rgba(0,255,231,0.3);
-  background: rgba(0,255,231,0.06);
-  transform: translateY(-1px);
-}
-.puzzle-opt.selected-correct {
-  border-color: var(--green);
-  background: rgba(0,255,157,0.1);
-  box-shadow: 0 0 15px rgba(0,255,157,0.2);
-}
-.puzzle-opt.selected-wrong {
-  border-color: var(--red);
-  background: rgba(255,62,108,0.1);
-  animation: shakeOpt 0.4s ease;
-}
-@keyframes shakeOpt {
-  0%,100% { transform: translateX(0); }
-  25%      { transform: translateX(-4px); }
-  75%      { transform: translateX(4px); }
-}
-.puzzle-opt.disabled { pointer-events: none; opacity: 0.5; }
-.opt-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
-.opt-text { font-size: 0.78rem; font-weight: 700; color: var(--text); }
-.opt-code { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; color: var(--text-dim); margin-top: 0.2rem; }
-
-.puzzle-feedback {
-  margin-top: 0.75rem;
-  font-size: 0.78rem;
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
-  display: none;
-  line-height: 1.6;
-}
-.puzzle-feedback.show { display: block; }
-.puzzle-feedback.correct { background: rgba(0,255,157,0.08); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
-.puzzle-feedback.wrong   { background: rgba(255,62,108,0.08); color: var(--red); border: 1px solid rgba(255,62,108,0.2); }
-
-/* Enter button */
-.btn-enter {
-  width: 100%;
-  padding: 0.9rem;
-  background: linear-gradient(135deg, var(--accent), #0088ff);
-  color: #000;
-  font-family: 'Cairo', sans-serif;
-  font-weight: 700;
-  font-size: 1rem;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 0 25px rgba(0,255,231,0.3);
-  transition: all 0.25s;
-  position: relative;
-  overflow: hidden;
-  opacity: 0.4;
-  pointer-events: none;
-}
-.btn-enter::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.5s;
-}
-.btn-enter:hover::before { transform: translateX(100%); }
-.btn-enter.unlocked {
-  opacity: 1;
-  pointer-events: all;
-}
-.btn-enter.unlocked:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 40px rgba(0,255,231,0.5);
+.mod-icon-wrap{
+  width:44px;height:44px;
+  background:rgba(0,0,0,.5);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;
+  border:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:1;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
 }
 
-/* Status bar */
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--text-dim);
+.mod-body{padding:.9rem}
+.mod-tool{
+  font-family:var(--mono);font-size:.65rem;
+  color:var(--g1);letter-spacing:1px;margin-bottom:.35rem;
 }
-.status-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: dotBlink 1.5s ease infinite;
-}
-@keyframes dotBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.mod-name{font-size:.9rem;font-weight:700;color:#d0e8ff;margin-bottom:.3rem}
+.mod-desc{font-size:.72rem;color:var(--txt2);line-height:1.5;margin-bottom:.8rem}
 
-/* Developer credit */
-.dev-credit {
-  margin-top: 2rem;
-  text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  position: relative;
-}
-.dev-credit::before {
-  content: 'DEVELOPED BY';
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 3px;
-  color: var(--text-dim);
-  display: block;
-  margin-bottom: 0.4rem;
-}
-.dev-name {
-  font-size: 1rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), #0088ff, var(--accent4));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: nameShimmer 4s linear infinite;
-  background-size: 200% auto;
-}
-@keyframes nameShimmer {
-  0%   { background-position: 0% center; }
-  100% { background-position: 200% center; }
-}
-.dev-role {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.62rem;
-  color: var(--text-dim);
-  margin-top: 0.2rem;
-  letter-spacing: 1px;
-}
+.mod-meta{display:flex;align-items:center;justify-content:space-between}
+.mod-diff{display:flex;gap:.2rem}
+.diff-pip{width:6px;height:6px;border-radius:50%;background:var(--txt3)}
+.diff-pip.f{background:var(--g4)}
+.mod-time{font-family:var(--mono);font-size:.6rem;color:var(--txt2)}
 
-/* ============================
-   INTRO SCREEN (after login)
-============================ */
-#intro {
-  align-items: center;
-  justify-content: center;
-  padding: 5rem 1.5rem 2rem;
-  text-align: center;
-}
+/* ═══════════════════════════════════════
+   ── LESSON SCREEN ──
+═══════════════════════════════════════ */
+#lesson{min-height:100vh;padding-top:56px}
+.lesson-wrap{max-width:820px;margin:0 auto;padding:1.5rem 1rem 4rem}
 
-.logo-wrap {
-  margin-bottom: 2rem;
-  animation: floatLogo 4s ease-in-out infinite;
+/* LESSON HEADER */
+.lesson-hdr{
+  display:flex;align-items:center;gap:.75rem;
+  margin-bottom:1.5rem;
+  padding-bottom:1rem;
+  border-bottom:1px solid var(--border2);
 }
-@keyframes floatLogo {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-10px); }
+.lesson-back{
+  background:transparent;color:var(--txt2);
+  font-family:var(--sans);font-size:.8rem;
+  padding:.35rem .8rem;border:1px solid var(--border);
+  border-radius:20px;cursor:pointer;transition:.2s;
+  white-space:nowrap;
 }
-.logo-icon {
-  width: 90px; height: 90px;
-  background: radial-gradient(circle, rgba(0,255,231,0.15), rgba(0,136,255,0.1));
-  border-radius: 50%;
-  border: 2px solid rgba(0,255,231,0.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2.5rem;
-  margin: 0 auto 0.75rem;
-  box-shadow: 0 0 40px rgba(0,255,231,0.4);
-  animation: logoPulse 3s ease-in-out infinite;
+.lesson-back:hover{color:var(--g1);border-color:rgba(0,200,150,.3)}
+.lesson-tool-badge{
+  font-family:var(--mono);font-size:.68rem;
+  padding:.3rem .8rem;border-radius:20px;
+  background:rgba(0,200,150,.1);color:var(--g1);
+  border:1px solid rgba(0,200,150,.2);
+  white-space:nowrap;
 }
+.lesson-title{font-size:1.1rem;font-weight:700;color:#d0e8ff;flex:1}
+.lesson-progress-wrap{
+  display:flex;align-items:center;gap:.5rem;
+  margin-right:auto;white-space:nowrap;
+}
+.lp-text{font-family:var(--mono);font-size:.65rem;color:var(--txt2)}
+.lp-bar{width:80px;height:4px;background:var(--txt3);border-radius:2px;overflow:hidden}
+.lp-fill{height:100%;background:linear-gradient(90deg,var(--g1),var(--g2));transition:.4s}
 
-.intro-desc {
-  max-width: 540px;
-  margin: 1.5rem auto;
-  font-size: 0.95rem;
-  line-height: 1.8;
-  background: rgba(11,18,32,0.7);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.3rem;
-  backdrop-filter: blur(10px);
+/* TABS */
+.lesson-tabs{display:flex;gap:0;margin-bottom:1.2rem;border-bottom:1px solid var(--border2)}
+.ltab{
+  padding:.55rem 1rem;font-size:.78rem;font-weight:600;
+  color:var(--txt2);cursor:pointer;border-bottom:2px solid transparent;
+  transition:.2s;white-space:nowrap;
 }
+.ltab.on{color:var(--g1);border-bottom-color:var(--g1)}
 
-.attack-types {
-  display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 0.7rem;
-  max-width: 540px;
-  margin: 0 auto 1.5rem;
+/* ─── LEARN TAB ─── */
+.learn-section{margin-bottom:1.5rem}
+.ls-title{
+  font-size:.7rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:2px;color:var(--g1);
+  margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;
 }
-.attack-type-card {
-  background: rgba(11,18,32,0.7);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.9rem;
-  text-align: right;
-  transition: all 0.2s;
-  backdrop-filter: blur(10px);
-}
-.attack-type-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-.atk-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
-.atk-name { font-size: 0.82rem; font-weight: 700; color: var(--accent3); }
-.atk-desc { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.15rem; }
+.ls-title::after{content:'';flex:1;height:1px;background:var(--border2)}
+.ls-body{font-size:.85rem;color:var(--txt);line-height:1.8}
+.ls-body p{margin-bottom:.75rem}
+.ls-body strong{color:#d0e8ff}
+.ls-body .mono{font-family:var(--mono);font-size:.78rem;color:var(--g1);background:rgba(0,200,150,.06);padding:.1rem .35rem;border-radius:4px}
 
-.btn-primary {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  background: linear-gradient(135deg, var(--accent), #0088ff);
-  color: #000;
-  font-family: 'Cairo', sans-serif;
-  font-weight: 700; font-size: 1.05rem;
-  padding: 0.85rem 2.3rem;
-  border: none; border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 0 30px rgba(0,255,231,0.4);
-  transition: all 0.2s;
-  position: relative; overflow: hidden;
+/* KEY POINTS */
+.key-points{display:flex;flex-direction:column;gap:.5rem;margin-top:.75rem}
+.kp{
+  display:flex;align-items:flex-start;gap:.6rem;
+  background:rgba(255,255,255,.02);border:1px solid var(--border2);
+  border-radius:8px;padding:.65rem .8rem;
 }
-.btn-primary::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.5s;
-}
-.btn-primary:hover::before { transform: translateX(100%); }
-.btn-primary:hover { transform: scale(1.04); box-shadow: 0 0 45px rgba(0,255,231,0.6); }
+.kp-icon{font-size:.9rem;flex-shrink:0;margin-top:.05rem}
+.kp-text{font-size:.78rem;color:var(--txt);line-height:1.5}
+.kp-text strong{color:var(--g4)}
 
-.btn-secondary {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  background: transparent; color: var(--text);
-  font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 0.95rem;
-  padding: 0.65rem 1.8rem;
-  border: 1px solid var(--border); border-radius: 50px;
-  cursor: pointer; transition: all 0.2s; margin-top: 0.7rem;
+/* COMMAND REFERENCE */
+.cmd-ref{
+  background:rgba(0,0,0,.4);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;margin-top:.75rem;
 }
-.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.cmd-ref-bar{
+  display:flex;align-items:center;gap:.4rem;
+  background:rgba(0,0,0,.3);padding:.45rem .8rem;
+  border-bottom:1px solid var(--border2);
+}
+.cmd-ref-dot{width:8px;height:8px;border-radius:50%}
+.d1{background:#ff5f57}.d2{background:#ffbd2e}.d3{background:#28ca41}
+.cmd-ref-title{font-family:var(--mono);font-size:.62rem;color:var(--txt2);margin-right:auto}
+.cmd-list{padding:.6rem}
+.cmd-row{
+  display:flex;align-items:flex-start;gap:.75rem;
+  padding:.45rem .4rem;
+  border-bottom:1px solid var(--border2);
+  font-size:.72rem;
+}
+.cmd-row:last-child{border-bottom:none}
+.cmd-text{font-family:var(--mono);color:var(--g1);white-space:nowrap;flex-shrink:0;padding-top:.05rem}
+.cmd-explain{color:var(--txt2);line-height:1.5}
 
-/* ============================
-   LEVEL SELECT
-============================ */
-#levelSelect {
-  align-items: center;
-  justify-content: flex-start;
-  padding: 5rem 1.5rem 2rem;
-}
-.level-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px,1fr));
-  gap: 1rem; max-width: 900px; width: 100%; margin-top: 1.2rem;
-}
-.level-card {
-  background: rgba(11,18,32,0.8);
-  border: 1px solid var(--border);
-  border-radius: 16px; padding: 1.4rem;
-  cursor: pointer; transition: all 0.25s;
-  text-align: center; position: relative; overflow: hidden;
-  backdrop-filter: blur(10px);
-}
-.level-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
-.level-card.locked { opacity: 0.35; cursor: not-allowed; }
-.level-card.locked:hover { transform: none; border-color: var(--border); box-shadow: none; }
-.level-card.completed { border-color: rgba(0,255,157,0.4); }
-.level-card.completed::after { content:'✓'; position:absolute; top:0.5rem; left:0.75rem; color:var(--green); font-size:1rem; font-weight:900; }
-.lc-num { font-size:0.68rem; font-family:'Share Tech Mono',monospace; color:var(--text-dim); margin-bottom:0.4rem; }
-.lc-icon { font-size:1.9rem; margin-bottom:0.4rem; }
-.lc-name { font-size:0.88rem; font-weight:700; color:var(--text); }
-.lc-type { font-size:0.68rem; color:var(--text-dim); margin-top:0.25rem; }
-.lc-diff { display:flex; justify-content:center; gap:0.2rem; margin-top:0.6rem; }
-.diff-dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.08); }
-.diff-dot.filled { background:var(--accent3); }
+/* ─── LAB TAB ─── */
+#labPane{display:none}
+#labPane.on{display:block}
 
-/* ============================
-   GAME SCREEN
-============================ */
-#game { padding: 0; flex-direction: column; }
-
-.topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0.7rem 1.1rem;
-  background: rgba(7,13,26,0.9);
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(20px);
-  gap: 0.75rem; flex-wrap: wrap;
-  position: sticky; top: 0; z-index: 10;
-}
-.topbar-left { display:flex; align-items:center; gap:0.75rem; }
-.topbar-right { display:flex; align-items:center; gap:0.75rem; }
-.game-logo-sm { font-size:1rem; font-weight:900; color:var(--accent); text-shadow:0 0 10px rgba(0,255,231,0.4); }
-.level-badge {
-  background: linear-gradient(135deg, var(--accent4), #3b2a6e);
-  padding: 0.28rem 0.8rem; border-radius:20px; font-size:0.75rem; font-weight:700; color:#fff;
-}
-.attack-badge {
-  padding: 0.28rem 0.8rem; border-radius:20px;
-  font-size:0.72rem; font-weight:700;
-  font-family:'Share Tech Mono',monospace; letter-spacing:0.5px;
-}
-.ab-ddos  { background:rgba(255,62,108,0.15);  color:var(--red);    border:1px solid rgba(255,62,108,0.25); }
-.ab-exfil { background:rgba(247,201,72,0.15);  color:var(--accent3);border:1px solid rgba(247,201,72,0.25); }
-.ab-beacon{ background:rgba(123,94,167,0.15);  color:#b08fdc;       border:1px solid rgba(123,94,167,0.25); }
-.ab-login { background:rgba(255,140,66,0.15);  color:var(--orange); border:1px solid rgba(255,140,66,0.25); }
-.timer-wrap { display:flex; align-items:center; gap:0.5rem; font-family:'Share Tech Mono',monospace; }
-.timer-num { font-size:1.3rem; font-weight:700; color:var(--accent); min-width:3ch; text-align:center; transition:color 0.3s; }
-.timer-num.urgent { color:var(--red); animation:blink 0.6s ease infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.timer-bar-wrap { width:110px; height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; }
-.timer-bar { height:100%; background:linear-gradient(90deg,var(--accent),#0088ff); transition:width 1s linear,background 0.5s; border-radius:3px; }
-.score-display { display:flex; align-items:center; gap:0.3rem; font-family:'Share Tech Mono',monospace; font-size:0.95rem; color:var(--accent3); }
-.lives-display { display:flex; gap:0.2rem; font-size:0.9rem; }
-.hint-toggle { background:rgba(247,201,72,0.12); color:var(--accent3); border:1px solid rgba(247,201,72,0.25); border-radius:20px; padding:0.28rem 0.7rem; font-size:0.72rem; font-family:'Cairo',sans-serif; cursor:pointer; transition:all 0.2s; }
-.hint-toggle:hover { background:rgba(247,201,72,0.22); }
-
-/* GAME CONTENT */
-.game-content {
-  flex: 1;
-  display: grid; grid-template-columns: 1fr 330px;
-  height: calc(100vh - 56px); overflow: hidden;
-}
-@media(max-width:768px) {
-  .game-content { grid-template-columns:1fr; height:auto; overflow:auto; }
-  .side-panel { display:none; }
+.lab-env{
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:1rem;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
 }
 
-/* NETWORK */
-.network-area { position:relative; background:var(--bg-deep); overflow:hidden; display:flex; align-items:center; justify-content:center; }
-#networkCanvas { position:absolute; inset:0; width:100%; height:100%; }
-.devices-layer { position:absolute; inset:0; }
-.device-node { position:absolute; transform:translate(-50%,-50%); cursor:pointer; transition:all 0.3s; }
-.device-card {
-  background: rgba(11,18,32,0.9);
-  border: 1px solid var(--border);
-  border-radius: 11px; padding:0.6rem 0.9rem;
-  min-width: 130px; text-align:center;
-  transition: all 0.3s;
-  position: relative; overflow:hidden;
-  backdrop-filter: blur(8px);
+/* TERMINAL */
+.terminal{
+  background:rgba(3,6,8,.95);
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  font-family:var(--mono);
 }
-.device-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:0.3; }
-.device-card.selected { border-color:var(--accent3); box-shadow:0 0 20px rgba(247,201,72,0.3); }
-.device-card.suspected { border-color:rgba(255,62,108,0.4); animation:suspectPulse 2s ease infinite; }
-@keyframes suspectPulse { 0%,100%{box-shadow:0 0 8px rgba(255,62,108,0.15);} 50%{box-shadow:0 0 22px rgba(255,62,108,0.45);} }
-.device-icon { font-size:1.5rem; margin-bottom:0.25rem; }
-.device-name { font-size:0.72rem; font-weight:700; color:var(--text); }
-.device-ip { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--text-dim); margin-top:0.1rem; }
-.device-metrics { display:flex; justify-content:center; gap:0.4rem; margin-top:0.35rem; flex-wrap:wrap; }
-.metric-pill { background:rgba(255,255,255,0.04); padding:0.12rem 0.35rem; border-radius:4px; font-size:0.58rem; font-family:'Share Tech Mono',monospace; color:var(--text-dim); }
-.metric-pill.anomaly { color:var(--red); background:rgba(255,62,108,0.1); }
-.activity-dot { width:7px; height:7px; border-radius:50%; background:var(--green); margin:0.25rem auto 0; animation:dotPulse 2s ease infinite; }
-@keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
-.activity-dot.high { background:var(--red); animation:dotPulse 0.4s ease infinite; }
-.activity-dot.mid  { background:var(--orange); animation:dotPulse 1s ease infinite; }
-.scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--red),transparent); animation:scanMove 1.5s linear infinite; opacity:0; }
-.device-card.suspected .scan-line { opacity:1; }
-@keyframes scanMove { 0%{top:0;} 100%{top:100%;} }
-.packet { position:absolute; width:5px; height:5px; border-radius:50%; background:var(--accent); box-shadow:0 0 5px var(--accent); pointer-events:none; opacity:0.8; }
+.term-bar{
+  display:flex;align-items:center;gap:.5rem;
+  background:rgba(0,0,0,.6);
+  padding:.45rem .8rem;
+  border-bottom:1px solid var(--border2);
+}
+.tbar-dot{width:10px;height:10px;border-radius:50%;cursor:pointer}
+.tbar-dot:nth-child(1){background:#ff5f57}
+.tbar-dot:nth-child(2){background:#ffbd2e}
+.tbar-dot:nth-child(3){background:#28ca41}
+.tbar-title{font-family:var(--mono);font-size:.65rem;color:var(--txt2);margin-right:auto}
+.tbar-status{
+  font-size:.58rem;padding:.15rem .5rem;
+  border-radius:10px;background:rgba(0,200,150,.1);
+  color:var(--g1);border:1px solid rgba(0,200,150,.2);
+  animation:statusBlink 2s ease infinite;
+}
+@keyframes statusBlink{0%,100%{opacity:1}50%{opacity:.5}}
 
-/* SIDE PANEL */
-.side-panel { background:rgba(11,18,32,0.95); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; backdrop-filter:blur(20px); }
-.panel-tabs { display:flex; border-bottom:1px solid var(--border); }
-.panel-tab { flex:1; padding:0.65rem 0.4rem; font-size:0.72rem; font-weight:700; text-align:center; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; transition:all 0.2s; }
-.panel-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-.panel-content { flex:1; overflow-y:auto; padding:0.9rem; }
-.panel-content::-webkit-scrollbar { width:3px; }
-.panel-content::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-.no-select-msg { text-align:center; color:var(--text-dim); font-size:0.82rem; margin-top:3rem; line-height:1.8; }
-.detail-header { display:flex; align-items:center; gap:0.7rem; margin-bottom:0.9rem; }
-.detail-icon { font-size:1.8rem; }
-.detail-title { font-weight:700; font-size:0.95rem; }
-.detail-ip { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); }
-.stat-row { display:flex; justify-content:space-between; align-items:center; padding:0.45rem 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.77rem; }
-.stat-label { color:var(--text-dim); }
-.stat-val { font-family:'Share Tech Mono',monospace; color:var(--text); font-weight:700; }
-.stat-val.red { color:var(--red); } .stat-val.orange { color:var(--orange); } .stat-val.green { color:var(--green); }
-.section-title { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--text-dim); margin:0.9rem 0 0.45rem; }
-.log-entry { font-family:'Share Tech Mono',monospace; font-size:0.62rem; padding:0.35rem 0.45rem; border-radius:5px; margin-bottom:0.25rem; background:rgba(255,255,255,0.025); color:var(--text-dim); line-height:1.5; }
-.log-entry.warn { background:rgba(255,62,108,0.07); color:var(--red); }
-.log-entry.info { background:rgba(0,255,231,0.05); color:var(--accent); }
-.bar-wrap { margin:0.25rem 0; }
-.bar-label { display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-dim); margin-bottom:0.18rem; }
-.bar-bg { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
-.bar-fill { height:100%; border-radius:3px; transition:width 0.5s; }
-.bar-fill.normal  { background:linear-gradient(90deg,var(--green),#00a066); }
-.bar-fill.warn    { background:linear-gradient(90deg,var(--orange),#cc6000); }
-.bar-fill.danger  { background:linear-gradient(90deg,var(--red),#cc0030); }
-.inspect-btn { width:100%; padding:0.72rem; border-radius:9px; border:none; font-family:'Cairo',sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; margin-top:0.6rem; transition:all 0.2s; }
-.inspect-btn.report { background:linear-gradient(135deg,var(--red),#8a0020); color:#fff; box-shadow:0 0 15px rgba(255,62,108,0.25); }
-.inspect-btn.report:hover { box-shadow:0 0 25px rgba(255,62,108,0.45); transform:translateY(-1px); }
-.inspect-btn.clear { background:rgba(0,255,157,0.08); color:var(--green); border:1px solid rgba(0,255,157,0.25); }
-.inspect-btn.clear:hover { background:rgba(0,255,157,0.15); }
-.global-log { font-family:'Share Tech Mono',monospace; font-size:0.63rem; }
-.glog-entry { display:flex; gap:0.45rem; padding:0.3rem 0; border-bottom:1px solid rgba(255,255,255,0.03); align-items:flex-start; }
-.glog-time { color:var(--text-dim); white-space:nowrap; }
-.glog-src { color:var(--accent); font-weight:700; }
-.glog-msg { color:var(--text); flex:1; }
-.glog-entry.alert .glog-msg { color:var(--red); }
-.hint-card { background:var(--bg-card2); border:1px solid var(--border); border-radius:9px; padding:0.85rem; margin-bottom:0.7rem; }
-.hint-title { font-size:0.77rem; font-weight:700; color:var(--accent3); margin-bottom:0.35rem; }
-.hint-body { font-size:0.72rem; color:var(--text); line-height:1.6; }
+.term-output{
+  height:220px;overflow-y:auto;
+  padding:.75rem;
+  font-size:.68rem;
+  line-height:1.6;
+  color:#4a8;
+}
+.term-output::-webkit-scrollbar{width:3px}
+.term-output::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.t-line{margin-bottom:.1rem;white-space:pre-wrap;word-break:break-all}
+.t-prompt{color:var(--g1)}
+.t-cmd{color:#d0e8ff}
+.t-out{color:#4a8}
+.t-warn{color:var(--g4)}
+.t-err{color:var(--g3)}
+.t-info{color:var(--g2)}
+.t-success{color:var(--g1);font-weight:700}
+.t-dim{color:var(--txt2)}
+.t-hl{color:var(--g4)}
 
-/* RESULT OVERLAY */
-.overlay { position:fixed; inset:0; background:rgba(4,8,15,0.88); backdrop-filter:blur(14px); z-index:100; display:none; align-items:center; justify-content:center; padding:1.5rem; }
-.overlay.active { display:flex; }
-.result-card { background:rgba(11,18,32,0.95); border-radius:22px; padding:2.3rem 1.8rem; max-width:460px; width:100%; text-align:center; position:relative; overflow:hidden; animation:slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1); backdrop-filter:blur(20px); }
-@keyframes slideUp { from{transform:translateY(40px) scale(0.94);opacity:0;} to{transform:translateY(0) scale(1);opacity:1;} }
-.result-card.win  { border:1px solid rgba(0,255,157,0.35); box-shadow:0 0 60px rgba(0,255,157,0.15); }
-.result-card.lose { border:1px solid rgba(255,62,108,0.35); box-shadow:0 0 60px rgba(255,62,108,0.15); }
-.result-icon { font-size:3.5rem; margin-bottom:0.75rem; }
-.result-title { font-size:1.7rem; font-weight:900; margin-bottom:0.4rem; }
-.result-title.win-text  { color:var(--green); text-shadow:0 0 20px rgba(0,255,157,0.4); }
-.result-title.lose-text { color:var(--red);   text-shadow:0 0 20px rgba(255,62,108,0.4); }
-.result-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.6rem; margin:1.3rem 0; }
-.result-stat { background:rgba(255,255,255,0.03); border-radius:10px; padding:0.65rem; }
-.rs-val { font-size:1.3rem; font-weight:900; color:var(--accent); }
-.rs-label { font-size:0.68rem; color:var(--text-dim); margin-top:0.15rem; }
-.result-explanation { background:rgba(0,255,231,0.05); border:1px solid rgba(0,255,231,0.12); border-radius:10px; padding:0.9rem; margin-bottom:1.2rem; text-align:right; font-size:0.78rem; line-height:1.7; color:var(--text); }
-.result-explanation strong { color:var(--accent); }
-.result-msg { color:var(--text-dim); font-size:0.85rem; line-height:1.7; margin-bottom:1.3rem; }
-.result-btns { display:flex; gap:0.65rem; justify-content:center; flex-wrap:wrap; }
+.term-input-wrap{
+  display:flex;align-items:center;
+  padding:.45rem .75rem;
+  border-top:1px solid var(--border2);
+  background:rgba(0,0,0,.3);
+  gap:.4rem;
+}
+.term-prompt-sym{font-family:var(--mono);font-size:.72rem;color:var(--g1);white-space:nowrap}
+.term-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:var(--mono);font-size:.72rem;color:#d0e8ff;
+  caret-color:var(--g1);
+}
 
-/* misc */
-.back-btn { display:inline-flex; align-items:center; gap:0.35rem; background:transparent; color:var(--text-dim); font-family:'Cairo',sans-serif; font-size:0.82rem; padding:0.45rem 0.9rem; border:1px solid var(--border); border-radius:20px; cursor:pointer; transition:all 0.2s; margin-bottom:1.2rem; }
-.back-btn:hover { color:var(--accent); border-color:var(--accent); }
-.page-title { font-size:1.7rem; font-weight:900; color:var(--accent); margin-bottom:0.25rem; }
-.page-sub { font-size:0.85rem; color:var(--text-dim); }
-::-webkit-scrollbar { width:5px; height:5px; }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+/* QUICK CMD BUTTONS */
+.quick-cmds{
+  display:flex;gap:.4rem;flex-wrap:wrap;padding:.6rem;
+  border-top:1px solid var(--border2);
+  background:rgba(0,0,0,.2);
+}
+.qcmd{
+  font-family:var(--mono);font-size:.62rem;
+  padding:.28rem .6rem;border-radius:5px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border2);
+  color:var(--g1);cursor:pointer;transition:.15s;
+  white-space:nowrap;
+}
+.qcmd:hover{background:rgba(0,200,150,.1);border-color:rgba(0,200,150,.3)}
+
+/* WIRESHARK PANEL */
+.wireshark-panel{
+  background:rgba(0,8,20,.9);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:1rem;
+}
+.ws-bar{
+  background:linear-gradient(135deg,rgba(0,80,160,.4),rgba(0,40,80,.3));
+  padding:.4rem .8rem;
+  border-bottom:1px solid rgba(0,100,200,.2);
+  display:flex;align-items:center;gap:.5rem;
+}
+.ws-title{font-family:var(--mono);font-size:.65rem;color:#4af;font-weight:700}
+.ws-filter{
+  flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(0,100,200,.3);
+  border-radius:4px;padding:.2rem .5rem;
+  font-family:var(--mono);font-size:.6rem;color:#4af;outline:none;
+  max-width:200px;
+}
+.ws-filter::placeholder{color:rgba(100,160,255,.3)}
+.ws-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.6rem}
+.ws-table th{
+  background:rgba(0,40,80,.4);color:rgba(100,160,255,.6);
+  padding:.3rem .5rem;text-align:right;
+  border-bottom:1px solid rgba(0,100,200,.2);
+  font-weight:400;letter-spacing:.5px;
+}
+.ws-table td{
+  padding:.3rem .5rem;color:var(--txt2);
+  border-bottom:1px solid rgba(255,255,255,.03);
+}
+.ws-row:hover td{background:rgba(0,60,120,.3);cursor:pointer}
+.ws-row.suspicious td{color:var(--g4)}
+.ws-row.malicious td{color:var(--g3)}
+.ws-row.selected td{background:rgba(0,100,200,.15)}
+.proto-tcp{color:#4af}
+.proto-udp{color:#8cf}
+.proto-http{color:#0f8}
+.proto-dns{color:#ff8}
+.proto-unknown{color:var(--g3)}
+.ws-scroll{max-height:180px;overflow-y:auto}
+.ws-scroll::-webkit-scrollbar{width:3px}
+.ws-scroll::-webkit-scrollbar-thumb{background:rgba(0,100,200,.3);border-radius:2px}
+
+/* METASPLOIT PANEL */
+.msf-panel{
+  background:rgba(20,0,0,.8);
+  border:1px solid rgba(200,50,50,.2);
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:1rem;
+}
+.msf-bar{
+  background:rgba(80,0,0,.4);
+  padding:.4rem .8rem;border-bottom:1px solid rgba(200,50,50,.2);
+  display:flex;align-items:center;gap:.5rem;
+}
+.msf-title{font-family:var(--mono);font-size:.65rem;color:#f44;font-weight:700}
+.msf-ver{font-family:var(--mono);font-size:.58rem;color:rgba(255,100,100,.4)}
+
+/* NMAP PANEL */
+.nmap-panel{
+  border:1px solid rgba(0,160,255,.2);
+  border-radius:10px;overflow:hidden;margin-bottom:1rem;
+}
+.nmap-bar{
+  background:rgba(0,30,60,.4);padding:.4rem .8rem;
+  border-bottom:1px solid rgba(0,100,200,.2);
+  display:flex;align-items:center;gap:.5rem;
+}
+.nmap-title{font-family:var(--mono);font-size:.65rem;color:var(--g2);font-weight:700}
+
+.port-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.62rem}
+.port-table th{background:rgba(0,30,60,.3);color:rgba(0,160,255,.5);padding:.3rem .5rem;text-align:right;border-bottom:1px solid rgba(0,100,200,.2);font-weight:400}
+.port-table td{padding:.3rem .5rem;border-bottom:1px solid rgba(255,255,255,.03);color:var(--txt2)}
+.port-open{color:var(--g1)}
+.port-closed{color:var(--g3)}
+.port-filtered{color:var(--g4)}
+
+/* ─── CHALLENGE TAB ─── */
+#chalPane{display:none}
+#chalPane.on{display:block}
+
+.chal-header{
+  background:rgba(255,56,96,.05);border:1px solid rgba(255,56,96,.15);
+  border-radius:10px;padding:1rem;margin-bottom:1rem;
+  display:flex;align-items:flex-start;gap:.75rem;
+}
+.chal-alert-icon{font-size:1.5rem;flex-shrink:0}
+.chal-alert-title{font-size:.85rem;font-weight:700;color:#ff6880;margin-bottom:.3rem}
+.chal-alert-desc{font-size:.75rem;color:var(--txt2);line-height:1.6}
+.chal-difficulty{
+  display:flex;align-items:center;gap:.4rem;margin-bottom:1rem;
+  font-family:var(--mono);font-size:.65rem;color:var(--txt2);
+}
+.chal-difficulty-pips{display:flex;gap:.2rem}
+.cpip{width:8px;height:8px;border-radius:2px;background:var(--txt3)}
+.cpip.f{background:var(--g3)}
+
+.chal-questions{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem}
+.chal-q{
+  background:rgba(255,255,255,.02);border:1px solid var(--border2);
+  border-radius:10px;padding:1rem;
+}
+.cq-num{font-family:var(--mono);font-size:.6rem;color:var(--txt2);margin-bottom:.4rem}
+.cq-text{font-size:.82rem;color:#d0e8ff;margin-bottom:.75rem;line-height:1.5}
+.cq-text .code{font-family:var(--mono);font-size:.75rem;color:var(--g1);background:rgba(0,200,150,.07);padding:.1rem .3rem;border-radius:3px}
+.cq-opts{display:flex;flex-direction:column;gap:.35rem}
+.cq-opt{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.5rem .7rem;border-radius:7px;
+  border:1px solid rgba(255,255,255,.05);
+  cursor:pointer;transition:.2s;font-size:.78rem;color:var(--txt);
+  background:rgba(255,255,255,.02);
+}
+.cq-opt:hover{border-color:rgba(0,200,150,.25);background:rgba(0,200,150,.04)}
+.cq-opt.correct{border-color:var(--g1);background:rgba(0,200,150,.08);color:var(--g1);pointer-events:none}
+.cq-opt.wrong{border-color:var(--g3);background:rgba(255,56,96,.06);color:var(--g3);pointer-events:none}
+.cq-opt.disabled{pointer-events:none;opacity:.4}
+.cq-radio{
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid var(--txt3);flex-shrink:0;transition:.2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.cq-opt.correct .cq-radio{border-color:var(--g1);background:var(--g1)}
+.cq-opt.wrong .cq-radio{border-color:var(--g3);background:var(--g3)}
+.cq-feedback{
+  font-family:var(--mono);font-size:.68rem;
+  margin-top:.5rem;padding:.4rem .6rem;border-radius:5px;
+  display:none;line-height:1.5;
+}
+.cq-feedback.on{display:block}
+.cq-feedback.ok{background:rgba(0,200,150,.06);color:var(--g1)}
+.cq-feedback.bad{background:rgba(255,56,96,.06);color:var(--g3)}
+
+/* SUBMIT / RESULT */
+.chal-submit{
+  width:100%;padding:.8rem;
+  background:linear-gradient(135deg,var(--g3),#8b0020);
+  color:#fff;font-family:var(--sans);font-weight:700;font-size:.9rem;
+  border:none;border-radius:10px;cursor:pointer;
+  box-shadow:0 0 20px rgba(255,56,96,.2);
+  transition:.2s;margin-bottom:1rem;
+  opacity:.4;pointer-events:none;
+}
+.chal-submit.on{opacity:1;pointer-events:all}
+.chal-submit.on:hover{transform:translateY(-1px);box-shadow:0 0 30px rgba(255,56,96,.35)}
+
+.chal-result{
+  background:rgba(0,200,150,.05);border:1px solid rgba(0,200,150,.2);
+  border-radius:12px;padding:1.2rem;text-align:center;
+  display:none;
+}
+.chal-result.on{display:block}
+.chal-result.fail{background:rgba(255,56,96,.05);border-color:rgba(255,56,96,.2)}
+.cr-icon{font-size:2.5rem;margin-bottom:.5rem}
+.cr-title{font-size:1.1rem;font-weight:700;margin-bottom:.3rem}
+.cr-title.ok{color:var(--g1)}
+.cr-title.fail{color:var(--g3)}
+.cr-score{font-family:var(--mono);font-size:.75rem;color:var(--txt2);margin-bottom:.8rem}
+.cr-explain{font-size:.78rem;color:var(--txt);line-height:1.7;margin-bottom:1rem;text-align:right}
+.cr-explain strong{color:var(--g1)}
+.cr-btns{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.cr-btn-p{
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  color:#000;font-family:var(--sans);font-weight:700;font-size:.85rem;
+  padding:.6rem 1.5rem;border:none;border-radius:8px;cursor:pointer;transition:.2s;
+}
+.cr-btn-p:hover{transform:scale(1.04)}
+.cr-btn-s{
+  background:transparent;color:var(--txt);
+  font-family:var(--sans);font-size:.82rem;
+  padding:.55rem 1.2rem;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:.2s;
+}
+.cr-btn-s:hover{border-color:rgba(0,200,150,.3);color:var(--g1)}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:600px){
+  .opts-grid{grid-template-columns:1fr}
+  .modules-grid{grid-template-columns:1fr}
+  .term-output{height:180px}
+  .ws-scroll{max-height:140px}
+  .ws-table th:nth-child(3),.ws-table td:nth-child(3){display:none}
+  .port-table th:nth-child(5),.port-table td:nth-child(5){display:none}
+  .lesson-progress-wrap{display:none}
+  .lesson-title{font-size:.9rem}
+}
+@media(max-width:400px){
+  .boot-title{font-size:1.6rem}
+  .ws-table th:nth-child(4),.ws-table td:nth-child(4){display:none}
+  .dash-content{padding:1rem .75rem 3rem}
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--txt3);border-radius:3px}
+
+/* MISC */
+.separator{height:1px;background:var(--border2);margin:1.2rem 0}
+.tag{
+  display:inline-block;
+  font-family:var(--mono);font-size:.58rem;
+  padding:.15rem .45rem;border-radius:4px;margin-left:.3rem;
+}
+.tag-red{background:rgba(255,56,96,.12);color:var(--g3);border:1px solid rgba(255,56,96,.2)}
+.tag-grn{background:rgba(0,200,150,.1);color:var(--g1);border:1px solid rgba(0,200,150,.2)}
+.tag-blu{background:rgba(0,160,255,.1);color:var(--g2);border:1px solid rgba(0,160,255,.2)}
+.tag-yel{background:rgba(255,214,0,.1);color:var(--g4);border:1px solid rgba(255,214,0,.2)}
 </style>
 </head>
 <body>
 
-<!-- Matrix canvas -->
-<canvas id="matrixCanvas"></canvas>
+<canvas id="bgCanvas"></canvas>
+<div class="hex-bg"></div>
+<div class="scanline"></div>
 
-<!-- Floating particles -->
-<div class="particles-wrap" id="particlesWrap"></div>
-
-<!-- ========================
+<!-- ════════════════════════════
      PWA INSTALL BANNER
-======================== -->
+════════════════════════════ -->
 <div id="installBanner">
-  <div class="banner-icon">🛡️</div>
-  <div class="banner-text">
-    <strong>ثبّت CyberDetective</strong> على جهازك للعب بدون إنترنت!
-  </div>
-  <button class="banner-install" id="installBtn">📲 تثبيت</button>
-  <button class="banner-close" id="closeBanner" title="إغلاق">✕</button>
+  <div class="ib-icon">🛡️</div>
+  <div class="ib-txt"><strong>CyberLab Pro</strong> — ثبّت التطبيق للوصول offline وتجربة أفضل</div>
+  <button class="ib-install" id="pwaBtn">📲 تثبيت</button>
+  <button class="ib-x" id="pwaClose">✕</button>
 </div>
 
-<!-- ========================
-     LOGIN SCREEN
-======================== -->
-<div id="loginScreen" class="screen active">
-  <div class="orbit-wrap">
-    <div class="orbit-ring"><div class="orbit-dot"></div></div>
-    <div class="orbit-ring"><div class="orbit-dot"></div></div>
-    <div class="orbit-ring"><div class="orbit-dot"></div></div>
-    <div class="logo-core">🛡️</div>
+<!-- ════════════════════════════
+     BOOT / AUTH SCREEN
+════════════════════════════ -->
+<div id="boot" class="on">
+  <div class="boot-logo">
+    <div class="bl-ring"></div>
+    <div class="bl-hex">🛡️</div>
   </div>
+  <div class="boot-title">CyberLab Pro</div>
+  <div class="boot-sub">Advanced Cybersecurity Training Platform</div>
+  <div class="boot-tagline">للمختصين فقط — Not for the average user</div>
 
-  <div class="game-title">CyberDetective</div>
-  <div class="game-subtitle">NETWORK SECURITY TRAINING</div>
-
-  <div class="login-card">
-    <div class="corner tl"></div>
-    <div class="corner tr"></div>
-    <div class="corner bl"></div>
-    <div class="corner br"></div>
-
-    <div class="login-section-title">التحقق الأمني / SECURITY CHECK</div>
-
-    <!-- CYBER PUZZLE -->
-    <div class="puzzle-container">
-      <div class="puzzle-header">
-        <span style="font-size:1.1rem;">🔐</span>
-        <span class="puzzle-badge">CYBER PUZZLE</span>
-      </div>
-      <div class="puzzle-question">هل تدخل من الباب أم النافذة؟</div>
-      <div class="puzzle-sub">
-        في الأمن السيبراني، المهاجم الذكي لا يكسر الباب — بل يبحث عن
-        <span>الثغرة المخفية</span>. أي طريقة يستخدمها الهاكر للوصول الخفي إلى النظام؟
-      </div>
-
-      <div class="puzzle-options" id="puzzleOpts">
-        <div class="puzzle-opt" onclick="answerPuzzle(this, false)" data-val="door">
-          <div class="opt-icon">🚪</div>
-          <div class="opt-text">الباب الأمامي</div>
-          <div class="opt-code">Port 80/443 (HTTP/S)</div>
-        </div>
-        <div class="puzzle-opt" onclick="answerPuzzle(this, true)" data-val="window">
-          <div class="opt-icon">🪟</div>
-          <div class="opt-text">النافذة الخلفية</div>
-          <div class="opt-code">Backdoor / Exploit</div>
-        </div>
-        <div class="puzzle-opt" onclick="answerPuzzle(this, false)" data-val="knock">
-          <div class="opt-icon">🔔</div>
-          <div class="opt-text">يطرق ويطلب الإذن</div>
-          <div class="opt-code">Social Engineering</div>
-        </div>
-        <div class="puzzle-opt" onclick="answerPuzzle(this, false)" data-val="key">
-          <div class="opt-icon">🗝️</div>
-          <div class="opt-text">ينسخ المفتاح</div>
-          <div class="opt-code">Credential Theft</div>
-        </div>
-      </div>
-
-      <div class="puzzle-feedback" id="puzzleFeedback"></div>
+  <div class="auth-box">
+    <div class="auth-titlebar">
+      <div class="titlebar-dot"></div>
+      <div class="titlebar-dot"></div>
+      <div class="titlebar-dot"></div>
+      <div class="titlebar-label">root@cyberlab:~$ security_challenge --auth</div>
     </div>
+    <div class="auth-body">
+      <div class="chal-label"><div class="chal-dot"></div>SECURITY VERIFICATION REQUIRED</div>
 
-    <button class="btn-enter" id="enterBtn" onclick="enterGame()">
-      🔓 دخول النظام — ACCESS GRANTED
-    </button>
+      <div class="challenge-q" id="authQ"></div>
 
-    <div class="status-bar">
-      <div class="status-dot"></div>
-      <span id="statusText">في انتظار التحقق الأمني...</span>
-    </div>
+      <div class="opts-grid" id="authOpts"></div>
 
-    <!-- Developer Credit -->
-    <div class="dev-credit">
-      <div class="dev-name">حارث حسيب السامرائي</div>
-      <div class="dev-role">Cybersecurity Game Developer · Iraq 🇮🇶</div>
-    </div>
-  </div>
-</div>
+      <div class="auth-feedback" id="authFb"></div>
 
-<!-- ========================
-     INTRO SCREEN
-======================== -->
-<div id="intro" class="screen">
-  <div class="logo-wrap">
-    <div class="logo-icon">🛡️</div>
-    <div class="game-title" style="font-size:2.5rem;">CyberDetective</div>
-    <div class="game-subtitle">محقق الشبكات الأمنية</div>
-  </div>
+      <button class="btn-access" id="authEnter" onclick="enterDash()">
+        $ ./access_granted --execute
+      </button>
 
-  <div class="intro-desc">
-    مهمتك هي <strong>تحليل الشبكة</strong> واكتشاف الجهاز المخترق قبل انتهاء الوقت!
-    راقب معدلات حركة البيانات، سجلات الاتصالات، والأنشطة المشبوهة لكل جهاز.
-  </div>
-
-  <div class="attack-types">
-    <div class="attack-type-card"><div class="atk-icon">🌊</div><div class="atk-name">DDoS Attack</div><div class="atk-desc">فيضان من الحزم</div></div>
-    <div class="attack-type-card"><div class="atk-icon">📤</div><div class="atk-name">Data Exfiltration</div><div class="atk-desc">تسريب بيانات</div></div>
-    <div class="attack-type-card"><div class="atk-icon">📡</div><div class="atk-name">Malware Beacon</div><div class="atk-desc">اتصال C2</div></div>
-    <div class="attack-type-card"><div class="atk-icon">🔑</div><div class="atk-name">Suspicious Login</div><div class="atk-desc">دخول مشبوه</div></div>
-  </div>
-
-  <button class="btn-primary" onclick="showScreen('levelSelect')">🎮 ابدأ اللعبة</button>
-  <br>
-  <button class="btn-secondary" onclick="startLevel(0)">▶ لعب سريع</button>
-</div>
-
-<!-- ========================
-     LEVEL SELECT
-======================== -->
-<div id="levelSelect" class="screen">
-  <div style="padding:5rem 1.5rem 2rem;width:100%;max-width:960px;margin:0 auto;">
-    <button class="back-btn" onclick="showScreen('intro')">← رجوع</button>
-    <div class="page-title">🗺️ اختر المرحلة</div>
-    <div class="page-sub">10 مراحل — كل مرحلة نوع هجوم مختلف وتحدٍّ أصعب</div>
-    <div class="level-grid" id="levelGrid"></div>
-  </div>
-</div>
-
-<!-- ========================
-     GAME SCREEN
-======================== -->
-<div id="game" class="screen">
-  <div class="topbar">
-    <div class="topbar-left">
-      <button class="back-btn" style="margin:0;padding:0.25rem 0.7rem;font-size:0.72rem;" onclick="confirmExit()">← خروج</button>
-      <div class="game-logo-sm">🛡️ CyberDetective</div>
-      <div class="level-badge" id="levelLabel">المرحلة 1</div>
-      <div class="attack-badge ab-ddos" id="attackLabel">DDoS</div>
-    </div>
-    <div class="topbar-right">
-      <div class="score-display">⭐ <span id="scoreDisplay">0</span></div>
-      <div class="lives-display" id="livesDisplay">❤️❤️❤️</div>
-      <div class="timer-wrap">
-        <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar"></div></div>
-        <div class="timer-num" id="timerNum">60</div>
-      </div>
-      <button class="hint-toggle" onclick="useHint()">💡 تلميح</button>
-    </div>
-  </div>
-  <div class="game-content">
-    <div class="network-area" id="networkArea">
-      <canvas id="networkCanvas"></canvas>
-      <div class="devices-layer" id="devicesLayer"></div>
-    </div>
-    <div class="side-panel">
-      <div class="panel-tabs">
-        <div class="panel-tab active" onclick="switchTab('detail')" id="tabDetail">🔍 التفاصيل</div>
-        <div class="panel-tab" onclick="switchTab('log')" id="tabLog">📋 السجل</div>
-        <div class="panel-tab" onclick="switchTab('hints')" id="tabHints">💡 تلميحات</div>
-      </div>
-      <div class="panel-content" id="panelContent">
-        <div class="no-select-msg"><div style="font-size:2rem;margin-bottom:0.5rem;">👆</div><div>اضغط على أي جهاز<br>لعرض تفاصيله</div></div>
+      <div class="dev-sig">
+        <div class="dev-sig-by">PLATFORM DEVELOPER</div>
+        <div class="dev-sig-name">حارث حسيب السامرائي</div>
+        <div class="dev-sig-role">Cybersecurity Platform Engineer · Iraq 🇮🇶</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ========================
-     RESULT OVERLAY
-======================== -->
-<div class="overlay" id="resultOverlay">
-  <div class="result-card" id="resultCard">
-    <div class="result-icon" id="resultIcon"></div>
-    <div class="result-title" id="resultTitle"></div>
-    <div class="result-stats">
-      <div class="result-stat"><div class="rs-val" id="rsTime">--</div><div class="rs-label">الوقت المتبقي</div></div>
-      <div class="result-stat"><div class="rs-val" id="rsScore">--</div><div class="rs-label">النقاط</div></div>
-      <div class="result-stat"><div class="rs-val" id="rsAccuracy">--%</div><div class="rs-label">الدقة</div></div>
+<!-- ════════════════════════════
+     DASHBOARD
+════════════════════════════ -->
+<div id="dash" class="screen">
+  <nav class="topnav">
+    <div class="nav-logo">🛡️ CyberLab Pro</div>
+    <div class="nav-sep"></div>
+    <div class="nav-score">⭐ <span id="navScore">0</span> XP</div>
+    <div class="nav-right">
+      <div class="nav-badge" id="navRank">TRAINEE</div>
     </div>
-    <div class="result-explanation" id="resultExplanation"></div>
-    <div class="result-msg" id="resultMsg"></div>
-    <div class="result-btns">
-      <button class="btn-primary" id="nextBtn" onclick="nextLevel()">التالي ➜</button>
-      <button class="btn-secondary" onclick="retryLevel()">🔄 إعادة</button>
-      <button class="btn-secondary" onclick="showScreen('levelSelect')">🗺️ الخريطة</button>
+  </nav>
+  <div class="dash-content">
+    <div class="dash-header">
+      <div class="dash-title">🗂️ وحدات التدريب</div>
+      <div class="dash-sub">
+        <span>10 وحدات</span> — لكل وحدة: درس نظري + بيئة محاكاة + تحدٍّ للمختصين
+      </div>
     </div>
+    <div class="modules-grid" id="modulesGrid"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     LESSON SCREEN
+════════════════════════════ -->
+<div id="lesson" class="screen">
+  <nav class="topnav">
+    <div class="nav-logo">🛡️ CyberLab Pro</div>
+    <div class="nav-sep"></div>
+    <div class="nav-score">⭐ <span id="lessonScore">0</span> XP</div>
+    <div class="nav-right">
+      <div class="nav-badge" id="lessonRank">TRAINEE</div>
+    </div>
+  </nav>
+  <div class="lesson-wrap">
+    <!-- HEADER -->
+    <div class="lesson-hdr">
+      <button class="lesson-back" onclick="showDash()">← رجوع</button>
+      <div class="lesson-tool-badge" id="lToolBadge">TOOL</div>
+      <div class="lesson-title" id="lTitle">—</div>
+      <div class="lesson-progress-wrap">
+        <div class="lp-text" id="lProgressTxt">0/3</div>
+        <div class="lp-bar"><div class="lp-fill" id="lProgressBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="lesson-tabs">
+      <div class="ltab on" id="tabLearn" onclick="switchLTab('learn')">📖 التعلم</div>
+      <div class="ltab" id="tabLab" onclick="switchLTab('lab')">💻 المختبر</div>
+      <div class="ltab" id="tabChal" onclick="switchLTab('chal')">🎯 التحدي</div>
+    </div>
+
+    <!-- LEARN PANE -->
+    <div id="learnPane"></div>
+
+    <!-- LAB PANE -->
+    <div id="labPane"></div>
+
+    <!-- CHALLENGE PANE -->
+    <div id="chalPane"></div>
   </div>
 </div>
 
 <script>
-// =====================================================
-//  MATRIX RAIN ANIMATION
-// =====================================================
-(function initMatrix() {
-  const canvas = document.getElementById('matrixCanvas');
-  const ctx = canvas.getContext('2d');
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,.<>?/\\~`ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩアイウエオカキクケコ';
-  let drops = [];
-  function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const cols = Math.floor(canvas.width / 16);
-    drops = Array.from({length: cols}, () => Math.random() * -50);
-  }
-  resize();
-  window.addEventListener('resize', resize);
-  function draw() {
-    ctx.fillStyle = 'rgba(4,8,15,0.05)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '13px Share Tech Mono, monospace';
-    drops.forEach((y, i) => {
-      const ch = chars[Math.floor(Math.random() * chars.length)];
-      const bright = Math.random() > 0.95;
-      ctx.fillStyle = bright ? '#ffffff' : (Math.random() > 0.5 ? '#00ffe7' : '#00a070');
-      ctx.fillText(ch, i * 16, y * 16);
-      if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-      drops[i] += 0.5;
+/* ═══════════════════════════════════════════
+   MATRIX BG
+═══════════════════════════════════════════ */
+(function(){
+  const c=document.getElementById('bgCanvas'),ctx=c.getContext('2d');
+  const CH='アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*<>?/\\~`';
+  let drops=[];
+  function resize(){c.width=innerWidth;c.height=innerHeight;drops=Array.from({length:Math.floor(innerWidth/14)},()=>-Math.random()*50)}
+  resize();addEventListener('resize',resize);
+  function draw(){
+    ctx.fillStyle='rgba(3,6,8,.05)';ctx.fillRect(0,0,c.width,c.height);
+    ctx.font='12px JetBrains Mono,monospace';
+    drops.forEach((y,i)=>{
+      const ch=CH[Math.floor(Math.random()*CH.length)];
+      const bright=Math.random()>.97;
+      ctx.fillStyle=bright?'#fff':(Math.random()>.6?'#00c896':'#006040');
+      ctx.fillText(ch,i*14,y*14);
+      if(y*14>c.height&&Math.random()>.975)drops[i]=0;
+      drops[i]+=.4;
     });
   }
-  setInterval(draw, 50);
+  setInterval(draw,45);
 })();
 
-// =====================================================
-//  FLOATING PARTICLES
-// =====================================================
-(function initParticles() {
-  const wrap = document.getElementById('particlesWrap');
-  const symbols = ['🔒','🔑','🛡️','⚡','🌐','💻','📡','🔐','⚙️','🔍'];
-  for (let i = 0; i < 18; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const isSymbol = Math.random() > 0.6;
-    if (isSymbol) {
-      p.style.cssText = `
-        font-size: ${10 + Math.random()*16}px;
-        left: ${Math.random()*100}%;
-        animation-duration: ${15 + Math.random()*20}s;
-        animation-delay: ${-Math.random()*25}s;
-        background: transparent;
-        border-radius: 0;
-      `;
-      p.textContent = symbols[Math.floor(Math.random()*symbols.length)];
-    } else {
-      const size = 2 + Math.random() * 4;
-      const colors = ['rgba(0,255,231,', 'rgba(0,136,255,', 'rgba(123,94,167,', 'rgba(0,255,157,'];
-      const col = colors[Math.floor(Math.random()*colors.length)];
-      p.style.cssText = `
-        width:${size}px; height:${size}px;
-        left:${Math.random()*100}%;
-        background:${col}0.7)};
-        box-shadow:0 0 6px ${col}0.5)};
-        animation-duration:${10 + Math.random()*20}s;
-        animation-delay:${-Math.random()*30}s;
-      `;
+/* ═══════════════════════════════════════════
+   PWA BANNER — appears after 4 seconds
+═══════════════════════════════════════════ */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
+
+setTimeout(()=>{
+  const b=document.getElementById('installBanner');
+  const isStandalone=window.matchMedia('(display-mode:standalone)').matches;
+  if(!isStandalone){
+    b.classList.add('vis');
+    if(/iphone|ipad|ipod/i.test(navigator.userAgent)){
+      b.querySelector('.ib-txt').innerHTML='<strong>CyberLab Pro</strong> — Safari ⬆️ ← "Add to Home Screen" للتثبيت';
+      document.getElementById('pwaBtn').style.display='none';
     }
-    wrap.appendChild(p);
   }
-})();
+},4000);
 
-// =====================================================
-//  PWA INSTALL BANNER
-// =====================================================
-let deferredPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const banner = document.getElementById('installBanner');
-  banner.classList.add('show');
-  // push screens down
-  document.querySelectorAll('.screen').forEach(s => s.style.paddingTop = '');
-});
-
-document.getElementById('installBtn').addEventListener('click', async () => {
-  if (!deferredPrompt) return;
+document.getElementById('pwaBtn').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;
   deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') {
-    document.getElementById('installBanner').classList.remove('show');
+  const{outcome}=await deferredPrompt.userChoice;
+  if(outcome==='accepted')document.getElementById('installBanner').classList.remove('vis');
+  deferredPrompt=null;
+});
+document.getElementById('pwaClose').addEventListener('click',()=>document.getElementById('installBanner').classList.remove('vis'));
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+const S={xp:0,completed:[],current:-1,tabHistory:{},authDone:false};
+try{const sv=JSON.parse(localStorage.getItem('clp_s')||'{}');S.xp=sv.xp||0;S.completed=sv.completed||[];}catch(e){}
+function saveState(){try{localStorage.setItem('clp_s',JSON.stringify({xp:S.xp,completed:S.completed}));}catch(e){}}
+
+/* ═══════════════════════════════════════════
+   AUTH CHALLENGE — Advanced CTF-style question
+═══════════════════════════════════════════ */
+const AUTH_CHALLENGES=[
+  {
+    q:`<span class="comm"># Wireshark capture يُظهر الحزم التالية كل 30 ثانية بالضبط:</span>\n<span class="hl">10.0.0.5:54231</span> → <span class="cmd">185.234.219.4:443</span>  HTTPS  <span class="hl">128 bytes</span>\n<span class="hl">10.0.0.5:54312</span> → <span class="cmd">185.234.219.4:443</span>  HTTPS  <span class="hl">128 bytes</span>\n<span class="comm"># السؤال: ما نوع النشاط المشبوه؟</span>`,
+    opts:[
+      {t:'Malware C2 Beacon',c:'malware_c2',d:'اتصال دوري بخادم تحكم - C&C Callback',correct:true},
+      {t:'Normal HTTPS Traffic',c:'normal_https',d:'حركة ويب عادية عبر TLS',correct:false},
+      {t:'DNS Tunneling',c:'dns_tunnel',d:'تهريب بيانات عبر استعلامات DNS',correct:false},
+      {t:'Port Scanning',c:'port_scan',d:'استطلاع المنافذ - Nmap/Masscan',correct:false},
+    ],
+    ok:'✓ صحيح — التوقيت الثابت (30s) + حجم ثابت (128B) + IP خارجي = Malware Beacon/C2 Callback. الحل: firewall rule + EDR isolation.',
+    bad:'✗ '
   }
-  deferredPrompt = null;
+];
+const aq=AUTH_CHALLENGES[0];
+let authSolved=false;
+
+document.getElementById('authQ').innerHTML=aq.q;
+const authOptsEl=document.getElementById('authOpts');
+aq.opts.forEach(o=>{
+  const d=document.createElement('div');
+  d.className='opt';
+  d.innerHTML=`<span class="opt-cmd">${o.t}</span><span class="opt-desc"># ${o.d}</span>`;
+  d.onclick=()=>{
+    if(authSolved)return;
+    document.querySelectorAll('#authOpts .opt').forEach(x=>x.classList.add('dim'));
+    const fb=document.getElementById('authFb');
+    if(o.correct){
+      d.classList.add('ok');d.classList.remove('dim');
+      fb.className='auth-feedback on ok';
+      fb.textContent=aq.ok;
+      authSolved=true;
+      document.getElementById('authEnter').classList.add('on');
+    } else {
+      d.classList.add('bad');
+      fb.className='auth-feedback on bad';
+      fb.textContent=aq.bad+(o.correct?'':` "${o.t}" غير صحيح — حاول مرة أخرى`);
+      setTimeout(()=>{
+        document.querySelectorAll('#authOpts .opt').forEach(x=>{x.classList.remove('dim','bad');});
+        fb.className='auth-feedback';
+      },1600);
+    }
+  };
+  authOptsEl.appendChild(d);
 });
 
-document.getElementById('closeBanner').addEventListener('click', () => {
-  document.getElementById('installBanner').classList.remove('show');
-});
+function enterDash(){if(!authSolved)return;showScreen('dash');renderModules();}
 
-// Show banner on iOS (no beforeinstallprompt)
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isInStandalone = window.matchMedia('(display-mode: standalone)').matches;
-if (isIOS && !isInStandalone) {
-  setTimeout(() => {
-    const banner = document.getElementById('installBanner');
-    banner.querySelector('.banner-text').innerHTML =
-      '<strong>ثبّت CyberDetective</strong> — Safari ⬆️ ثم "Add to Home Screen"';
-    banner.querySelector('.banner-install').style.display = 'none';
-    banner.classList.add('show');
-  }, 2000);
+/* ═══════════════════════════════════════════
+   MODULES DATA — 10 Professional Tools
+═══════════════════════════════════════════ */
+const MODULES=[
+  {
+    id:0,icon:'🔭',tool:'Wireshark',name:'تحليل حركة الشبكة',
+    desc:'تحليل الحزم المباشر، فك تشفير البروتوكولات، كشف الأنماط الشاذة في الشبكة',
+    diff:2,time:'25 دقيقة',color:'#00a0ff',
+    learn:{
+      about:`Wireshark هو المحلل الأقوى للبروتوكولات (Protocol Analyzer) في العالم. يلتقط الحزم الحية (Live Capture) أو يقرأ ملفات PCAP. يُعتبر أساس أي تحقيق جنائي رقمي (Network Forensics).`,
+      points:[
+        {icon:'📡',t:'Packet Capture',d:'يلتقط كل حزمة تمر عبر واجهة الشبكة بوضع <strong>Promiscuous Mode</strong>'},
+        {icon:'🔍',t:'Display Filters',d:'مرشحات قوية مثل <strong>tcp.port == 4444</strong> أو <strong>ip.src == 10.0.0.5</strong>'},
+        {icon:'📊',t:'Protocol Dissection',d:'يفك تشفير أكثر من <strong>3000 بروتوكول</strong> تلقائياً'},
+        {icon:'🎯',t:'Follow Stream',d:'متابعة تيار TCP/UDP الكامل لرؤية المحادثة بشكل كامل'},
+      ],
+      cmds:[
+        {cmd:'tcp.flags.syn==1 && tcp.flags.ack==0',exp:'رصد SYN packets فقط — مفيد لكشف Port Scan'},
+        {cmd:'http.request.method == "POST"',exp:'فلترة طلبات POST — مشبوهة في تسريب البيانات'},
+        {cmd:'dns.qry.name contains ".onion"',exp:'كشف استعلامات Tor DNS'},
+        {cmd:'frame.len > 1400',exp:'حزم كبيرة الحجم — قد تشير لـ Data Exfiltration'},
+        {cmd:'tcp.analysis.flags',exp:'عرض الحزم ذات المشاكل: retransmissions, resets'},
+      ]
+    },
+    lab:{type:'wireshark'},
+    challenge:{
+      title:'PCAP Analysis — Advanced',
+      desc:'تحليل ملف PCAP من بيئة مصابة. الأسئلة تتطلب معرفة عميقة ببروتوكولات الشبكة.',
+      difficulty:3,
+      questions:[
+        {
+          q:'في الـ PCAP، جهاز <span class="code">192.168.1.50</span> يرسل حزم DNS إلى <span class="code">8.8.8.8</span> كل 10 ثوانٍ، كل استعلام عن subdomain مختلف من نفس الـ domain. ما التفسير الأمني؟',
+          opts:['DNS Tunneling — تهريب بيانات عبر DNS queries','Normal DNS caching refresh','DNS Amplification DDoS attack','NXDOMAIN attack'],
+          correct:0,
+          exp:'DNS Tunneling: المهاجم يُخفّي بيانات في subdomains (مثل data.evil.com). الحل: DNS firewall + RPZ (Response Policy Zone).'
+        },
+        {
+          q:'تتالي TCP: SYN → SYN-ACK → ACK → [DATA 4KB] → RST. ما الذي يحدث؟',
+          opts:['اتصال طبيعي ثم إغلاق','Firewall reset بعد نقل بيانات مشبوهة','TCP Session Hijacking','Half-open connection — SYN Flood'],
+          correct:1,
+          exp:'RST مباشرة بعد DATA = Stateful Firewall قطع الاتصال. يحدث عندما IDS/IPS يكتشف payload مشبوه ويرسل RST لكلا الطرفين.'
+        },
+        {
+          q:'ما الـ Wireshark filter الأدق لكشف Beaconing بفترة ثابتة؟',
+          opts:['ip.dst == 1.2.3.4','tcp.time_delta < 0.001','frame.time_delta < 31 && tcp.flags.push==1','http.host contains "beacon"'],
+          correct:2,
+          exp:'tcp.flags.push==1 يعني حزمة بيانات حقيقية. time_delta < 31 يلتقط الـ beacon بفترة 30s مع هامش خطأ ثانية واحدة.'
+        }
+      ]
+    }
+  },
+  {
+    id:1,icon:'💀',tool:'Metasploit',name:'إطار الاستغلال',
+    desc:'المنصة الأشمل للـ Penetration Testing — exploits, payloads, post-exploitation',
+    diff:4,time:'35 دقيقة',color:'#ff3860',
+    learn:{
+      about:`Metasploit Framework (MSF) هو الإطار الأكثر استخداماً في Penetration Testing. يحتوي على أكثر من 2300 exploit و 1500 payload. يُستخدم في CTF، Red Team، واختبارات الاختراق المرخصة فقط.`,
+      points:[
+        {icon:'💣',t:'Exploits',d:'استغلال CVE معروفة ضد خدمات مثل <strong>SMB, HTTP, FTP, SSH</strong>'},
+        {icon:'🐚',t:'Meterpreter',d:'Shell متقدم يعمل في الذاكرة فقط — <strong>fileless</strong> — صعب الاكتشاف'},
+        {icon:'🎭',t:'Auxiliary Modules',d:'أدوات مساعدة: port scanners, fuzzers, credential testing'},
+        {icon:'🔮',t:'Post-Exploitation',d:'Privilege escalation, persistence, pivoting, evidence wiping'},
+      ],
+      cmds:[
+        {cmd:'msfconsole -q',exp:'تشغيل Metasploit بدون banner'},
+        {cmd:'search type:exploit name:eternalblue',exp:'بحث عن exploit MS17-010 (EternalBlue)'},
+        {cmd:'use exploit/windows/smb/ms17_010_eternalblue',exp:'اختيار الـ exploit'},
+        {cmd:'set RHOSTS 192.168.1.0/24',exp:'تحديد الهدف — يمكن شبكة كاملة'},
+        {cmd:'set PAYLOAD windows/x64/meterpreter/reverse_tcp',exp:'payload يفتح Meterpreter session'},
+        {cmd:'run -j',exp:'تشغيل الـ exploit كـ background job'},
+        {cmd:'sessions -i 1',exp:'التفاعل مع الـ session الأول'},
+      ]
+    },
+    lab:{type:'metasploit'},
+    challenge:{
+      title:'MSF — Red Team Knowledge',
+      desc:'أسئلة متقدمة تتطلب فهم عميق لـ Metasploit internals وتقنيات الـ exploitation.',
+      difficulty:4,
+      questions:[
+        {
+          q:'أنت تستخدم <span class="code">windows/x64/meterpreter/reverse_tcp</span>. ما الفرق الجوهري بين هذا الـ payload و <span class="code">reverse_http</span> من ناحية الـ detection?',
+          opts:['لا فرق — كلاهما يُكتشف بنفس الطريقة','reverse_tcp أصعب اكتشافاً لأنه مشفر','reverse_http يمر عبر port 80 — أقل إثارة للشبهة في Firewall/Proxy','reverse_tcp أسرع في الأداء فقط'],
+          correct:2,
+          exp:'reverse_http/https يستخدم port 80/443 المسموح به عادةً في كل firewall. يختلط مع حركة الويب الطبيعية. لكن EDR الحديث يكتشفه من خلال memory analysis وليس port analysis.'
+        },
+        {
+          q:'ما الأمر لرفع صلاحيات Meterpreter session من User إلى SYSTEM على Windows؟',
+          opts:['getsystem','escalate --system','priv_esc --bypass-uac','getuid -s SYSTEM'],
+          correct:0,
+          exp:'getsystem يحاول عدة تقنيات: Named Pipe Impersonation, Token Duplication, Service Exploitation. يجب أن يكون medium integrity level كحد أدنى.'
+        },
+        {
+          q:'ما الـ technique التي تستخدم <span class="code">migrate</span> في Meterpreter؟',
+          opts:['نقل الـ payload لعملية أخرى لتجنب الكشف وزيادة الثبات','نسخ الـ payload لملف على القرص','تغيير الـ C2 server address','تشفير حركة البيانات'],
+          correct:0,
+          exp:'Process Migration: نقل الـ Meterpreter من عملية مكشوفة (مثل notepad.exe) لعملية نظامية (مثل svchost.exe) — يصعّل الكشف ويمنع الإغلاق مع البرنامج الأصلي.'
+        }
+      ]
+    }
+  },
+  {
+    id:2,icon:'🗺️',tool:'Nmap',name:'استطلاع الشبكة',
+    desc:'Network Mapper — اكتشاف الأجهزة، فحص المنافذ، كشف الخدمات والـ OS',
+    diff:2,time:'20 دقيقة',color:'#00c896',
+    learn:{
+      about:`Nmap (Network Mapper) هو أداة الاستطلاع الأولى في كل عملية Penetration Test. يحدد الأجهزة الحية، المنافذ المفتوحة، الخدمات وإصداراتها، ونوع نظام التشغيل. يدعم Scripting Engine (NSE) لتنفيذ عمليات معقدة.`,
+      points:[
+        {icon:'🏠',t:'Host Discovery',d:'اكتشاف الأجهزة بـ <strong>ICMP, ARP, TCP/UDP probes</strong>'},
+        {icon:'🚪',t:'Port Scanning',d:'SYN scan, Full connect, UDP scan — بدون إنهاء الـ handshake لتجنب الكشف'},
+        {icon:'🔬',t:'Version Detection',d:'كشف إصدار الخدمة دقيقاً: Apache 2.4.49 مثلاً'},
+        {icon:'📜',t:'NSE Scripts',d:'أكثر من 600 سكريبت: vuln scanning, brute force, discovery'},
+      ],
+      cmds:[
+        {cmd:'nmap -sn 192.168.1.0/24',exp:'Host discovery فقط — بدون port scan (Ping Sweep)'},
+        {cmd:'nmap -sS -sV -O -p- 192.168.1.1',exp:'SYN scan كامل + version + OS detection على كل المنافذ'},
+        {cmd:'nmap --script vuln 192.168.1.1',exp:'فحص الثغرات الشائعة بـ NSE scripts'},
+        {cmd:'nmap -sU -p 53,161,500 192.168.1.1',exp:'UDP scan على DNS, SNMP, IKE/VPN'},
+        {cmd:'nmap -sS -T4 --min-rate 5000 192.168.1.0/24',exp:'فحص سريع للشبكة كاملة — أقل من دقيقة'},
+      ]
+    },
+    lab:{type:'nmap'},
+    challenge:{
+      title:'Nmap — Advanced Recon',
+      desc:'أسئلة تتطلب فهم تقني دقيق لكيفية عمل Nmap وتقنيات الـ stealth scanning.',
+      difficulty:2,
+      questions:[
+        {
+          q:'ما الفرق الجوهري بين <span class="code">-sS</span> (SYN Scan) و <span class="code">-sT</span> (Connect Scan)؟',
+          opts:['-sS لا يُكمل TCP handshake فلا يُسجَّل في logs التطبيق','-sT أسرع بكثير من -sS','-sS يتطلب صلاحيات root — -sT لا يتطلب ذلك فقط','A و C معاً'],
+          correct:3,
+          exp:'-sS (Half-open): يرسل SYN، يستقبل SYN-ACK، يرسل RST مباشرة بدون إكمال الاتصال — لا يُسجَّل في application logs وأسرع. -sT يُكمل الـ handshake = يتطلب socket = يحتاج root فقط على بعض الأنظمة لـ raw sockets.'
+        },
+        {
+          q:'في نتيجة Nmap: <span class="code">53/tcp filtered domain</span>. ماذا يعني filtered؟',
+          opts:['المنفذ مفتوح لكن الخدمة محمية بكلمة مرور','Firewall يمنع الحزم ولا يرد — الحالة غير معروفة','DNS service معطوب','المنفذ مغلق رسمياً بـ RST'],
+          correct:1,
+          exp:'filtered = Nmap لم يتلقَّ رداً (لا SYN-ACK ولا RST) — غالباً بسبب stateful firewall يسقط الحزمة silently. يختلف عن closed (RST) وopen (SYN-ACK).'
+        },
+        {
+          q:'ما الـ NSE script الأنسب لكشف ثغرة EternalBlue (MS17-010)؟',
+          opts:['nmap --script smb-vuln-ms17-010','nmap --script eternalblue-check','nmap --script windows-vuln-scan','nmap --script cve-2017-0144'],
+          correct:0,
+          exp:'smb-vuln-ms17-010 هو الـ NSE script الرسمي. يرسل SMB negotiation request خاص ويتحقق من استجابة الهدف. ملاحظة: CVE-2017-0144 هو الـ CVE ID لـ EternalBlue.'
+        }
+      ]
+    }
+  },
+  {
+    id:3,icon:'🔓',tool:'John/Hashcat',name:'كسر كلمات المرور',
+    desc:'Password cracking — Dictionary, Brute Force, Rule-based attacks على أنواع Hash مختلفة',
+    diff:3,time:'25 دقيقة',color:'#ffd600',
+    learn:{
+      about:`John the Ripper و Hashcat هما الأداتان المعياريتان لكسر الـ Hash. Hashcat يستخدم GPU للعمليات الموازية — يصل لمليارات المحاولة/ثانية. يُستخدمان في Pentesting لاختبار قوة كلمات المرور.`,
+      points:[
+        {icon:'📚',t:'Dictionary Attack',d:'قاموس RockYou.txt يحتوي <strong>14 مليون كلمة</strong> من تسريبات حقيقية'},
+        {icon:'⚡',t:'Rule-based Attack',d:'تحويل القواعد: <strong>password → P@ssw0rd!</strong> — محاكاة تفكير البشر'},
+        {icon:'🌈',t:'Rainbow Tables',d:'جداول مسبقة الحساب — سريعة لكن تهزمها الـ <strong>Salt</strong>'},
+        {icon:'🎲',t:'Mask Attack',d:'بنية محددة مثل <strong>?u?l?l?d?d?d?s</strong> = كلمة من Upper+Lower+Digit+Symbol'},
+      ],
+      cmds:[
+        {cmd:'hashcat -m 0 hash.txt rockyou.txt',exp:'كسر MD5 بـ dictionary attack'},
+        {cmd:'hashcat -m 1000 ntlm.txt rockyou.txt -r rules/best64.rule',exp:'كسر NTLM مع rules'},
+        {cmd:'hashcat -m 1800 sha512.txt rockyou.txt --status',exp:'كسر SHA-512 (Linux /etc/shadow)'},
+        {cmd:'hashcat -m 13100 krb5tgs.txt rockyou.txt',exp:'Kerberoasting — كسر Kerberos TGS tickets'},
+        {cmd:'john --format=bcrypt --wordlist=rockyou.txt shadow.txt',exp:'كسر bcrypt من Linux shadow file'},
+      ]
+    },
+    lab:{type:'hashcat'},
+    challenge:{
+      title:'Password Cracking — Expert Level',
+      desc:'سيناريوهات واقعية من Penetration Tests تتطلب معرفة دقيقة بأنواع الـ Hash والهجمات.',
+      difficulty:3,
+      questions:[
+        {
+          q:'وجدت الـ Hash التالي في Active Directory dump: <span class="code">aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0</span>. ما هو؟',
+          opts:['NTLM hash لكلمة مرور فارغة (empty password)','MD5 مزدوج','LM+NTLM hash مع password مشفر','Kerberos TGT ticket hash'],
+          correct:0,
+          exp:'aad3b435b51404ee = LM hash لكلمة مرور فارغة (Windows يضع هذا عندما يُعطَّل LM). 31d6cfe0... = NTLM hash للكلمة الفارغة "". يعني الحساب بدون كلمة مرور!'
+        },
+        {
+          q:'ما الـ Hashcat attack mode الأمثل لكسر <span class="code">P@ssw0rd2024!</span>؟',
+          opts:['Dictionary attack فقط بـ rockyou.txt','Dictionary + Rules (-a 0 -r)','Brute force كامل (-a 3)','Combination attack (-a 1)'],
+          correct:1,
+          exp:'Rule-based: الكلمة الأساسية موجودة في القواميس ("password"). Rules تحوّلها: a→@، o→0، إضافة أرقام وأحرف خاصة. Rules/best64.rule + rockyou.txt = يكسر 70-80% من كلمات المرور "القوية" ظاهرياً.'
+        },
+        {
+          q:'لماذا لا تنجح Rainbow Tables ضد hash مأخوذ من Linux <span class="code">/etc/shadow</span>؟',
+          opts:['Linux يستخدم خوارزمية أقوى من Windows دائماً','الـ Salt العشوائي يجعل نفس الكلمة تُنتج hash مختلفاً في كل نظام','Shadow file مشفر بـ AES','Rainbow Tables قديمة ولا تدعم Linux'],
+          correct:1,
+          exp:'Salt = قيمة عشوائية تُضاف للكلمة قبل الـ hash: hash(password+salt). لكل مستخدم salt مختلف، لذلك hash("password"+salt1) ≠ hash("password"+salt2). Rainbow Tables تحسب هashes بدون salt فتصبح عديمة الفائدة.'
+        }
+      ]
+    }
+  },
+  {
+    id:4,icon:'🌐',tool:'Burp Suite',name:'اختبار تطبيقات الويب',
+    desc:'Web Application Security Testing — Proxy, Intruder, Scanner, Repeater',
+    diff:3,time:'30 دقيقة',color:'#ff8c42',
+    learn:{
+      about:`Burp Suite هو المعيار الصناعي لاختبار أمان تطبيقات الويب (WAPT). يعترض الطلبات بين المتصفح والخادم، يُعدّلها، ويشغّل هجمات آلية. يُستخدم في Bug Bounty وPentesting.`,
+      points:[
+        {icon:'🕵️',t:'Proxy Intercept',d:'اعتراض وتعديل كل HTTP/HTTPS request وresponse في الوقت الفعلي'},
+        {icon:'🔁',t:'Repeater',d:'إعادة إرسال الطلبات المعدّلة — مثالي لاستكشاف <strong>SQL Injection, XSS</strong>'},
+        {icon:'🏹',t:'Intruder',d:'هجمات آلية: brute force، payload fuzzing، parameter tampering'},
+        {icon:'🕷️',t:'Spider/Crawler',d:'استكشاف كامل نقاط الدخول في التطبيق تلقائياً'},
+      ],
+      cmds:[
+        {cmd:"' OR '1'='1' --",exp:'SQL Injection test في login form'},
+        {cmd:'<script>alert(document.cookie)</script>',exp:'XSS test — يُختبر في كل input field'},
+        {cmd:'../../../etc/passwd',exp:'Path Traversal — قراءة ملفات النظام'},
+        {cmd:'${7*7} / {{7*7}}',exp:'SSTI test — Server-Side Template Injection'},
+        {cmd:'gzip -d; base64 -d | bash',exp:'Command Injection عبر pipeline في vulnerable parameter'},
+      ]
+    },
+    lab:{type:'burp'},
+    challenge:{
+      title:'Web App Pentesting — Advanced',
+      desc:'سيناريوهات OWASP Top 10 من بيئات Pentesting حقيقية.',
+      difficulty:3,
+      questions:[
+        {
+          q:'في Burp Repeater، أرسلت: <span class="code">username=admin\'--&password=x</span>. الرد: "Welcome admin". ما الثغرة ونوع الـ SQL injection؟',
+          opts:['Error-based SQL Injection','Boolean-based Blind SQLi','In-band SQLi — SQL comment يُلغي شرط الباسورد','Time-based Blind SQLi'],
+          correct:2,
+          exp:"In-band / Classic SQLi: ' يكسر الـ query، -- يُعلّق شرط password. الـ query يصبح: SELECT * FROM users WHERE username='admin'--' AND password='x'. النتيجة: تجاوز المصادقة."
+        },
+        {
+          q:'ما الفرق بين Stored XSS وReflected XSS من ناحية الخطورة؟',
+          opts:['Reflected أخطر لأنه يعمل على أي متصفح','Stored أخطر لأن الـ payload يُنفَّذ عند كل زيارة للصفحة دون تفاعل المستخدم مع رابط مشبوه','كلاهما بنفس الخطورة','Reflected فقط يسرق الـ cookies'],
+          correct:1,
+          exp:'Stored XSS: payload مُخزَّن في DB، يُنفَّذ على كل زائر. لا يحتاج victim يضغط رابط. مثالي للـ worm propagation (MySpace Samy worm 2005). Reflected يحتاج ضحية تنقر رابط مُعدَّ مسبقاً.'
+        },
+        {
+          q:'Burp Intruder يُظهر أن parameter <span class="code">order_id=123</span> عند تغييره لـ <span class="code">124</span> يعرض طلب مستخدم آخر. ما الثغرة؟',
+          opts:['SQL Injection','IDOR — Insecure Direct Object Reference','CSRF','Business Logic Flaw'],
+          correct:1,
+          exp:"IDOR (Insecure Direct Object Reference): الـ ID في URL يُحيل مباشرة لكائن في DB بدون authorization check. OWASP Top 10 #1 (تحت Broken Access Control). الحل: server-side ownership verification."
+        }
+      ]
+    }
+  },
+  {
+    id:5,icon:'🔐',tool:'OpenSSL / PKI',name:'التشفير والشهادات',
+    desc:'X.509 certificates، TLS/SSL internals، key management، cipher suites analysis',
+    diff:3,time:'25 دقيقة',color:'#8b5cf6',
+    learn:{
+      about:`OpenSSL هي مكتبة التشفير الأشهر في العالم. تفهم PKI (Public Key Infrastructure) ضروري لكل مختص أمني — من اكتشاف ثغرات TLS إلى تزوير الشهادات في Red Team assessments.`,
+      points:[
+        {icon:'🔑',t:'Asymmetric Crypto',d:'RSA/ECDSA: المفتاح العام للتشفير، الخاص للفك — أساس TLS handshake'},
+        {icon:'📜',t:'X.509 Certificates',d:'شهادة تحتوي: Subject، Issuer، validity، Public Key، Extensions'},
+        {icon:'🤝',t:'TLS Handshake',d:'ClientHello → ServerHello → Certificate → Key Exchange → Finished'},
+        {icon:'⚠️',t:'Common Vulnerabilities',d:'Heartbleed (CVE-2014-0160)، POODLE، BEAST، weak cipher suites'},
+      ],
+      cmds:[
+        {cmd:'openssl s_client -connect target.com:443 -showcerts',exp:'عرض شهادة TLS الكاملة للهدف'},
+        {cmd:'openssl x509 -in cert.pem -text -noout',exp:'قراءة محتوى الشهادة بشكل مقروء'},
+        {cmd:'openssl genrsa -out private.key 4096',exp:'توليد RSA private key بـ 4096-bit'},
+        {cmd:'openssl req -new -x509 -key private.key -out cert.pem -days 365',exp:'إنشاء self-signed certificate'},
+        {cmd:'openssl s_client -connect target.com:443 -tls1',exp:'اختبار دعم TLS 1.0 القديم (مشكلة أمنية)'},
+      ]
+    },
+    lab:{type:'openssl'},
+    challenge:{
+      title:'TLS/PKI — Cryptographic Analysis',
+      desc:'أسئلة تتطلب فهم عميق للتشفير والبنية التحتية للمفاتيح العامة.',
+      difficulty:3,
+      questions:[
+        {
+          q:'في فحص TLS، وجدت الـ cipher suite: <span class="code">TLS_RSA_WITH_RC4_128_MD5</span>. ما المشاكل الأمنية؟',
+          opts:['لا مشاكل — RC4 آمن وسريع','RSA key exchange بدون Perfect Forward Secrecy + RC4 مكسور + MD5 ضعيف — ثلاث مشاكل','فقط RC4 مشكلة','MD5 ليس ضعيفاً في TLS'],
+          correct:1,
+          exp:'3 مشاكل: (1) RSA static key exchange — لا PFS، اختراق المفتاح الخاص يكشف كل المحادثات السابقة. (2) RC4 مكسور رياضياً منذ 2015 (RFC7465). (3) MD5 collision attacks قابلة للتنفيذ. يجب استخدام ECDHE+AES-GCM+SHA256.'
+        },
+        {
+          q:'ما المقصود بـ Certificate Pinning وكيف يُعيق MITM في تطبيقات الموبايل؟',
+          opts:['تثبيت شهادة بمسمار معدني على الخادم','تطبيق يحفظ fingerprint الشهادة المتوقعة ويرفض أي شهادة أخرى حتى لو موقعة من CA موثوق','تشفير إضافي فوق TLS','منع تجديد الشهادة التلقائي'],
+          correct:1,
+          exp:'Certificate Pinning: التطبيق يُقارن SHA-256 fingerprint الشهادة المستلمة بقيمة مُخزَّنة مسبقاً. حتى لو MITM يعرض شهادة موقعة من CA موثوق، الـ fingerprint مختلف → الاتصال يُرفض. Bypass: Frida hooking، SSL Kill Switch.'
+        },
+        {
+          q:'ثغرة Heartbleed (CVE-2014-0160) تسمح بـ؟',
+          opts:['تنفيذ كود عن بعد على الخادم','قراءة ذاكرة الـ process العشوائية بما فيها المفاتيح الخاصة وكلمات المرور','تجاوز TLS encryption كلياً','MITM على اتصالات TLS'],
+          correct:1,
+          exp:"Heartbleed: TLS Heartbeat extension في OpenSSL 1.0.1-1.0.1f. المهاجم يرسل heartbeat request مع payload_length أكبر من الحقيقي، الخادم يرد بـ (length) bytes من الذاكرة بدون تحقق. نتيجة: private keys، session cookies، passwords من الـ heap."
+        }
+      ]
+    }
+  },
+  {
+    id:6,icon:'🎣',tool:'Social Engineering',name:'الهندسة الاجتماعية',
+    desc:'Phishing، Vishing، Pretexting — الهجوم على العنصر البشري بدلاً من التقني',
+    diff:2,time:'20 دقيقة',color:'#ff8c42',
+    learn:{
+      about:`Social Engineering هو استغلال الطبيعة البشرية بدلاً من الثغرات التقنية. أكثر من 90% من الاختراقات الناجحة تبدأ بـ phishing. يتطلب فهم علم النفس والتلاعب.`,
+      points:[
+        {icon:'📧',t:'Spear Phishing',d:'بريد مُخصَّص للضحية بمعلومات حقيقية من <strong>OSINT</strong> — معدل نجاح 70%+'},
+        {icon:'📞',t:'Vishing',d:'مكالمة صوتية تتظاهر بـ IT Support / Bank — urgency + authority'},
+        {icon:'🎭',t:'Pretexting',d:'إنشاء سيناريو وهمي كامل لكسب الثقة قبل الطلب'},
+        {icon:'💾',t:'Baiting',d:'USB drops مُلوَّثة في مواقف السيارات — جربتها NSA وCIA'},
+      ],
+      cmds:[
+        {cmd:'gophish (dashboard)',exp:'منصة Phishing مفتوحة المصدر لـ Red Team campaigns'},
+        {cmd:'setoolkit > Social-Engineering > Phishing',exp:'Social Engineering Toolkit — أداة متكاملة'},
+        {cmd:'theHarvester -d company.com -b google',exp:'OSINT: جمع emails وموظفين من Google'},
+        {cmd:'maltego > company.com > [Find Emails]',exp:'رسم خريطة علاقات الموظفين والبنية التحتية'},
+        {cmd:'evilginx2 -p phishlets/',exp:'Advanced phishing يسرق session cookies متجاوزاً 2FA'},
+      ]
+    },
+    lab:{type:'setools'},
+    challenge:{
+      title:'Social Engineering — Red Team Tactics',
+      desc:'أسئلة من سيناريوهات Red Team حقيقية تتطلب فهم نفسي وتقني.',
+      difficulty:2,
+      questions:[
+        {
+          q:'في حملة Spear Phishing، أي تقنية نفسية هي الأكثر فعالية وفقاً لـ Cialdini principles؟',
+          opts:['Reciprocity — إرسال هدية قبل الطلب','Urgency + Authority — "IT Security: يجب تغيير كلمة مرورك الآن أو سيُعلَّق حسابك"','Social Proof — "200 زميل استجابوا بالفعل"','Scarcity فقط'],
+          correct:1,
+          exp:'Authority + Urgency: الجمع بين مصدر موثوق (IT/CEO) وضغط الوقت يُعطّل التفكير النقدي. "Fight or Flight" response يجعل الضحية تتصرف دون تحقق. المقاومة: تدريب على verification عبر قناة مستقلة.'
+        },
+        {
+          q:'ما الذي يجعل EvilGinx أخطر من Phishing page عادية؟',
+          opts:['يستخدم SSL certificate حقيقي فقط','Reverse proxy يعرض الموقع الحقيقي ويسرق session tokens بعد 2FA — يتجاوز MFA','يُخفي الـ URL تماماً عن المتصفح','يُعدّل DNS records الضحية'],
+          correct:1,
+          exp:'EvilGinx2: Reverse proxy بين الضحية والموقع الحقيقي. الضحية تُكمل 2FA الحقيقي، ثم EvilGinx يسرق الـ session cookie المُصادَق عليه. المهاجم يستخدم الـ cookie مباشرة — 2FA أصبح عديم الفائدة. Defense: FIDO2/WebAuthn hardware keys.'
+        },
+        {
+          q:'أثناء Red Team engagement، وجدت USB device في مبنى الهدف. ما الإجراء الصحيح؟',
+          opts:['توصيلها على جهازك لمعرفة محتواها','إبلاغ Security team وعزل الـ USB في anti-static bag لـ forensics','رميها في سلة المهملات','توصيلها على جهاز معزول بدون شبكة'],
+          correct:1,
+          exp:'USB Baiting: الـ USB قد تحتوي HID attack (تتصرف كـ keyboard)، تنفذ commands عند التوصيل بدون فتح أي ملف. حتى "isolated" machine معرضة لـ HID attacks. الإجراء الصحيح: treat as evidence، forensics bag، chain of custody.'
+        }
+      ]
+    }
+  },
+  {
+    id:7,icon:'🏰',tool:'Active Directory',name:'هجمات بيئة AD',
+    desc:'Kerberoasting، Pass-the-Hash، BloodHound، DCSync — اختراق بيئات Windows Enterprise',
+    diff:5,time:'40 دقيقة',color:'#4f80ff',
+    learn:{
+      about:`Active Directory (AD) يُعدّ قلب شبكات الـ Windows Enterprise. تعلّم هجوماته ضروري لـ Red Team. البروتوكولات: Kerberos، LDAP، SMB، NTLM — كل منها يحمل ثغرات يمكن استغلالها.`,
+      points:[
+        {icon:'🎟️',t:'Kerberoasting',d:'طلب TGS ticket لأي Service Account ثم كسره offline — بدون كشف'},
+        {icon:'🔄',t:'Pass-the-Hash',d:'استخدام NTLM hash مباشرة للمصادقة بدون معرفة الكلمة الأصلية'},
+        {icon:'🩸',t:'DCSync',d:'محاكاة Domain Controller لـ replication وسرقة كل الـ hashes'},
+        {icon:'🩸',t:'BloodHound',d:'رسم خريطة أذونات AD كاملة واكتشاف Attack Paths لـ Domain Admin'},
+      ],
+      cmds:[
+        {cmd:'GetUserSPNs.py domain/user:pass -outputfile kerberoast.txt',exp:'Kerberoasting — استخراج TGS tickets'},
+        {cmd:'impacket-secretsdump domain/admin@dc.domain.local',exp:'DCSync — تفريغ كل الـ hashes من الـ DC'},
+        {cmd:'crackmapexec smb 192.168.1.0/24 -u admin -H <NTLM_HASH>',exp:'Pass-the-Hash على شبكة كاملة'},
+        {cmd:'bloodhound-python -d domain.local -u user -p pass -c ALL',exp:'جمع بيانات BloodHound كاملة'},
+        {cmd:'mimikatz # sekurlsa::logonpasswords',exp:'استخراج credentials من LSASS memory'},
+      ]
+    },
+    lab:{type:'ad'},
+    challenge:{
+      title:'Active Directory — Expert Level',
+      desc:'هذه الأسئلة من مستوى OSCP/CRTE — للمختصين فقط.',
+      difficulty:5,
+      questions:[
+        {
+          q:'في Kerberoasting، لماذا يستهدف المهاجم Service Accounts بـ SPNs وليس حسابات المستخدمين العاديين؟',
+          opts:['Service Accounts لها صلاحيات أكثر دائماً','TGS tickets لـ SPNs مشفرة بمفتاح مشتق من password الـ service account — قابلة للكسر offline بدون interaction مع الـ DC','Service Accounts لا تنتهي كلمة مرورها أبداً','أ و ج معاً'],
+          correct:3,
+          exp:'Kerberoasting: (1) TGS ticket مشفر بـ RC4 باستخدام NTLM hash الـ service account — يُكسَر offline. (2) Service accounts غالباً لا تنتهي passwords وتُهمَل. (3) قد تملك Domain Admin أو صلاحيات واسعة. Defense: Managed Service Accounts (MSA) + AES encryption enforcement.'
+        },
+        {
+          q:'ما الفرق بين DCSync و Domain Controller Compromise؟',
+          opts:['DCSync يحتاج وصول فيزيائي للـ DC','DCSync يستغل MS-DRSR replication protocol من أي جهاز بصلاحيات DS-Replication — لا يحتاج login للـ DC','كلاهما نفس الشيء','DCSync يعمل فقط على Domain Controllers'],
+          correct:1,
+          exp:'DCSync: يستغل حق DS-Replication-Get-Changes-All (ملكية Domain Admins/Enterprise Admins/Domain Controllers). Mimikatz يُرسل replication request وكأنه DC آخر — الـ DC يرد بـ password hashes. لا تحتاج console access للـ DC. Detectable في Domain Controller logs (Event 4662).'
+        },
+        {
+          q:'BloodHound وجد path: <span class="code">UserA --[GenericWrite]-→ GroupB --[MemberOf]-→ Domain Admins</span>. كيف تستغل هذا؟',
+          opts:['لا يمكن استغلاله — GenericWrite صلاحية قراءة فقط','UserA يكتب scriptPath لـ GroupB ليُنفَّذ عند login → يمنحه امتيازات Domain Admin','UserA يضيف نفسه مباشرة لـ Domain Admins','يجب استخدام Kerberoasting أولاً'],
+          correct:1,
+          exp:"GenericWrite على Group → يمكن تعديل الـ group members. Attack: Add UserA to GroupB → ينتمي لـ Domain Admins. أو: إذا كان على user object → تعديل scriptPath/logon script ينفذ payload عند login أي عضو. BloodHound يجعل هذه الـ attack paths مرئية بشكل بياني."
+        }
+      ]
+    }
+  },
+  {
+    id:8,icon:'🔬',tool:'Forensics / DFIR',
+    name:'التحقيق الجنائي الرقمي',
+    desc:'Memory forensics، disk imaging، timeline analysis، malware artifacts',
+    diff:4,time:'35 دقيقة',color:'#00c896',
+    learn:{
+      about:`Digital Forensics & Incident Response (DFIR) هو علم استخراج الأدلة من الأجهزة المخترقة. يستخدم في التحقيقات، المحاكم، والاستجابة للحوادث الأمنية.`,
+      points:[
+        {icon:'💾',t:'Disk Imaging',d:'نسخ كامل للقرص bit-by-bit مع التحقق بـ <strong>MD5/SHA-256</strong> hash'},
+        {icon:'🧠',t:'Memory Forensics',d:'Volatility: استخراج processes، network connections، passwords من RAM dump'},
+        {icon:'📅',t:'Timeline Analysis',d:'ترتيب الأحداث زمنياً: logon، file access، network، registry'},
+        {icon:'🦠',t:'Malware Analysis',d:'Static (strings, PE headers) و Dynamic (sandbox) analysis للـ artifacts'},
+      ],
+      cmds:[
+        {cmd:'volatility3 -f memory.dmp windows.pslist',exp:'قائمة الـ processes من RAM dump'},
+        {cmd:'volatility3 -f memory.dmp windows.netscan',exp:'اتصالات الشبكة المخزنة في الذاكرة'},
+        {cmd:'volatility3 -f memory.dmp windows.hashdump',exp:'استخراج NTLM hashes من الذاكرة'},
+        {cmd:'dd if=/dev/sda of=disk.img bs=4M status=progress',exp:'Disk imaging مع progress bar'},
+        {cmd:'log2timeline.py -f linux.log timeline.csv /mnt/evidence',exp:'إنشاء timeline كامل للحادثة'},
+      ]
+    },
+    lab:{type:'forensics'},
+    challenge:{
+      title:'DFIR — Incident Analysis',
+      desc:'سيناريوهات من Incident Response حقيقية.',
+      difficulty:4,
+      questions:[
+        {
+          q:'Volatility يُظهر process <span class="code">svchost.exe (PID: 4212)</span> بـ parent process <span class="code">explorer.exe</span>. لماذا هذا مشبوه؟',
+          opts:['svchost يجب أن يكون parent لـ explorer.exe','svchost.exe يجب أن ينبثق من services.exe أو wininit.exe فقط — ليس explorer.exe','اسم svchost.exe خاطئ','PID 4212 محجوز للنظام'],
+          correct:1,
+          exp:'Process Tree Analysis: svchost.exe الحقيقي ينبثق من services.exe أو wininit.exe. إذا كان parent هو explorer.exe (user process)، هذا Malware يستخدم process name masquerading (تقنية MITRE ATT&CK T1036). يجب فحص الـ memory dump لهذا الـ PID.'
+        },
+        {
+          q:'ما الفرق بين Volatile وNon-Volatile evidence في أولوية الجمع؟',
+          opts:['Non-Volatile أولاً لأنه أهم','Volatile أولاً — RAM، running processes، network connections تُفقَد عند إيقاف الجهاز','كلاهما بنفس الأولوية','يعتمد على نوع الحادثة فقط'],
+          correct:1,
+          exp:'Order of Volatility (RFC 3227): RAM → Swap → Network connections → Running processes → Disk → Logs → Physical config. RAM dump أولاً لأن كلمات المرور وعلامات الـ malware موجودة فيه فقط — وتختفي عند إيقاف الجهاز.'
+        },
+        {
+          q:'ما الـ artifact الأهم للبحث في Windows registry لإثبات Persistence؟',
+          opts:['HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run','HKCU\\Software\\Microsoft\\Internet Explorer\\Main','HKLM\\SYSTEM\\CurrentControlSet\\Services','A و C معاً + Scheduled Tasks'],
+          correct:3,
+          exp:'Persistence locations: (1) Run/RunOnce keys — تشغيل عند Logon. (2) Services — تشغيل عند Boot قبل login. (3) Scheduled Tasks — تشغيل دوري. أيضاً: WMI subscriptions، DLL hijacking، COM hijacking. MITRE ATT&CK T1547.'
+        }
+      ]
+    }
+  },
+  {
+    id:9,icon:'☁️',tool:'Cloud Security',
+    name:'أمان البنية السحابية',
+    desc:'AWS/Azure misconfigurations، S3 bucket exposure، IAM privilege escalation، serverless attacks',
+    diff:4,time:'30 دقيقة',color:'#4f80ff',
+    learn:{
+      about:`Cloud Security أصبح الميدان الأسرع نمواً في Cybersecurity. 99% من اختراقات Cloud ناتجة عن misconfigurations وليس ثغرات 0-day. فهم IAM، الـ metadata service، والـ storage permissions أساسي.`,
+      points:[
+        {icon:'🪣',t:'S3 Bucket Exposure',d:'ملايين الـ buckets مفتوحة عالمياً — تحتوي بيانات حساسة، backups، source code'},
+        {icon:'🎭',t:'IAM Privilege Escalation',d:'صلاحية واحدة خاطئة تُصبح Domain Admin في الـ cloud account كله'},
+        {icon:'📦',t:'IMDS Exploitation',d:'Instance Metadata Service <strong>169.254.169.254</strong> — SSRF يُكشف الـ IAM credentials'},
+        {icon:'🔗',t:'Supply Chain Attacks',d:'تلويث packages في npm/pip أو CI/CD pipelines — يصل للـ production مباشرة'},
+      ],
+      cmds:[
+        {cmd:'aws s3 ls s3://target-bucket --no-sign-request',exp:'فحص الـ bucket بدون credentials — مفتوح للعموم؟'},
+        {cmd:'curl http://169.254.169.254/latest/meta-data/iam/security-credentials/',exp:'IMDS: استخراج IAM credentials من EC2 instance'},
+        {cmd:'pacu (IAM__enum_permissions)',exp:'PACU Framework — AWS exploitation tool'},
+        {cmd:'aws iam list-attached-user-policies --user-name target',exp:'فحص صلاحيات مستخدم IAM'},
+        {cmd:'trufflehog git --repo https://github.com/target/repo',exp:'البحث عن secrets في Git history'},
+      ]
+    },
+    lab:{type:'cloud'},
+    challenge:{
+      title:'Cloud Security — AWS/Azure Expert',
+      desc:'سيناريوهات من Bug Bounty وCloud Pentesting حقيقية.',
+      difficulty:4,
+      questions:[
+        {
+          q:'وجدت SSRF في تطبيق على AWS EC2. ما أخطر شيء يمكنك فعله باستخدام <span class="code">169.254.169.254</span>؟',
+          opts:['قراءة ملفات النظام على الـ server','استخراج IAM temporary credentials ومنها الوصول لكل خدمات AWS في الـ account','فقط قراءة instance metadata مثل IP address','SSRF لا يفيد في Cloud environments'],
+          correct:1,
+          exp:'IMDS (Instance Metadata Service): curl http://169.254.169.254/latest/meta-data/iam/security-credentials/{role-name} يُعيد AccessKeyId + SecretAccessKey + Token مؤقت لـ IAM role المُرفقة بالـ instance. باستخدامها: aws s3 ls، aws ec2 describe-instances، وربما iam:CreateKey للحصول على credentials دائمة.'
+        },
+        {
+          q:'ما الـ S3 bucket policy الأكثر خطورة؟',
+          opts:['AllowPublicRead فقط','Principal: "*", Action: "s3:*", Effect: "Allow"','PublicReadAcl مع logging','Versioning معطّل'],
+          correct:1,
+          exp:'Principal: "*" = أي شخص في الإنترنت. Action: "s3:*" = كل العمليات (قراءة، كتابة، حذف، تعديل policy). Effect: Allow = مسموح. هذا يعني: أي شخص يمكنه حذف كل الـ bucket أو رفع malware أو قراءة كل البيانات. من أسوأ misconfigurations الموجودة.'
+        },
+        {
+          q:'ما المقصود بـ Confused Deputy Problem في Cloud IAM؟',
+          opts:['Admin account مُرتبك بين Policies','Service بصلاحيات عالية يُقنَع بتنفيذ actions نيابةً عن طرف ثالث لا يملك تلك الصلاحيات','اسم مستخدمين متشابهين في AD و Cloud','IAM Role يملك أكثر مما يحتاج'],
+          correct:1,
+          exp:'Confused Deputy: Lambda function بـ IAM role قوية تستقبل input من المستخدم وتنفذه. المهاجم يُقنع الـ Lambda بالوصول لـ S3 bucket محمي نيابةً عنه. الحل: ExternalId condition في trust policy + Resource-based policies مع Principal محدد.'
+        }
+      ]
+    }
+  }
+];
+
+/* ═══════════════════════════════════════════
+   SCREEN MANAGEMENT
+═══════════════════════════════════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen,[id="boot"]').forEach(s=>{s.classList.remove('on');});
+  document.getElementById(id).classList.add('on');
+}
+function showDash(){showScreen('dash');renderModules();}
+
+/* ═══════════════════════════════════════════
+   RANKS
+═══════════════════════════════════════════ */
+const RANKS=[
+  {min:0,name:'TRAINEE'},{min:500,name:'ANALYST'},{min:1500,name:'SPECIALIST'},
+  {min:3000,name:'EXPERT'},{min:5000,name:'RED TEAM'},{min:8000,name:'ELITE'}
+];
+function getRank(xp){let r=RANKS[0];RANKS.forEach(rk=>{if(xp>=rk.min)r=rk;});return r.name;}
+function updateScore(add=0){
+  S.xp+=add;saveState();
+  const rank=getRank(S.xp);
+  document.querySelectorAll('#navScore,#lessonScore').forEach(el=>{if(el)el.textContent=S.xp;});
+  document.querySelectorAll('#navRank,#lessonRank').forEach(el=>{if(el)el.textContent=rank;});
 }
 
-// =====================================================
-//  PUZZLE LOGIC
-// =====================================================
-let puzzleSolved = false;
+/* ═══════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════ */
+function renderModules(){
+  const g=document.getElementById('modulesGrid');g.innerHTML='';
+  updateScore(0);
+  MODULES.forEach((m,i)=>{
+    const locked=i>0&&!S.completed.includes(i-1);
+    const done=S.completed.includes(i);
+    const d=document.createElement('div');
+    d.className=`mod-card${locked?' locked':''}${done?' done':''}`;
+    const pips=Array.from({length:5},(_,j)=>`<div class="diff-pip${j<m.diff?' f':''}"></div>`).join('');
+    d.innerHTML=`
+      <div class="mod-header"><div class="mod-header-bg" style="background:linear-gradient(135deg,${m.color}33,${m.color}11)"></div><div class="mod-icon-wrap" style="border-color:${m.color}33">${m.icon}</div></div>
+      <div class="mod-body">
+        <div class="mod-tool">${m.tool}</div>
+        <div class="mod-name">${m.name}</div>
+        <div class="mod-desc">${m.desc}</div>
+        <div class="mod-meta"><div class="mod-diff">${pips}</div><div class="mod-time">⏱ ${m.time}</div></div>
+      </div>`;
+    if(!locked)d.onclick=()=>openLesson(i);
+    g.appendChild(d);
+  });
+}
 
-function answerPuzzle(el, isCorrect) {
-  if (puzzleSolved) return;
-  const opts = document.querySelectorAll('.puzzle-opt');
-  opts.forEach(o => o.classList.add('disabled'));
+/* ═══════════════════════════════════════════
+   LESSON SCREEN
+═══════════════════════════════════════════ */
+let currentMod=-1,currentTab='learn',chalAnswers={},chalSubmitted=false;
 
-  const feedback = document.getElementById('puzzleFeedback');
-  const enterBtn  = document.getElementById('enterBtn');
-  const statusTxt = document.getElementById('statusText');
+function openLesson(idx){
+  currentMod=idx;currentTab='learn';chalAnswers={};chalSubmitted=false;
+  const m=MODULES[idx];
+  document.getElementById('lToolBadge').textContent=m.tool;
+  document.getElementById('lTitle').textContent=m.name;
+  updateProgress();
+  showScreen('lesson');
+  switchLTab('learn');
+}
 
-  if (isCorrect) {
-    el.classList.add('selected-correct');
-    feedback.className = 'puzzle-feedback show correct';
-    feedback.innerHTML = `✅ <strong>إجابة صحيحة!</strong> — في الأمن السيبراني، المهاجم يدخل من "النافذة الخلفية" (Backdoor) أو عبر ثغرة (Exploit) دون علم صاحب النظام — تمامًا مثل اللص الذي يتجنب الباب الرئيسي!`;
-    puzzleSolved = true;
-    enterBtn.classList.add('unlocked');
-    statusTxt.textContent = '✅ تم التحقق — ACCESS GRANTED';
-    statusTxt.style.color = 'var(--green)';
-  } else {
-    el.classList.add('selected-wrong');
-    feedback.className = 'puzzle-feedback show wrong';
-    const texts = {
-      door: '❌ الباب الأمامي هو الدخول العلني الرسمي — الهاكر يتجنبه!',
-      knock: '❌ طلب الإذن = Social Engineering، لكن الهاكر الحقيقي يتجنب أي تفاعل مباشر!',
-      key:   '❌ نسخ المفتاح = سرقة بيانات الدخول، لكن الدخول الخفي الحقيقي هو Backdoor!'
-    };
-    const val = el.getAttribute('data-val');
-    feedback.textContent = texts[val] || '❌ حاول مرة أخرى!';
-    setTimeout(() => {
-      opts.forEach(o => { o.classList.remove('disabled'); o.classList.remove('selected-wrong'); });
-      feedback.className = 'puzzle-feedback';
-    }, 1800);
+function updateProgress(){
+  const done=[S.completed.includes(currentMod)?3:0];
+  const count=done[0];
+  document.getElementById('lProgressTxt').textContent=count+'/3';
+  document.getElementById('lProgressBar').style.width=(count/3*100)+'%';
+}
+
+function switchLTab(t){
+  currentTab=t;
+  ['learn','lab','chal'].forEach(x=>{
+    document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('on',x===t);
+    document.getElementById(x+'Pane').classList.toggle('on',x===t);
+    document.getElementById(x+'Pane').style.display=x===t?'block':'none';
+  });
+  if(t==='learn')renderLearn();
+  if(t==='lab')renderLab();
+  if(t==='chal')renderChallenge();
+}
+
+/* ─── LEARN ─── */
+function renderLearn(){
+  const m=MODULES[currentMod];const L=m.learn;
+  const cmds=L.cmds.map(c=>`<div class="cmd-row"><div class="cmd-text">${c.cmd}</div><div class="cmd-explain">${c.exp}</div></div>`).join('');
+  const pts=L.points.map(p=>`<div class="kp"><div class="kp-icon">${p.icon}</div><div class="kp-text"><strong>${p.t}</strong> — ${p.d}</div></div>`).join('');
+  document.getElementById('learnPane').innerHTML=`
+    <div class="learn-section">
+      <div class="ls-title">📖 نظرة عامة</div>
+      <div class="ls-body"><p>${L.about}</p></div>
+    </div>
+    <div class="learn-section">
+      <div class="ls-title">⚡ المفاهيم الأساسية</div>
+      <div class="key-points">${pts}</div>
+    </div>
+    <div class="learn-section">
+      <div class="ls-title">💻 مرجع الأوامر</div>
+      <div class="cmd-ref">
+        <div class="cmd-ref-bar"><div class="cmd-ref-dot d1"></div><div class="cmd-ref-dot d2"></div><div class="cmd-ref-dot d3"></div><div class="cmd-ref-title">${m.tool} — Command Reference</div></div>
+        <div class="cmd-list">${cmds}</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#000;font-family:var(--sans);font-weight:700;font-size:.9rem;padding:.7rem 2rem;border:none;border-radius:10px;cursor:pointer;transition:.2s" onclick="switchLTab('lab')">💻 ابدأ المختبر ←</button>
+    </div>`;
+}
+
+/* ─── LAB ─── */
+function renderLab(){
+  const m=MODULES[currentMod];
+  const pane=document.getElementById('labPane');
+  const type=m.lab.type;
+  if(type==='wireshark')pane.innerHTML=buildWiresharkLab();
+  else if(type==='metasploit')pane.innerHTML=buildMsfLab();
+  else if(type==='nmap')pane.innerHTML=buildNmapLab();
+  else if(type==='hashcat')pane.innerHTML=buildHashcatLab();
+  else if(type==='burp')pane.innerHTML=buildBurpLab();
+  else if(type==='openssl')pane.innerHTML=buildOpensslLab();
+  else if(type==='setools')pane.innerHTML=buildSeToolsLab();
+  else if(type==='ad')pane.innerHTML=buildADLab();
+  else if(type==='forensics')pane.innerHTML=buildForensicsLab();
+  else if(type==='cloud')pane.innerHTML=buildCloudLab();
+  else pane.innerHTML=buildGenericLab(m);
+  initTerminal();
+}
+
+/* ════ LAB BUILDERS ════ */
+function buildTerminalBase(title,status,prompt,qcmds,initLines){
+  return `
+  <div class="terminal">
+    <div class="term-bar">
+      <div class="tbar-dot"></div><div class="tbar-dot"></div><div class="tbar-dot"></div>
+      <div class="tbar-title">${title}</div>
+      <div class="tbar-status">${status}</div>
+    </div>
+    <div class="term-output" id="termOut">${initLines}</div>
+    <div class="term-input-wrap">
+      <div class="term-prompt-sym">${prompt}</div>
+      <input class="term-input" id="termIn" type="text" placeholder="اكتب الأمر..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    </div>
+    <div class="quick-cmds">${qcmds.map(q=>`<div class="qcmd" onclick="runCmd('${q}')">${q}</div>`).join('')}</div>
+  </div>`;
+}
+
+function tLine(cls,text){return `<div class="t-line t-${cls}">${text}</div>`;}
+
+function buildWiresharkLab(){
+  const ws=`
+  <div class="wireshark-panel">
+    <div class="ws-bar">
+      <span class="ws-title">📡 Wireshark — Live Capture [eth0]</span>
+      <input class="ws-filter" id="wsFilter" placeholder="Display Filter: tcp.port == 443" oninput="filterPackets()">
+    </div>
+    <div class="ws-scroll">
+      <table class="ws-table">
+        <thead><tr><th>#</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Length</th><th>Info</th></tr></thead>
+        <tbody id="wsTable"></tbody>
+      </table>
+    </div>
+  </div>`;
+  const init=[
+    tLine('prompt','root@analyst:~#'),tLine('cmd',' wireshark -i eth0 -k &'),
+    tLine('info','[*] Starting capture on interface eth0...'),
+    tLine('dim','[i] تفاعل مع الـ packet table أعلاه — اضغط على صف لتفاصيله')
+  ].join('');
+  const term=buildTerminalBase('root@analyst — Wireshark CLI','🔴 LIVE',
+    'wireshark-cli$',
+    ['tshark -i eth0','tshark -r capture.pcap','tshark -Y "http.request"','tshark -z io,phs'],
+    init);
+  setTimeout(populateWireshark,100);
+  return ws+term;
+}
+
+const PACKETS=[
+  {id:1,t:'0.000',src:'192.168.1.10',dst:'8.8.8.8',proto:'DNS',len:64,info:'Standard query A www.google.com',cls:''},
+  {id:2,t:'0.023',src:'8.8.8.8',dst:'192.168.1.10',proto:'DNS',len:96,info:'Standard query response A 142.250.80.4',cls:''},
+  {id:3,t:'0.045',src:'192.168.1.10',dst:'142.250.80.4',proto:'TCP',len:74,info:'54231 → 443 [SYN] Seq=0',cls:''},
+  {id:4,t:'0.068',src:'192.168.1.50',dst:'185.234.219.4',proto:'TCP',len:128,info:'Encrypted beacon — 30s interval',cls:'suspicious'},
+  {id:5,t:'0.090',src:'192.168.1.25',dst:'10.0.0.1',proto:'SMB',len:256,info:'SMBv2 Session Setup Request',cls:''},
+  {id:6,t:'0.110',src:'192.168.1.50',dst:'8.8.8.8',proto:'DNS',len:80,info:'Query: c2server.d4t4.xyz.185.234.219.4.evil.com',cls:'malicious'},
+  {id:7,t:'0.135',src:'10.10.10.5',dst:'192.168.1.0/24',proto:'TCP',len:60,info:'[SYN] Port scan detected — 100 ports/sec',cls:'malicious'},
+  {id:8,t:'0.160',src:'192.168.1.30',dst:'104.21.44.3',proto:'HTTP',len:4096,info:'POST /upload HTTP/1.1 — large payload',cls:'suspicious'},
+  {id:9,t:'0.200',src:'192.168.1.10',dst:'192.168.1.1',proto:'ARP',len:42,info:'Who has 192.168.1.1? Tell 192.168.1.10',cls:''},
+  {id:10,t:'30.045',src:'192.168.1.50',dst:'185.234.219.4',proto:'TCP',len:128,info:'Encrypted beacon — 30s interval [REPEAT]',cls:'suspicious'},
+];
+function populateWireshark(){
+  const tb=document.getElementById('wsTable');if(!tb)return;
+  tb.innerHTML=PACKETS.map(p=>`
+    <tr class="ws-row${p.cls?' '+p.cls:''}" onclick="selectPacket(${p.id})">
+      <td>${p.id}</td><td>${p.t}</td>
+      <td>${p.src}</td><td>${p.dst}</td>
+      <td class="proto-${p.proto.toLowerCase()}">${p.proto}</td>
+      <td>${p.len}</td><td>${p.info.substring(0,45)}${p.info.length>45?'...':''}</td>
+    </tr>`).join('');
+}
+function filterPackets(){
+  const f=document.getElementById('wsFilter').value.toLowerCase();
+  const rows=document.querySelectorAll('#wsTable tr');
+  rows.forEach(r=>{r.style.display=(!f||r.textContent.toLowerCase().includes(f))?'':'none';});
+}
+function selectPacket(id){
+  document.querySelectorAll('#wsTable .ws-row').forEach(r=>r.classList.remove('selected'));
+  const p=PACKETS.find(x=>x.id===id);if(!p)return;
+  document.querySelectorAll('#wsTable .ws-row').forEach((r,i)=>{if(PACKETS[i]&&PACKETS[i].id===id)r.classList.add('selected');});
+  const out=document.getElementById('termOut');
+  if(out){
+    const lines=[
+      tLine('info',`Frame ${p.id}: ${p.len} bytes`),
+      tLine('dim',`└─ ${p.t}s: ${p.src} → ${p.dst}`),
+      tLine(p.cls==='malicious'?'err':p.cls==='suspicious'?'warn':'out',`└─ ${p.proto}: ${p.info}`),
+      p.cls?tLine('err',`⚠ SUSPICIOUS: ${p.cls==='malicious'?'MALICIOUS ACTIVITY DETECTED':'Anomaly — review required'}`):'',
+    ].filter(Boolean).join('');
+    out.insertAdjacentHTML('beforeend',lines);out.scrollTop=out.scrollHeight;
   }
 }
 
-function enterGame() {
-  if (!puzzleSolved) return;
-  showScreen('intro');
+function buildMsfLab(){
+  const init=[
+    tLine('err','       =[ metasploit v6.3.44-dev                          ]'),
+    tLine('err','+ -- --=[ 2366 exploits - 1235 auxiliary - 413 post       ]'),
+    tLine('err','+ -- --=[ 1000 payloads - 45 encoders - 11 nops           ]'),
+    tLine('dim',''),
+    tLine('prompt','msf6 >')
+  ].join('');
+  const msf=`<div class="msf-panel"><div class="msf-bar"><span class="msf-title">☠ Metasploit Framework Console</span><span class="msf-ver">v6.3.44</span></div></div>`;
+  return msf+buildTerminalBase('msf6 > console','🔴 ACTIVE','msf6 >',
+    ['search ms17_010','use exploit/windows/smb/ms17_010_eternalblue','show options','set RHOSTS 10.10.10.40','set PAYLOAD windows/x64/meterpreter/reverse_tcp','run'],
+    init);
 }
 
-// =====================================================
-//  LEVELS DATA
-// =====================================================
-const LEVELS = [
-  { id:0, name:"الشبكة المكتبية",   icon:"🏢", attack:"ddos",   attackLabel:"DDoS Attack",         attackClass:"ab-ddos",   difficulty:1, devices:4, time:60, hints:["ابحث عن جهاز يرسل آلاف الحزم بالثانية","DDoS: packets/s أعلى 10-20× من الطبيعي","تحقق من عمود Packets/Sec"] },
-  { id:1, name:"شبكة الشركة",       icon:"🏗️", attack:"exfil",  attackLabel:"Data Exfiltration",   attackClass:"ab-exfil",  difficulty:2, devices:5, time:55, hints:["ابحث عن جهاز يتصل بـ IP خارجي","راقب Upload Rate — يجب أن يكون منخفضاً","الجهاز المخترق يرسل للخارج بكميات كبيرة"] },
-  { id:2, name:"مركز البيانات",      icon:"🖥️", attack:"beacon", attackLabel:"Malware Beacon",      attackClass:"ab-beacon", difficulty:2, devices:5, time:50, hints:["الـ Beacon يتصل كل 30-60 ثانية","ابحث عن اتصالات متكررة بنفس الـ IP","حجم البيانات صغير لكن متكرر جداً"] },
-  { id:3, name:"الشبكة الصناعية",    icon:"⚙️", attack:"login",  attackLabel:"Suspicious Login",    attackClass:"ab-login",  difficulty:3, devices:6, time:50, hints:["ابحث عن جهاز به محاولات دخول فاشلة كثيرة","تسجيل دخول من بلد غير متوقع","الوقت غير المعتاد لتسجيل الدخول تحذير"] },
-  { id:4, name:"شبكة المستشفى",      icon:"🏥", attack:"ddos",   attackLabel:"DDoS Attack",         attackClass:"ab-ddos",   difficulty:3, devices:6, time:45, hints:["بعض الأجهزة تبدو مشبوهة لكن واحد فقط الحقيقي","قارن packets بعناية","الفارق سيكون واضحاً"] },
-  { id:5, name:"شبكة الجامعة",       icon:"🎓", attack:"exfil",  attackLabel:"Data Exfiltration",   attackClass:"ab-exfil",  difficulty:4, devices:7, time:45, hints:["Upload أقل من Download في الأجهزة الطبيعية","Upload Rate مرتفع = علامة تسريب","تحقق من Destination IP"] },
-  { id:6, name:"البنية التحتية",      icon:"🌐", attack:"beacon", attackLabel:"Malware Beacon",      attackClass:"ab-beacon", difficulty:4, devices:7, time:40, hints:["الـ Beacon الخفي له فترات أطول","ابحث عن نمط منتظم في السجل","حجم البيانات صغير لكن التوقيت منتظم"] },
-  { id:7, name:"شبكة البنك",         icon:"🏦", attack:"login",  attackLabel:"Suspicious Login",    attackClass:"ab-login",  difficulty:4, devices:8, time:40, hints:["8 أجهزة — كن دقيقاً","ابحث عن failed attempts ثم success","المواقع الجغرافية غير المعتادة هي المفتاح"] },
-  { id:8, name:"شبكة الحكومة",       icon:"🏛️", attack:"exfil",  attackLabel:"Data Exfiltration",   attackClass:"ab-exfil",  difficulty:5, devices:8, time:35, hints:["مستوى صعب — راقب كل تفصيلة","Upload مرتفع + IP خارجي = تسريب","حظاً سعيداً 🎯"] },
-  { id:9, name:"الشبكة النووية",     icon:"☢️", attack:"beacon", attackLabel:"Malware Beacon (APT)",attackClass:"ab-beacon", difficulty:5, devices:9, time:30, hints:["APT = Advanced Persistent Threat","الـ Beacon يتخفى في حركة HTTPS","راقب التوقيت والنمط بعناية"] }
-];
+function buildNmapLab(){
+  const ports=[
+    {p:22,s:'open',svc:'ssh',ver:'OpenSSH 8.2p1 Ubuntu',cls:'port-open'},
+    {p:80,s:'open',svc:'http',ver:'Apache httpd 2.4.49',cls:'port-open'},
+    {p:443,s:'open',svc:'https',ver:'Apache httpd 2.4.49',cls:'port-open'},
+    {p:445,s:'open',svc:'microsoft-ds',ver:'Samba 4.13.17',cls:'port-open'},
+    {p:8080,s:'filtered',svc:'http-proxy',ver:'?',cls:'port-filtered'},
+    {p:3306,s:'closed',svc:'mysql',ver:'',cls:'port-closed'},
+    {p:6379,s:'open',svc:'redis',ver:'Redis 6.0.9 (no auth)',cls:'port-open'},
+  ];
+  const nmap=`<div class="nmap-panel"><div class="nmap-bar"><span class="nmap-title">🗺️ Nmap Scan Results — 10.10.10.40</span></div>
+  <div style="overflow-x:auto"><table class="port-table" style="margin:.5rem 0">
+    <tr><th>Port</th><th>State</th><th>Service</th><th>Version</th></tr>
+    ${ports.map(p=>`<tr><td class="${p.cls}">${p.p}/tcp</td><td class="${p.cls}">${p.s}</td><td>${p.svc}</td><td style="font-size:.58rem">${p.ver}</td></tr>`).join('')}
+  </table></div></div>`;
+  const init=[
+    tLine('prompt','root@kali:~#'),tLine('cmd',' nmap -sS -sV -O 10.10.10.40'),
+    tLine('info','Starting Nmap 7.94 ( https://nmap.org )'),
+    tLine('warn','[!] Apache 2.4.49 — CVE-2021-41773 Path Traversal!'),
+    tLine('warn','[!] Redis no-auth — unauthenticated access!'),
+    tLine('dim','Try: nmap --script vuln 10.10.10.40')
+  ].join('');
+  return nmap+buildTerminalBase('root@kali — Nmap','● SCANNING','$',
+    ['nmap -sn 10.10.10.0/24','nmap -p- --min-rate 5000','nmap --script vuln','nmap -sU -p 53,161'],
+    init);
+}
 
-const DEVICE_TYPES = [
-  {icon:"💻",names:["Laptop-Alice","Laptop-Bob","Laptop-Carol","Laptop-Dave"]},
-  {icon:"🖥️",names:["Desktop-A","Desktop-B","Desktop-C","Desktop-HR"]},
-  {icon:"📱",names:["Mobile-01","Mobile-02","Phone-Mgr"]},
-  {icon:"🖨️",names:["Printer-1F","Printer-2F","Printer-Lab"]},
-  {icon:"💾",names:["Server-DB","Server-Web","Server-File"]},
-  {icon:"📡",names:["Router-Core","Switch-Floor1"]},
-  {icon:"🔌",names:["IoT-Sensor","IoT-Camera"]}
-];
+function buildHashcatLab(){
+  const hashes=`<div class="cmd-ref"><div class="cmd-ref-bar"><div class="cmd-ref-dot d1"></div><div class="cmd-ref-dot d2"></div><div class="cmd-ref-dot d3"></div><div class="cmd-ref-title">Target Hashes — hash.txt</div></div>
+  <div class="cmd-list">
+    ${[
+      {h:'5f4dcc3b5aa765d61d8327deb882cf99',t:'MD5 — -m 0',e:'"password"'},
+      {h:'aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c',t:'NTLM — -m 1000',e:'"Password1"'},
+      {h:'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',t:'bcrypt — -m 3200',e:'"password"'},
+    ].map(x=>`<div class="cmd-row"><div class="cmd-text" style="font-size:.55rem;max-width:180px;word-break:break-all">${x.h}</div><div class="cmd-explain">${x.t} → <span style="color:var(--g1)">${x.e}</span></div></div>`).join('')}
+  </div></div>`;
+  const init=[
+    tLine('warn','hashcat (v6.2.6) starting...'),
+    tLine('dim','OpenCL Platform: NVIDIA RTX 4090'),
+    tLine('info','Speed: MD5: 68.2 GH/s | NTLM: 156.4 GH/s | bcrypt: 184.0 kH/s'),
+    tLine('dim','Try: hashcat -m 0 hash.txt rockyou.txt')
+  ].join('');
+  return hashes+buildTerminalBase('hashcat — GPU Cracker','● GPU READY','$',
+    ['hashcat -m 0 hash.txt rockyou.txt','hashcat -m 1000 ntlm.txt rockyou.txt -r rules/best64.rule','hashcat -m 3200 bcrypt.txt rockyou.txt','hashcat --show -m 0 hash.txt'],
+    init);
+}
 
-let state = {
-  currentLevel:0, score:0, lives:3, completed:[],
-  timerInterval:null, timeLeft:60, totalTime:60,
-  hackedDevice:-1, devices:[], selectedDevice:-1,
-  activeTab:'detail', hintUsed:0, attempts:0,
-  globalLogs:[], hintRevealed:false, devicePositions:[]
+function buildBurpLab(){
+  const req=`<div class="cmd-ref"><div class="cmd-ref-bar"><div class="cmd-ref-dot d1"></div><div class="cmd-ref-dot d2"></div><div class="cmd-ref-dot d3"></div><div class="cmd-ref-title">Burp Suite — HTTP Interceptor</div></div>
+  <div class="cmd-list">
+    <div class="cmd-row"><div class="cmd-text" style="color:#4af">POST /login</div><div class="cmd-explain">HTTP/1.1 — Target: vulnapp.lab</div></div>
+    <div class="cmd-row"><div class="cmd-text" style="color:var(--g4)">username=admin</div><div class="cmd-explain">← نقطة الحقن — جرب: <span style="color:var(--g3)">admin' OR 1=1--</span></div></div>
+    <div class="cmd-row"><div class="cmd-text" style="color:var(--g4)">password=test</div><div class="cmd-explain">← Brute-force target</div></div>
+  </div></div>`;
+  const init=[
+    tLine('info','[*] Burp Suite Pro v2024 — Proxy listening on 127.0.0.1:8080'),
+    tLine('dim','[*] Intercepting HTTP/HTTPS traffic...'),
+    tLine('warn','[!] Interesting: JWT token in cookie — alg:none vulnerability?'),
+    tLine('dim','Try SQLi or XSS in the intercept above')
+  ].join('');
+  return req+buildTerminalBase('Burp Suite — Repeater','● INTERCEPTING','burp$',
+    ["SQLi: ' OR '1'='1'--","XSS: <img src=x onerror=alert(1)>",'SSTI: {{7*7}}','Path Traversal: ../../../../etc/passwd'],
+    init);
+}
+
+function buildOpensslLab(){
+  const init=[
+    tLine('info','$ openssl s_client -connect target.com:443 2>/dev/null | head -30'),
+    tLine('warn','⚠ Cipher: TLS_RSA_WITH_RC4_128_MD5 — WEAK!'),
+    tLine('warn','⚠ TLS version: TLSv1.0 — Deprecated (POODLE risk)'),
+    tLine('out','Subject: CN=target.com, O=Example Corp'),
+    tLine('out','Issuer: CN=DigiCert SHA2 Secure Server CA'),
+    tLine('dim','Expires: 2025-03-15 — 0 days remaining!'),
+    tLine('err','⚠ Certificate EXPIRED!')
+  ].join('');
+  return buildTerminalBase('root@kali — OpenSSL TLS Analysis','● CONNECTED','$',
+    ['openssl s_client -connect target.com:443','openssl x509 -in cert.pem -text -noout','openssl ciphers -v "HIGH:!aNULL"','testssl.sh target.com'],
+    init);
+}
+
+function buildSeToolsLab(){
+  const init=[
+    tLine('warn','[SET] Social-Engineer Toolkit v8.0.3'),
+    tLine('dim','[SET] Select from the menu:'),
+    tLine('out','  1) Social-Engineering Attacks'),
+    tLine('out','  2) Penetration Testing (Fast-Track)'),
+    tLine('out','  3) Third Party Modules'),
+    tLine('dim',''),
+    tLine('info','[*] Recon: theHarvester -d target.com -b google'),
+    tLine('warn','[!] Found 23 emails, 8 subdomains'),
+  ].join('');
+  return buildTerminalBase('social-engineer-toolkit','● ARMED','set>',
+    ['theHarvester -d target.com -b google','gophish (launch UI)','evilginx2','maltego'],
+    init);
+}
+
+function buildADLab(){
+  const init=[
+    tLine('warn','[*] BloodHound — AD Attack Path Analysis'),
+    tLine('info','[+] Collecting: Users, Groups, ACLs, GPOs, Trusts...'),
+    tLine('warn','[!] Found 3 paths to Domain Admin!'),
+    tLine('out','Path 1: john.doe → [MemberOf] → IT-Admins → [AdminTo] → DC01'),
+    tLine('err','⚠ Kerberoastable SPN: svc_sql/MSSQL.domain.local'),
+    tLine('err','⚠ AS-REP Roastable: guest_user (no pre-auth required)'),
+  ].join('');
+  return buildTerminalBase('impacket — AD Exploitation','● DOMAIN JOINED','(domain)$',
+    ['GetUserSPNs.py domain/user:pass','impacket-secretsdump domain/admin@dc','crackmapexec smb 192.168.1.0/24 -u admin -H HASH','bloodhound-python -d domain.local -c ALL'],
+    init);
+}
+
+function buildForensicsLab(){
+  const init=[
+    tLine('warn','[*] Volatility3 — Memory Forensics'),
+    tLine('info','[+] Image: memory.dmp (4GB RAM dump) — Windows 10 x64'),
+    tLine('warn','[!] Suspicious: svchost.exe (PID:4212) parent=explorer.exe'),
+    tLine('err','⚠ Hidden process detected: malware.exe (PID:3341) — NOT in process list'),
+    tLine('out','[+] Network: 192.168.1.50:54231 → 185.234.219.4:4444 ESTABLISHED'),
+  ].join('');
+  return buildTerminalBase('volatility3 — Memory Analysis','● ANALYZING','vol3$',
+    ['volatility3 -f memory.dmp windows.pslist','volatility3 -f memory.dmp windows.netscan','volatility3 -f memory.dmp windows.hashdump','volatility3 -f memory.dmp windows.malfind'],
+    init);
+}
+
+function buildCloudLab(){
+  const init=[
+    tLine('warn','[AWS] Checking S3 bucket permissions...'),
+    tLine('err','⚠ CRITICAL: s3://target-backup — PUBLIC READ/WRITE!'),
+    tLine('out','[+] Found: database_backup_2024.sql.gz (2.3GB)'),
+    tLine('warn','[*] IMDS: curl http://169.254.169.254/latest/meta-data/iam/security-credentials/'),
+    tLine('err','⚠ IAM Credentials leaked! AccessKeyId: AKIA3X...'),
+  ].join('');
+  return buildTerminalBase('aws-cli — Cloud Security Audit','● CONNECTED','aws$',
+    ['aws s3 ls s3://target --no-sign-request','curl http://169.254.169.254/latest/meta-data/','aws iam list-attached-user-policies --user-name target','trufflehog git --repo https://github.com/target/repo'],
+    init);
+}
+
+function buildGenericLab(m){
+  const init=tLine('info',`[*] ${m.tool} Virtual Lab — Simulated Environment`);
+  return buildTerminalBase(`${m.tool} Lab`,'● READY','$',[],init);
+}
+
+/* TERMINAL INTERACTION */
+const CMD_RESPONSES={
+  // Wireshark
+  'tshark -i eth0':[tLine('info','Capturing on eth0...'),tLine('warn','10:01:30 192.168.1.50 → 185.234.219.4 TCP 128 [BEACON]')],
+  'tshark -r capture.pcap':[tLine('out','Reading from PCAP...'),tLine('warn','Total: 1,247 packets | Suspicious: 14')],
+  'tshark -y "http.request"':[tLine('info','Filtering HTTP requests...'),tLine('out','GET /index.html HTTP/1.1'),tLine('warn','POST /upload HTTP/1.1 — 4096 bytes to 104.21.44.3')],
+  // Nmap
+  'nmap -sn 10.10.10.0/24':[tLine('info','Host discovery on 10.10.10.0/24...'),tLine('out','10.10.10.1 — gateway.local'),tLine('out','10.10.10.40 — Latency: 2ms'),tLine('out','10.10.10.55 — Latency: 1ms'),tLine('warn','3 hosts up (scanned in 2.45s)')],
+  'nmap -p- --min-rate 5000':[tLine('warn','Full TCP scan (65535 ports)...'),tLine('out','22/tcp open  ssh'),tLine('out','80/tcp open  http'),tLine('err','445/tcp open  microsoft-ds — SMB Signing disabled!')],
+  'nmap --script vuln':[tLine('err','⚠ CVE-2021-41773 — Apache 2.4.49 Path Traversal VULNERABLE'),tLine('err','⚠ CVE-2021-31166 — HTTP.sys RCE POTENTIALLY VULNERABLE'),tLine('warn','Redis: No authentication configured')],
+  // Metasploit
+  'search ms17_010':[tLine('out','Matching Modules:'),tLine('warn','exploit/windows/smb/ms17_010_eternalblue  — EternalBlue SMB RCE (MS17-010)'),tLine('out','auxiliary/scanner/smb/smb_ms17_010      — Scanner')],
+  'show options':[tLine('out','Module options (exploit/windows/smb/ms17_010_eternalblue):'),tLine('dim','   Name      Required  Value'),tLine('warn','   RHOSTS    yes       (not set)'),tLine('out','   LHOST     yes       (not set)')],
+  'run':[tLine('warn','[*] Started reverse TCP handler on 0.0.0.0:4444'),tLine('info','[*] 10.10.10.40:445 - Running EternalBlue...'),tLine('err','[+] 10.10.10.40:445 - =-=-=-=-=-=-= WIN =-=-=-=-=-=-='),tLine('err','[+] Meterpreter session 1 opened!')],
+  // Hashcat
+  'hashcat --show -m 0 hash.txt':[tLine('out','5f4dcc3b5aa765d61d8327deb882cf99:password'),tLine('warn','1 hash cracked in 0.2s')],
+  // AWS
+  'aws s3 ls s3://target --no-sign-request':[tLine('err','⚠ BUCKET IS PUBLIC!'),tLine('out','2024-01-15 database_backup.sql.gz'),tLine('out','2024-01-10 customer_data.csv'),tLine('err','⚠ PII data exposure risk!')],
+  // Generic
+  'help':[tLine('info','Available commands — اكتب أي أمر من الـ quick buttons أعلاه')],
 };
 
-// =====================================================
-//  SCREEN MANAGEMENT
-// =====================================================
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(name).classList.add('active');
-  if (name === 'levelSelect') renderLevelGrid();
-  if (name !== 'game') stopTimer();
+function initTerminal(){
+  const inp=document.getElementById('termIn');
+  if(!inp)return;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){runCmd(inp.value);inp.value='';}});
 }
 
-// =====================================================
-//  LEVEL GRID
-// =====================================================
-function renderLevelGrid() {
-  const grid = document.getElementById('levelGrid');
-  grid.innerHTML = '';
-  LEVELS.forEach((lv, i) => {
-    const isLocked = i > 0 && !state.completed.includes(i-1);
-    const isCompleted = state.completed.includes(i);
-    const div = document.createElement('div');
-    div.className = `level-card${isLocked?' locked':''}${isCompleted?' completed':''}`;
-    const dots = Array.from({length:5},(_,d)=>`<div class="diff-dot${d<lv.difficulty?' filled':''}"></div>`).join('');
-    div.innerHTML = `<div class="lc-num">المرحلة ${i+1}</div><div class="lc-icon">${lv.icon}</div><div class="lc-name">${lv.name}</div><div class="lc-type">${lv.attackLabel}</div><div class="lc-diff">${dots}</div>${isLocked?'<div style="font-size:0.68rem;color:var(--text-dim);margin-top:0.4rem;">🔒 محجوب</div>':''}`;
-    if (!isLocked) div.onclick = () => startLevel(i);
-    grid.appendChild(div);
-  });
-}
-
-// =====================================================
-//  START LEVEL
-// =====================================================
-function startLevel(idx) {
-  state.currentLevel = idx;
-  const lv = LEVELS[idx];
-  state.timeLeft = lv.time; state.totalTime = lv.time;
-  state.selectedDevice = -1; state.activeTab = 'detail';
-  state.hintUsed = 0; state.attempts = 0;
-  state.globalLogs = []; state.hintRevealed = false;
-  generateDevices(lv);
-  showScreen('game');
-  document.getElementById('levelLabel').textContent = `المرحلة ${idx+1}`;
-  document.getElementById('attackLabel').textContent = lv.attackLabel;
-  document.getElementById('attackLabel').className = `attack-badge ${lv.attackClass}`;
-  document.getElementById('scoreDisplay').textContent = state.score;
-  updateLives(); updatePanelNoSelect();
-  renderNetwork(); switchTab('detail');
-  startTimer(); startPacketAnimation(); generateInitialLogs();
-}
-
-// =====================================================
-//  DEVICE GENERATION
-// =====================================================
-function generateDevices(lv) {
-  const count = lv.devices;
-  const hackedIdx = Math.floor(Math.random() * count);
-  state.hackedDevice = hackedIdx; state.devices = [];
-  for (let i = 0; i < count; i++) {
-    const typeIdx = i % DEVICE_TYPES.length;
-    const dt = DEVICE_TYPES[typeIdx];
-    const name = dt.names[i % dt.names.length];
-    const ip = `192.168.1.${10+i}`;
-    state.devices.push(generateDeviceStats(name, dt.icon, ip, i === hackedIdx, lv.attack));
+function runCmd(cmd){
+  if(!cmd.trim())return;
+  const out=document.getElementById('termOut');if(!out)return;
+  const inp=document.getElementById('termIn');if(inp)inp.value='';
+  out.insertAdjacentHTML('beforeend',`<div class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">${cmd}</span></div>`);
+  const resp=CMD_RESPONSES[cmd.trim()];
+  if(resp){resp.forEach(l=>out.insertAdjacentHTML('beforeend',l));}
+  else{
+    const lines=[
+      tLine('dim',`Executing: ${cmd}`),
+      tLine('out','Simulated output in virtual environment...'),
+    ];
+    lines.forEach(l=>out.insertAdjacentHTML('beforeend',l));
   }
+  out.scrollTop=out.scrollHeight;
 }
 
-function generateDeviceStats(name, icon, ip, isHacked, attackType) {
-  let pkts = 50+Math.random()*150, upload = 0.5+Math.random()*3,
-      download = 1+Math.random()*8, conns = 2+Math.floor(Math.random()*8);
-  let extIP=null, loginInfo=null, beaconInfo=null, anomalyFlags=[];
-  if (isHacked) {
-    if (attackType==='ddos') {
-      pkts=8000+Math.random()*12000; conns=500+Math.floor(Math.random()*1000);
-      upload=50+Math.random()*100; anomalyFlags=['packets_spike','conn_spike'];
-    } else if (attackType==='exfil') {
-      upload=80+Math.random()*120;
-      extIP=`104.21.${rnd(254)}.${rnd(254)}`; anomalyFlags=['upload_high','external_ip'];
-    } else if (attackType==='beacon') {
-      beaconInfo={ip:`45.33.${rnd(254)}.${rnd(254)}`,interval:30+rnd(30)};
-      extIP=beaconInfo.ip; anomalyFlags=['beacon','external_ip'];
-    } else if (attackType==='login') {
-      loginInfo={ip:`185.${rnd(254)}.${rnd(254)}.${rnd(254)}`,
-        country:['Russia','China','Iran','North Korea'][rnd(4)],
-        failedAttempts:15+rnd(30)};
-      anomalyFlags=['failed_logins','geo_anomaly'];
-    }
-  }
-  const logs = generateDeviceLogs(name, ip, isHacked, attackType, extIP, loginInfo, beaconInfo);
-  return {
-    name, icon, ip, isHacked, attackType,
-    packets:Math.round(pkts), upload:parseFloat(upload.toFixed(1)),
-    download:parseFloat(download.toFixed(1)), connections:Math.round(conns),
-    extIP, loginInfo, beaconInfo, anomalyFlags, logs,
-    cpuUsage:isHacked?70+Math.random()*28:5+Math.random()*40,
-    memUsage:isHacked?60+Math.random()*35:10+Math.random()*50,
-    os:['Windows 11','Ubuntu 22.04','macOS 14','Windows Server 2022'][rnd(4)]
-  };
-}
-function rnd(n) { return Math.floor(Math.random()*n); }
-
-function generateDeviceLogs(name, ip, isHacked, attackType, extIP, loginInfo, beaconInfo) {
-  const now = new Date(); const logs = [];
-  const fmt = d=>`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  const pad = n=>String(n).padStart(2,'0');
-  for (let i=0;i<3;i++) { const t=new Date(now-Math.random()*300000); logs.push({time:fmt(t),msg:`TCP connection to 192.168.1.1:443`,type:'info'}); }
-  logs.push({time:fmt(now),msg:`DNS query: internal.company.local`,type:'info'});
-  if (isHacked) {
-    if (attackType==='ddos') {
-      logs.push({time:fmt(now),msg:`⚠ ALERT: 9,847 packets/sec detected`,type:'warn'});
-      logs.push({time:fmt(new Date(now-5000)),msg:`SYN flood burst: 743 connections`,type:'warn'});
-    } else if (attackType==='exfil') {
-      logs.push({time:fmt(now),msg:`⚠ Large upload to ${extIP}:443`,type:'warn'});
-      logs.push({time:fmt(new Date(now-10000)),msg:`File transfer: 2.3GB to ${extIP}`,type:'warn'});
-    } else if (attackType==='beacon') {
-      logs.push({time:fmt(now),msg:`Periodic connect to ${beaconInfo.ip}:4444`,type:'warn'});
-      logs.push({time:fmt(new Date(now-30000)),msg:`C2 heartbeat — interval: ${beaconInfo.interval}s`,type:'warn'});
-    } else if (attackType==='login') {
-      logs.push({time:fmt(now),msg:`⚠ ${loginInfo.failedAttempts}x failed auth from ${loginInfo.ip}`,type:'warn'});
-      logs.push({time:fmt(new Date(now-5000)),msg:`SSH login SUCCESS from ${loginInfo.country}`,type:'warn'});
-    }
-  }
-  return logs.reverse();
-}
-
-// =====================================================
-//  NETWORK RENDERING
-// =====================================================
-function renderNetwork() {
-  const area = document.getElementById('networkArea');
-  const layer = document.getElementById('devicesLayer');
-  layer.innerHTML = '';
-  const W = area.offsetWidth||600, H = area.offsetHeight||500;
-  const positions = getDevicePositions(state.devices.length, W, H);
-  state.devicePositions = positions;
-  state.devices.forEach((dev, i) => {
-    const pos = positions[i];
-    const node = document.createElement('div');
-    node.className = 'device-node'; node.id = `dev-${i}`;
-    node.style.left = pos.x+'px'; node.style.top = pos.y+'px';
-    const actClass = dev.packets>5000?'high':dev.packets>500?'mid':'';
-    node.innerHTML = `
-      <div class="device-card${state.selectedDevice===i?' selected':''}${dev.anomalyFlags.length>0&&state.hintRevealed?' suspected':''}" id="dc-${i}">
-        <div class="scan-line"></div>
-        <div class="device-icon">${dev.icon}</div>
-        <div class="device-name">${dev.name}</div>
-        <div class="device-ip">${dev.ip}</div>
-        <div class="device-metrics">
-          <div class="metric-pill${dev.anomalyFlags.includes('packets_spike')?' anomaly':''}">${fmtPkts(dev.packets)}/s</div>
-          <div class="metric-pill${dev.anomalyFlags.includes('upload_high')?' anomaly':''}">${dev.upload}MB↑</div>
-        </div>
-        <div class="activity-dot ${actClass}"></div>
-      </div>`;
-    node.onclick = () => selectDevice(i);
-    layer.appendChild(node);
-  });
-  drawCanvas(positions, W, H);
-}
-
-function getDevicePositions(count, W, H) {
-  const cx=W/2, cy=H/2, r=Math.min(W,H)*0.33, pts=[];
-  for (let i=0;i<count;i++) {
-    const a=(i/count)*Math.PI*2-Math.PI/2;
-    pts.push({x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)});
-  }
-  return pts;
-}
-
-function drawCanvas(positions, W, H) {
-  const canvas=document.getElementById('networkCanvas');
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,W,H);
-  // Hub
-  const grd=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,20);
-  grd.addColorStop(0,'rgba(0,255,231,0.6)'); grd.addColorStop(1,'rgba(0,100,200,0.3)');
-  ctx.beginPath(); ctx.arc(W/2,H/2,20,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
-  ctx.font='14px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('🌐',W/2,H/2);
-  // Lines
-  positions.forEach((pos,i) => {
-    const dev=state.devices[i];
-    ctx.beginPath(); ctx.moveTo(W/2,H/2); ctx.lineTo(pos.x,pos.y);
-    if (state.selectedDevice===i) { ctx.strokeStyle='rgba(0,255,231,0.5)'; ctx.lineWidth=2; }
-    else if (dev.anomalyFlags.length>0&&state.hintRevealed) { ctx.strokeStyle='rgba(255,62,108,0.3)'; ctx.lineWidth=1.5; }
-    else { ctx.strokeStyle='rgba(0,255,231,0.07)'; ctx.lineWidth=1; }
-    ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
-  });
-}
-
-function fmtPkts(n) { return n>=1000?(n/1000).toFixed(1)+'K':Math.round(n).toString(); }
-
-// =====================================================
-//  DEVICE SELECTION
-// =====================================================
-function selectDevice(idx) {
-  state.selectedDevice=idx; renderNetwork();
-  if (state.activeTab==='detail') renderDeviceDetail(idx);
-}
-
-function renderDeviceDetail(idx) {
-  const dev=state.devices[idx]; const panel=document.getElementById('panelContent');
-  const cpuC=dev.cpuUsage>80?'danger':dev.cpuUsage>50?'warn':'normal';
-  const memC=dev.memUsage>80?'danger':dev.memUsage>50?'warn':'normal';
-  const uplC=dev.upload>50?'danger':dev.upload>15?'warn':'normal';
-  const pktC=dev.packets>5000?'danger':dev.packets>500?'warn':'normal';
-  let extra='';
-  if (dev.extIP) extra+=`<div class="stat-row"><span class="stat-label">External IP</span><span class="stat-val red">${dev.extIP}</span></div>`;
-  if (dev.loginInfo) {
-    extra+=`<div class="stat-row"><span class="stat-label">Failed Logins</span><span class="stat-val red">${dev.loginInfo.failedAttempts}x</span></div>`;
-    extra+=`<div class="stat-row"><span class="stat-label">Source Country</span><span class="stat-val orange">${dev.loginInfo.country}</span></div>`;
-    extra+=`<div class="stat-row"><span class="stat-label">Source IP</span><span class="stat-val red">${dev.loginInfo.ip}</span></div>`;
-  }
-  if (dev.beaconInfo) {
-    extra+=`<div class="stat-row"><span class="stat-label">C2 Server</span><span class="stat-val red">${dev.beaconInfo.ip}</span></div>`;
-    extra+=`<div class="stat-row"><span class="stat-label">Beacon Interval</span><span class="stat-val orange">${dev.beaconInfo.interval}s</span></div>`;
-  }
-  panel.innerHTML=`
-    <div class="detail-header">
-      <div class="detail-icon">${dev.icon}</div>
-      <div><div class="detail-title">${dev.name}</div><div class="detail-ip">${dev.ip}</div><div style="font-size:0.62rem;color:var(--text-dim);margin-top:0.15rem;">${dev.os}</div></div>
+/* ─── CHALLENGE ─── */
+function renderChallenge(){
+  const m=MODULES[currentMod];const C=m.challenge;
+  chalAnswers={};chalSubmitted=false;
+  const pips=Array.from({length:5},(_,j)=>`<div class="cpip${j<C.difficulty?' f':''}"></div>`).join('');
+  const qs=C.questions.map((q,qi)=>`
+    <div class="chal-q" id="cq${qi}">
+      <div class="cq-num"># Question ${qi+1} / ${C.questions.length}</div>
+      <div class="cq-text">${q.q}</div>
+      <div class="cq-opts" id="cqOpts${qi}">
+        ${q.opts.map((o,oi)=>`<div class="cq-opt" onclick="answerQ(${qi},${oi})" id="cqO${qi}_${oi}">
+          <div class="cq-radio"></div>${o}
+        </div>`).join('')}
+      </div>
+      <div class="cq-feedback" id="cqFb${qi}"></div>
+    </div>`).join('');
+  document.getElementById('chalPane').innerHTML=`
+    <div class="chal-header">
+      <div class="chal-alert-icon">🎯</div>
+      <div><div class="chal-alert-title">${C.title}</div><div class="chal-alert-desc">${C.desc}</div></div>
     </div>
-    <div class="section-title">📊 الإحصائيات</div>
-    <div class="stat-row"><span class="stat-label">Packets/sec</span><span class="stat-val ${pktC==='danger'?'red':pktC==='warn'?'orange':'green'}">${fmtPkts(dev.packets)}</span></div>
-    <div class="stat-row"><span class="stat-label">Upload Rate</span><span class="stat-val ${uplC==='danger'?'red':uplC==='warn'?'orange':'green'}">${dev.upload} MB/s</span></div>
-    <div class="stat-row"><span class="stat-label">Download Rate</span><span class="stat-val">${dev.download} MB/s</span></div>
-    <div class="stat-row"><span class="stat-label">Active Connections</span><span class="stat-val ${dev.connections>300?'red':''}">${dev.connections}</span></div>
-    ${extra}
-    <div class="section-title">💻 الأداء</div>
-    <div class="bar-wrap"><div class="bar-label"><span>CPU</span><span>${Math.round(dev.cpuUsage)}%</span></div><div class="bar-bg"><div class="bar-fill ${cpuC}" style="width:${dev.cpuUsage}%"></div></div></div>
-    <div class="bar-wrap"><div class="bar-label"><span>Memory</span><span>${Math.round(dev.memUsage)}%</span></div><div class="bar-bg"><div class="bar-fill ${memC}" style="width:${dev.memUsage}%"></div></div></div>
-    <div class="section-title">📋 آخر السجلات</div>
-    ${dev.logs.slice(0,5).map(l=>`<div class="log-entry ${l.type}"><span>${l.time}</span> ${l.msg}</div>`).join('')}
-    <button class="inspect-btn report" onclick="reportDevice(${idx})">⚠️ الإبلاغ عن هذا الجهاز</button>
-    <button class="inspect-btn clear" onclick="clearDevice(${idx})">✅ هذا الجهاز آمن</button>`;
+    <div class="chal-difficulty">Difficulty: <div class="chal-difficulty-pips">${pips}</div></div>
+    <div class="chal-questions">${qs}</div>
+    <button class="chal-submit" id="chalSubmit" onclick="submitChallenge()">⚡ تقييم الإجابات</button>
+    <div class="chal-result" id="chalResult"></div>`;
 }
 
-// =====================================================
-//  TABS
-// =====================================================
-function switchTab(tab) {
-  state.activeTab=tab;
-  ['detail','log','hints'].forEach(t=>{
-    document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle('active',t===tab);
+function answerQ(qi,oi){
+  if(chalSubmitted)return;
+  chalAnswers[qi]=oi;
+  document.querySelectorAll(`#cqOpts${qi} .cq-opt`).forEach((el,i)=>{
+    el.style.opacity=i===oi?'1':'0.45';
+    el.style.borderColor=i===oi?'rgba(0,200,150,.4)':'';
+    el.style.background=i===oi?'rgba(0,200,150,.07)':'';
   });
-  if (tab==='detail') { if (state.selectedDevice>=0) renderDeviceDetail(state.selectedDevice); else updatePanelNoSelect(); }
-  else if (tab==='log') renderGlobalLog();
-  else renderHints();
+  const allAnswered=Object.keys(chalAnswers).length===MODULES[currentMod].challenge.questions.length;
+  if(allAnswered)document.getElementById('chalSubmit').classList.add('on');
 }
 
-function updatePanelNoSelect() {
-  document.getElementById('panelContent').innerHTML=`<div class="no-select-msg"><div style="font-size:2rem;margin-bottom:0.5rem;">👆</div><div>اضغط على أي جهاز<br>لعرض تفاصيله</div></div>`;
-}
-
-function renderGlobalLog() {
-  const panel=document.getElementById('panelContent');
-  const logs=state.globalLogs.slice(-50).reverse();
-  panel.innerHTML=`<div class="section-title">📋 سجل الشبكة الكامل</div><div class="global-log">${logs.map(l=>`<div class="glog-entry ${l.cls}"><span class="glog-time">${l.time}</span><span class="glog-src">${l.src}</span><span class="glog-msg">${l.msg}</span></div>`).join('')}</div>`;
-}
-
-function renderHints() {
-  const lv=LEVELS[state.currentLevel];
-  document.getElementById('panelContent').innerHTML=`
-    <div class="section-title">💡 تلميحات</div>
-    <div class="hint-card"><div class="hint-title">🎯 ${lv.attackLabel}</div><div class="hint-body">${lv.name} — ${['1','2','3','4','5'][lv.difficulty-1]} ⭐</div></div>
-    ${lv.hints.map((h,i)=>`<div class="hint-card"><div class="hint-title">تلميح ${i+1}</div><div class="hint-body">${h}</div></div>`).join('')}
-    <div class="hint-card" style="border-color:rgba(255,62,108,0.3)"><div class="hint-title" style="color:var(--red)">⚠️</div><div class="hint-body">استخدام التلميحات يقلل النقاط النهائية.</div></div>`;
-}
-
-// =====================================================
-//  GAME ACTIONS
-// =====================================================
-function reportDevice(idx) {
-  state.attempts++;
-  const dev=state.devices[idx];
-  if (dev.isHacked) {
-    stopTimer();
-    const hintPen=state.hintUsed*100, attPen=Math.max(0,(state.attempts-1)*200);
-    const earned=Math.max(100,1000+state.timeLeft*15-hintPen-attPen);
-    state.score+=earned; state.completed.push(state.currentLevel);
-    showResult(true,dev,earned,state.timeLeft);
-  } else {
-    state.lives--; updateLives();
-    if (state.lives<=0) { stopTimer(); showResult(false,state.devices[state.hackedDevice],0,state.timeLeft); }
-    else {
-      const card=document.getElementById(`dc-${idx}`);
-      if(card){card.style.borderColor='rgba(255,62,108,0.8)';card.style.boxShadow='0 0 20px rgba(255,62,108,0.5)';setTimeout(()=>{card.style.borderColor='';card.style.boxShadow='';},1000);}
-      addLog(dev.ip,`❌ إبلاغ خاطئ عن ${dev.name}`,'alert');
-      if(state.activeTab==='detail') renderDeviceDetail(idx);
-    }
-  }
-}
-
-function clearDevice(idx) { addLog(state.devices[idx].ip,`✓ تم تصنيف ${state.devices[idx].name} كآمن`,''); if(state.activeTab==='detail') renderDeviceDetail(idx); }
-
-function useHint() { state.hintUsed++; state.hintRevealed=true; renderNetwork(); switchTab('hints'); }
-
-function showResult(win, hackedDev, earned, timeLeft) {
-  const card=document.getElementById('resultCard');
-  card.className=`result-card ${win?'win':'lose'}`;
-  document.getElementById('resultIcon').textContent=win?'🎯':'💀';
-  document.getElementById('resultTitle').textContent=win?'تم الاكتشاف!':'فشلت المهمة!';
-  document.getElementById('resultTitle').className=`result-title ${win?'win-text':'lose-text'}`;
-  document.getElementById('rsTime').textContent=timeLeft+'s';
-  document.getElementById('rsScore').textContent=earned;
-  document.getElementById('rsAccuracy').textContent=(state.attempts>0?Math.round(100/state.attempts):0)+'%';
-  const lv=LEVELS[state.currentLevel];
-  const expls={
-    ddos:  `<strong>DDoS Attack:</strong> الجهاز <strong>${hackedDev.name}</strong> كان يرسل <strong>${fmtPkts(hackedDev.packets)} packets/s</strong> — أعلى بكثير من الطبيعي (50-200/s). هجوم SYN Flood.`,
-    exfil: `<strong>Data Exfiltration:</strong> الجهاز <strong>${hackedDev.name}</strong> رفع بيانات بمعدل <strong>${hackedDev.upload} MB/s</strong> إلى <strong>${hackedDev.extIP}</strong>.`,
-    beacon:`<strong>Malware Beacon:</strong> الجهاز <strong>${hackedDev.name}</strong> يتصل بخادم C2 <strong>${hackedDev.beaconInfo?.ip}</strong> كل <strong>${hackedDev.beaconInfo?.interval}s</strong>.`,
-    login: `<strong>Suspicious Login:</strong> الجهاز <strong>${hackedDev.name}</strong> سجّل <strong>${hackedDev.loginInfo?.failedAttempts} محاولة فاشلة</strong> من <strong>${hackedDev.loginInfo?.country}</strong>.`
-  };
-  document.getElementById('resultExplanation').innerHTML=expls[lv.attack]||'';
-  document.getElementById('resultMsg').textContent=win?'أحسنت! نجحت في حماية الشبكة.':'الجهاز المخترق كان: '+hackedDev.name+' ('+hackedDev.ip+')';
-  const isLast=state.currentLevel>=LEVELS.length-1;
-  document.getElementById('nextBtn').textContent=isLast?'🏆 إنهاء':'التالي ➜';
-  document.getElementById('nextBtn').disabled=!win;
-  document.getElementById('nextBtn').style.opacity=win?'1':'0.4';
-  document.getElementById('resultOverlay').classList.add('active');
-}
-
-function nextLevel() { document.getElementById('resultOverlay').classList.remove('active'); if(state.currentLevel<LEVELS.length-1) startLevel(state.currentLevel+1); else showScreen('levelSelect'); }
-function retryLevel() { document.getElementById('resultOverlay').classList.remove('active'); startLevel(state.currentLevel); }
-function confirmExit() { stopTimer(); showScreen('levelSelect'); }
-
-// =====================================================
-//  TIMER
-// =====================================================
-function startTimer() {
-  stopTimer(); updateTimerDisplay();
-  state.timerInterval=setInterval(()=>{
-    state.timeLeft--; updateTimerDisplay();
-    if(state.timeLeft<=0){stopTimer();showResult(false,state.devices[state.hackedDevice],0,0);}
-  },1000);
-}
-function stopTimer() { if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null;} }
-function updateTimerDisplay() {
-  const el=document.getElementById('timerNum'); const bar=document.getElementById('timerBar'); if(!el||!bar)return;
-  el.textContent=state.timeLeft;
-  const pct=(state.timeLeft/state.totalTime)*100; bar.style.width=pct+'%';
-  if(state.timeLeft<=10){el.classList.add('urgent');bar.style.background='linear-gradient(90deg,var(--red),#8a0020)';}
-  else if(state.timeLeft<=20){bar.style.background='linear-gradient(90deg,var(--orange),#cc6000)';el.classList.remove('urgent');}
-  else{bar.style.background='linear-gradient(90deg,var(--accent),#0088ff)';el.classList.remove('urgent');}
-}
-
-function updateLives() { const el=document.getElementById('livesDisplay'); if(!el)return; el.innerHTML=Array.from({length:3},(_,i)=>i<state.lives?'❤️':'🖤').join(''); }
-
-// =====================================================
-//  PACKET ANIMATION
-// =====================================================
-let packetLoop=null;
-function startPacketAnimation() {
-  if(packetLoop)clearInterval(packetLoop);
-  packetLoop=setInterval(spawnPackets,900);
-}
-function spawnPackets() {
-  const area=document.getElementById('networkArea'); if(!area||!state.devicePositions.length)return;
-  const W=area.offsetWidth,H=area.offsetHeight,cx=W/2,cy=H/2;
-  state.devices.forEach((dev,i)=>{
-    const count=dev.packets>5000?4:dev.packets>500?2:1;
-    for(let c=0;c<count;c++){
-      setTimeout(()=>{
-        const pos=state.devicePositions[i]; if(!pos)return;
-        const pkt=document.createElement('div'); pkt.className='packet';
-        pkt.style.cssText=`left:${cx}px;top:${cy}px;position:absolute;width:5px;height:5px;border-radius:50%;background:${dev.isHacked?'var(--red)':'var(--accent)'};box-shadow:0 0 5px ${dev.isHacked?'var(--red)':'var(--accent)'};pointer-events:none;transition:transform 1.4s linear,opacity 1.4s;`;
-        area.appendChild(pkt);
-        setTimeout(()=>{pkt.style.transform=`translate(${pos.x-cx}px,${pos.y-cy}px)`;pkt.style.opacity='0';},50);
-        setTimeout(()=>pkt.remove(),1500);
-      },c*200);
-    }
+function submitChallenge(){
+  if(chalSubmitted)return;
+  chalSubmitted=true;
+  document.getElementById('chalSubmit').disabled=true;
+  const m=MODULES[currentMod];const C=m.challenge;
+  let correct=0;
+  C.questions.forEach((q,qi)=>{
+    const ans=chalAnswers[qi];
+    const isOk=ans===q.correct;
+    if(isOk)correct++;
+    document.querySelectorAll(`#cqOpts${qi} .cq-opt`).forEach((el,oi)=>{
+      el.style.opacity='';el.style.borderColor='';el.style.background='';
+      if(oi===q.correct)el.classList.add('correct');
+      else if(oi===ans&&!isOk)el.classList.add('wrong');
+      else el.classList.add('disabled');
+    });
+    const fb=document.getElementById(`cqFb${qi}`);
+    if(fb){fb.className=`cq-feedback on ${isOk?'ok':'bad'}`;fb.textContent=q.exp;}
   });
+  const pct=Math.round(correct/C.questions.length*100);
+  const pass=pct>=66;
+  const xpEarned=pass?150+correct*50:0;
+  if(pass&&!S.completed.includes(currentMod)){S.completed.push(currentMod);updateScore(xpEarned);}
+  else if(!pass){updateScore(0);}
+  const res=document.getElementById('chalResult');
+  res.className=`chal-result on${pass?'':' fail'}`;
+  res.innerHTML=`
+    <div class="cr-icon">${pass?'🏆':'💀'}</div>
+    <div class="cr-title ${pass?'ok':'fail'}">${pass?'اجتزت التحدي!':'لم تجتز التحدي'}</div>
+    <div class="cr-score">${correct}/${C.questions.length} إجابة صحيحة — ${pct}% — ${pass?'+'+xpEarned+' XP':''}</div>
+    <div class="cr-explain">
+      ${pass?`<strong>✓</strong> أثبتت كفاءتك في استخدام <strong>${m.tool}</strong>. تجاوزت 66% من الأسئلة بنجاح.`:`<strong>✗</strong> المطلوب 66%+ للاجتياز. راجع درس <strong>${m.tool}</strong> مجدداً وركّز على المفاهيم النظرية والعملية.`}
+    </div>
+    <div class="cr-btns">
+      ${pass&&currentMod<MODULES.length-1?`<button class="cr-btn-p" onclick="openLesson(${currentMod+1})">الوحدة التالية →</button>`:''}
+      <button class="cr-btn-s" onclick="renderChallenge()">🔄 إعادة</button>
+      <button class="cr-btn-s" onclick="showDash()">🏠 لوحة التحكم</button>
+    </div>`;
+  updateProgress();
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-// =====================================================
-//  GLOBAL LOGS
-// =====================================================
-function generateInitialLogs() {
-  state.devices.forEach(dev=>dev.logs.forEach(l=>state.globalLogs.push({time:l.time,src:dev.ip,msg:l.msg,cls:l.type==='warn'?'alert':''})));
-  state.globalLogs.sort((a,b)=>a.time.localeCompare(b.time));
-  setInterval(()=>{
-    const dev=state.devices[Math.floor(Math.random()*state.devices.length)];
-    if(dev) addLog(dev.ip,`TCP established port ${1024+Math.floor(Math.random()*60000)}`,'');
-  },2500);
-}
-function addLog(src,msg,cls) {
-  const now=new Date();
-  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  state.globalLogs.push({time:t,src,msg,cls});
-  if(state.activeTab==='log') renderGlobalLog();
-}
-
-// =====================================================
-//  RESIZE
-// =====================================================
-window.addEventListener('resize',()=>{
-  if(document.getElementById('game').classList.contains('active')&&state.devices.length>0) renderNetwork();
-});
-
-// =====================================================
-//  INIT
-// =====================================================
-document.addEventListener('DOMContentLoaded',()=>{
-  try { const s=JSON.parse(localStorage.getItem('cyberdetective_state')||'{}'); state.score=s.score||0; state.completed=s.completed||[]; } catch(e){}
-  showScreen('loginScreen');
-});
-setInterval(()=>{try{localStorage.setItem('cyberdetective_state',JSON.stringify({score:state.score,completed:state.completed}));}catch(e){}},5000);
-if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+/* ═══════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════ */
+updateScore(0);
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
 </body>
 </html>
