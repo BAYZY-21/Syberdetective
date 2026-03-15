@@ -1193,9 +1193,7 @@ body::before {
 <div id="toastContainer"></div>
 
 <!-- SCRIPTS: parts 2, 3, 4 will be injected here via JS includes -->
-<script src="game.js"></script>
-</body>
-</html>
+<script>
 /* ================================================================
    PUZZLE PLANET — PART 2
    Core Engine: Stars, Planet Rendering, Game State, Navigation
@@ -1980,11 +1978,7 @@ PP3.logicPuzzle = {
       <div class="logic-question">
         <div class="logic-question-text" style="direction:rtl">${q.q}</div>
         <div class="logic-choices" id="choicesContainer">
-          ${shuffled.map(c => `
-            <button class="logic-choice" data-original="${c.idx}">
-              ${c.text}
-            </button>
-          `).join('')}
+          ${shuffled.map(c => '<button class="logic-choice" data-original="' + c.idx + '">' + c.text + '</button>').join('')}
         </div>
         <div id="logicFeedback" style="margin-top:0.8rem;font-size:0.82rem;color:var(--text-secondary);line-height:1.6;min-height:1.5rem;text-align:center"></div>
       </div>
@@ -2048,8 +2042,8 @@ PP3.logicPuzzle = {
         <div style="font-size:3rem;margin-bottom:1rem">${passed ? '🏆' : '💔'}</div>
         <div class="logic-question-text">
           ${passed
-            ? `أحسنت! حصلت على <strong style="color:var(--glow-green)">${this.score}/5</strong> إجابات صحيحة.`
-            : `حصلت على <strong style="color:var(--glow-pink)">${this.score}/5</strong>. تحتاج 3 إجابات صحيحة على الأقل.`
+            ? 'أحسنت! حصلت على <strong style="color:var(--glow-green)">' + this.score + '/5</strong> إجابات صحيحة.'
+            : 'حصلت على <strong style="color:var(--glow-pink)">' + this.score + '/5</strong>. تحتاج 3 إجابات صحيحة على الأقل.'
           }
         </div>
         <button class="machine-check-btn" id="logicRetryOrClaim" style="background:linear-gradient(135deg,#00c8ff,#0060ff)">
@@ -2390,11 +2384,7 @@ PP3.machinePuzzle = {
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%">
         <div class="machine-grid" id="machineGrid">
-          ${this.machines.map(m => `
-            <div class="machine-cell" id="mach_${m.id}" data-id="${m.id}" title="${m.name}">
-              ${m.icon}
-            </div>
-          `).join('')}
+          ${this.machines.map(m => '<div class="machine-cell" id="mach_' + m.id + '" data-id="' + m.id + '" title="' + m.name + '">' + m.icon + '</div>').join('')}
         </div>
         <div class="machine-hint" id="machineHint">
           الصواب: ${this.correctSequence.length} آلات. انتظر التسلسل...
@@ -2934,19 +2924,13 @@ PP4.timePuzzle = {
           ${seq.title}
         </div>
         <div class="time-sequence-display" id="seqDisplay">
-          ${seq.visible.map((sym, i) => `
-            <div class="seq-symbol ${i === seq.hiddenIndex ? 'hidden' : 'revealed'}" id="seq_${i}">
-              ${i === seq.hiddenIndex ? '❓' : sym}
-            </div>
-          `).join('')}
+          ${seq.visible.map((sym, i) => '<div class="seq-symbol ' + (i === seq.hiddenIndex ? 'hidden' : 'revealed') + '" id="seq_' + i + '">' + (i === seq.hiddenIndex ? '❓' : sym) + '</div>').join('')}
         </div>
         <div style="text-align:center;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.8rem">
           💡 ${seq.hint}
         </div>
         <div class="time-input-row">
-          ${shuffledChoices.map(c => `
-            <button class="time-choice-btn" data-value="${c}">${c}</button>
-          `).join('')}
+          ${shuffledChoices.map(c => '<button class="time-choice-btn" data-value="' + c + '">' + c + '</button>').join('')}
         </div>
         <div style="text-align:center;margin-top:0.5rem">
           <button class="machine-check-btn" id="timeConfirmBtn"
@@ -3039,8 +3023,8 @@ PP4.timePuzzle = {
         <div style="font-size:3rem;margin-bottom:1rem">${passed ? '⏳✨' : '⌛'}</div>
         <div class="logic-question-text">
           ${passed
-            ? `رائع! حللت <strong style="color:var(--glow-green)">${this.score}/${this.sequences.length}</strong> تسلسلات.`
-            : `حللت <strong style="color:var(--glow-pink)">${this.score}/${this.sequences.length}</strong>. تحتاج 3 على الأقل.`
+            ? 'رائع! حللت <strong style="color:var(--glow-green)">' + this.score + '/' + this.sequences.length + '</strong> تسلسلات.'
+            : 'حللت <strong style="color:var(--glow-pink)">' + this.score + '/' + this.sequences.length + '</strong>. تحتاج 3 على الأقل.'
           }
         </div>
         <button class="machine-check-btn" id="timeRetryOrClaim"
@@ -3090,3 +3074,1891 @@ if (window.__PP_part2_ready && window.__PP_part3_ready) {
 
 window.__PP_part4_ready = true;
 console.log('[PP] Part 4 loaded ✓');
+
+
+</script>
+</body>
+</html>
+
+/* ================================================================
+   PUZZLE PLANET — PART 2
+   Core Engine: Stars, Planet Rendering, Game State, Navigation
+   ================================================================ */
+'use strict';
+
+// ---------------------------------------------------------------
+// GLOBAL GAME STATE
+// ---------------------------------------------------------------
+window.PP = window.PP || {};
+const PP = window.PP;
+
+PP.state = {
+  cores: [false, false, false, false, false],
+  currentZone: null,
+  started: false,
+  totalCores: 5,
+};
+
+PP.zoneData = [
+  {
+    id: 1,
+    name: 'منطقة المنطق',
+    desc: 'حل الألغاز المنطقية لجمع نواة الطاقة الأولى',
+    icon: '🔷',
+    coreName: 'نواة المنطق الأزرق',
+    color: '#00c8ff',
+    colorRgb: '0,200,255',
+    type: 'logic',
+  },
+  {
+    id: 2,
+    name: 'منطقة المتاهة',
+    desc: 'شق طريقك عبر المتاهة المظلمة',
+    icon: '🔮',
+    coreName: 'نواة المتاهة البنفسجية',
+    color: '#9b30ff',
+    colorRgb: '155,48,255',
+    type: 'maze',
+  },
+  {
+    id: 3,
+    name: 'منطقة الآلات',
+    desc: 'فعّل الآلات القديمة بالترتيب الصحيح',
+    icon: '🔶',
+    coreName: 'نواة الآلات البرتقالية',
+    color: '#ff7b00',
+    colorRgb: '255,123,0',
+    type: 'machine',
+  },
+  {
+    id: 4,
+    name: 'منطقة الضوء',
+    desc: 'وجّه شعاع الضوء نحو الهدف',
+    icon: '💎',
+    coreName: 'نواة الضوء الزمردية',
+    color: '#00ff88',
+    colorRgb: '0,255,136',
+    type: 'light',
+  },
+  {
+    id: 5,
+    name: 'منطقة الزمن',
+    desc: 'اكتشف نمط التسلسل الزمني الغامض',
+    icon: '❤️‍🔥',
+    coreName: 'نواة الزمن القرمزية',
+    color: '#ff2d78',
+    colorRgb: '255,45,120',
+    type: 'time',
+  },
+];
+
+// ---------------------------------------------------------------
+// UTILITY HELPERS
+// ---------------------------------------------------------------
+PP.utils = {
+  $(id) { return document.getElementById(id); },
+  rand(min, max) { return Math.random() * (max - min) + min; },
+  randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
+  shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  },
+  clamp(v, min, max) { return Math.min(max, Math.max(min, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  delay(ms) { return new Promise(r => setTimeout(r, ms)); },
+};
+const { $, rand, randInt, shuffle } = PP.utils;
+
+// ---------------------------------------------------------------
+// TOAST NOTIFICATIONS
+// ---------------------------------------------------------------
+PP.toast = function(msg, type = 'info', duration = 2500) {
+  const container = $('toastContainer');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+};
+
+// ---------------------------------------------------------------
+// SCREEN ROUTER
+// ---------------------------------------------------------------
+PP.showScreen = function(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const screen = $(id);
+  if (screen) screen.classList.add('active');
+
+  // Show/hide HUD
+  const hud = $('gameHUD');
+  if (id === 'introScreen') {
+    hud.classList.remove('visible');
+  } else {
+    hud.classList.add('visible');
+  }
+};
+
+// ---------------------------------------------------------------
+// HUD UPDATE
+// ---------------------------------------------------------------
+PP.updateHUD = function() {
+  PP.state.cores.forEach((collected, i) => {
+    const el = document.querySelector(`.hud-core[data-z="${i + 1}"]`);
+    if (!el) return;
+    if (collected) {
+      el.textContent = PP.zoneData[i].icon;
+      el.classList.add('collected');
+    } else {
+      el.textContent = '⬡';
+      el.classList.remove('collected');
+    }
+  });
+};
+
+// ---------------------------------------------------------------
+// MAP STATUS UPDATE
+// ---------------------------------------------------------------
+PP.updateMapStatus = function() {
+  const collected = PP.state.cores.filter(Boolean).length;
+  const statusEl = $('mapStatusText');
+  if (!statusEl) return;
+  if (collected === 0) {
+    statusEl.textContent = 'اختر منطقة للاستكشاف — ابدأ بأي منطقة';
+  } else if (collected < 5) {
+    statusEl.textContent = `${collected} / 5 نوى مجمّعة — تابع الاستكشاف!`;
+  } else {
+    statusEl.textContent = 'جميع النوى مجمّعة! اذهب إلى مركز الكوكب';
+  }
+
+  // Update zone buttons
+  PP.zoneData.forEach((zone, i) => {
+    const btn = $(`zoneBtn${zone.id}`);
+    if (!btn) return;
+    if (PP.state.cores[i]) {
+      btn.classList.add('completed');
+      btn.classList.remove('locked');
+      btn.querySelector('.zone-btn-circle').style.background =
+        `rgba(${zone.colorRgb},0.3)`;
+    }
+  });
+};
+
+// ---------------------------------------------------------------
+// STAR FIELD
+// ---------------------------------------------------------------
+PP.starField = {
+  canvas: null, ctx: null,
+  stars: [], nebulas: [],
+  animId: null,
+  init() {
+    this.canvas = $('starCanvas');
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    this.generate();
+    this.animate();
+    window.addEventListener('resize', () => { this.resize(); this.generate(); });
+  },
+  resize() {
+    this.canvas.width  = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  },
+  generate() {
+    const W = this.canvas.width, H = this.canvas.height;
+    this.stars = [];
+    const count = Math.floor((W * H) / 3500);
+    for (let i = 0; i < count; i++) {
+      this.stars.push({
+        x: rand(0, W), y: rand(0, H),
+        r: rand(0.2, 1.6),
+        a: rand(0.2, 1),
+        speed: rand(0.05, 0.25),
+        twinkleSpeed: rand(0.008, 0.025),
+        twinklePhase: rand(0, Math.PI * 2),
+        color: ['#ffffff','#a0d0ff','#d0a0ff','#ffd0a0'][randInt(0,3)],
+      });
+    }
+    // Nebula patches
+    this.nebulas = [];
+    for (let i = 0; i < 5; i++) {
+      this.nebulas.push({
+        x: rand(0, W), y: rand(0, H),
+        rx: rand(80, 220), ry: rand(50, 140),
+        color: ['rgba(0,200,255,0.04)','rgba(155,48,255,0.04)','rgba(0,255,136,0.03)'][randInt(0,2)],
+        rotation: rand(0, Math.PI),
+      });
+    }
+  },
+  animate() {
+    const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw nebulas
+    this.nebulas.forEach(n => {
+      ctx.save();
+      ctx.translate(n.x, n.y);
+      ctx.rotate(n.rotation);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(n.rx, n.ry));
+      g.addColorStop(0, n.color);
+      g.addColorStop(1, 'transparent');
+      ctx.scale(n.rx / Math.max(n.rx, n.ry), n.ry / Math.max(n.rx, n.ry));
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(n.rx, n.ry), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // Draw stars
+    const t = performance.now() / 1000;
+    this.stars.forEach(s => {
+      s.twinklePhase += s.twinkleSpeed;
+      const alpha = s.a * (0.5 + 0.5 * Math.sin(s.twinklePhase));
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = s.color;
+      ctx.shadowBlur = s.r > 1 ? 4 : 0;
+      ctx.shadowColor = s.color;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      // Slow drift
+      s.y -= s.speed * 0.02;
+      if (s.y < -2) { s.y = this.canvas.height + 2; s.x = rand(0, this.canvas.width); }
+    });
+
+    this.animId = requestAnimationFrame(() => this.animate());
+  },
+};
+
+// ---------------------------------------------------------------
+// PLANET CANVAS RENDERER (reusable)
+// ---------------------------------------------------------------
+PP.drawPlanet = function(canvas, time, opts = {}) {
+  if (!canvas) return;
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d');
+  const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 2;
+  const t = time * 0.001;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Base sphere gradient
+  const baseG = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.05, cx, cy, R);
+  baseG.addColorStop(0,   opts.lightColor  || '#1a4060');
+  baseG.addColorStop(0.4, opts.midColor    || '#0a1a30');
+  baseG.addColorStop(1,   opts.darkColor   || '#020810');
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.fillStyle = baseG;
+  ctx.fill();
+
+  // Terrain / swirl layers
+  const layers = opts.layers || [
+    { color: 'rgba(0,200,255,0.12)', freq: 2.5, amp: 0.25, speed: 0.4 },
+    { color: 'rgba(155,48,255,0.10)', freq: 1.8, amp: 0.35, speed: 0.25 },
+    { color: 'rgba(0,80,160,0.15)',   freq: 3.2, amp: 0.2,  speed: 0.6 },
+    { color: 'rgba(0,255,136,0.06)',  freq: 4.0, amp: 0.15, speed: 0.8 },
+  ];
+
+  layers.forEach(layer => {
+    ctx.beginPath();
+    const points = 120;
+    for (let i = 0; i <= points; i++) {
+      const angle = (i / points) * Math.PI * 2;
+      const noise = Math.sin(angle * layer.freq + t * layer.speed) *
+                    Math.cos(angle * layer.freq * 0.7 + t * layer.speed * 1.3);
+      const rr = R * (0.7 + layer.amp * noise * 0.5);
+      const px = cx + Math.cos(angle) * rr;
+      const py = cy + Math.sin(angle) * rr;
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = layer.color;
+    ctx.fill();
+  });
+
+  // Atmosphere glow (inner rim)
+  const atmosG = ctx.createRadialGradient(cx, cy, R * 0.75, cx, cy, R);
+  atmosG.addColorStop(0, 'transparent');
+  atmosG.addColorStop(1, opts.atmosColor || 'rgba(0,200,255,0.15)');
+  ctx.fillStyle = atmosG;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Craters
+  const craters = opts.craters || [
+    { x: 0.3, y: 0.35, r: 0.08 },
+    { x: 0.62, y: 0.55, r: 0.05 },
+    { x: 0.45, y: 0.7,  r: 0.06 },
+    { x: 0.2,  y: 0.6,  r: 0.04 },
+    { x: 0.7,  y: 0.3,  r: 0.07 },
+  ];
+  craters.forEach(c => {
+    const px = cx + (c.x - 0.5) * R * 1.8;
+    const py = cy + (c.y - 0.5) * R * 1.8;
+    const cr = R * c.r;
+    const cg = ctx.createRadialGradient(px - cr*0.2, py - cr*0.2, 0, px, py, cr);
+    cg.addColorStop(0, 'rgba(0,0,0,0.4)');
+    cg.addColorStop(0.7, 'rgba(0,0,0,0.15)');
+    cg.addColorStop(1,  'transparent');
+    ctx.fillStyle = cg;
+    ctx.beginPath();
+    ctx.arc(px, py, cr, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Specular highlight
+  const specG = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.35, 0, cx - R * 0.2, cy - R * 0.2, R * 0.6);
+  specG.addColorStop(0, 'rgba(255,255,255,0.12)');
+  specG.addColorStop(1, 'transparent');
+  ctx.fillStyle = specG;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Shadow / terminator
+  const shadowG = ctx.createRadialGradient(cx + R * 0.5, cy + R * 0.3, 0, cx + R * 0.5, cy + R * 0.3, R * 1.2);
+  shadowG.addColorStop(0, 'transparent');
+  shadowG.addColorStop(0.6, 'transparent');
+  shadowG.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = shadowG;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------
+// PLANET MAP CANVAS
+// ---------------------------------------------------------------
+PP.mapCanvas = {
+  canvas: null, ctx: null, animId: null,
+  init() {
+    this.canvas = $('planetMapCanvas');
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.animate();
+  },
+  animate() {
+    PP.drawPlanet(this.canvas, performance.now(), {
+      lightColor:  '#1e3a5a',
+      midColor:    '#0c1e38',
+      darkColor:   '#030812',
+      atmosColor:  'rgba(0,200,255,0.12)',
+      layers: [
+        { color: 'rgba(0,200,255,0.09)',  freq: 2.0, amp: 0.3,  speed: 0.3  },
+        { color: 'rgba(155,48,255,0.08)', freq: 1.5, amp: 0.4,  speed: 0.2  },
+        { color: 'rgba(255,123,0,0.05)',  freq: 3.0, amp: 0.2,  speed: 0.5  },
+        { color: 'rgba(0,255,136,0.05)',  freq: 4.5, amp: 0.15, speed: 0.7  },
+      ],
+    });
+
+    // Draw connection lines between zones
+    const z = this.canvas;
+    const W = z.width, H = z.height;
+    const ctx = this.ctx;
+    const positions = [
+      { x: 0.50, y: 0.22 }, // Zone 1
+      { x: 0.22, y: 0.42 }, // Zone 2
+      { x: 0.78, y: 0.42 }, // Zone 3
+      { x: 0.30, y: 0.68 }, // Zone 4
+      { x: 0.70, y: 0.68 }, // Zone 5
+    ];
+    const connections = [[0,1],[0,2],[1,3],[2,4],[3,4]];
+    ctx.save();
+    connections.forEach(([a, b]) => {
+      const p1 = positions[a], p2 = positions[b];
+      ctx.beginPath();
+      ctx.moveTo(p1.x * W, p1.y * H);
+      ctx.lineTo(p2.x * W, p2.y * H);
+      const alpha = PP.state.cores[a] && PP.state.cores[b] ? 0.5 : 0.15;
+      ctx.strokeStyle = `rgba(0,200,255,${alpha})`;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    this.animId = requestAnimationFrame(() => this.animate());
+  },
+};
+
+// ---------------------------------------------------------------
+// INTRO PLANET ANIMATION
+// ---------------------------------------------------------------
+PP.introPlanet = {
+  animId: null,
+  init() {
+    const canvas = $('introPlanetCanvas');
+    if (!canvas) return;
+    const anim = () => {
+      PP.drawPlanet(canvas, performance.now(), {
+        lightColor:  '#1a4060',
+        midColor:    '#0a1a30',
+        darkColor:   '#020810',
+        atmosColor:  'rgba(0,200,255,0.18)',
+      });
+      this.animId = requestAnimationFrame(anim);
+    };
+    anim();
+  },
+};
+
+// ---------------------------------------------------------------
+// PARTICLES
+// ---------------------------------------------------------------
+PP.particles = {
+  list: [],
+  container: null,
+  intervalId: null,
+  init() {
+    this.container = $('particleContainer');
+    if (!this.container) return;
+    this.intervalId = setInterval(() => this.spawn(), 800);
+  },
+  spawn() {
+    if (!this.container) return;
+    const colors = ['#00c8ff','#9b30ff','#00ff88','#ff7b00','#ff2d78'];
+    const el = document.createElement('div');
+    el.className = 'particle';
+    const size = PP.utils.rand(2, 6);
+    el.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${PP.utils.rand(0, 100)}%;
+      background:${colors[PP.utils.randInt(0, colors.length-1)]};
+      animation-duration:${PP.utils.rand(8, 18)}s;
+      animation-delay:${PP.utils.rand(0, 2)}s;
+      box-shadow:0 0 ${size*2}px currentColor;
+    `;
+    this.container.appendChild(el);
+    setTimeout(() => el.remove(), 20000);
+  },
+};
+
+// ---------------------------------------------------------------
+// NAVIGATION
+// ---------------------------------------------------------------
+PP.nav = {
+  goToMap() {
+    PP.showScreen('mapScreen');
+    $('hudZoneLabel').textContent = 'خريطة الكوكب';
+    PP.updateMapStatus();
+    PP.updateHUD();
+    // Stop any active puzzle anims
+    if (PP.zones && PP.zones.stopCurrent) PP.zones.stopCurrent();
+  },
+  goToZone(zoneId) {
+    const zone = PP.zoneData.find(z => z.id === zoneId);
+    if (!zone) return;
+    PP.state.currentZone = zoneId;
+    $('hudZoneLabel').textContent = zone.name;
+
+    // Set zone header UI
+    const iconEl    = $('zoneIconBig');
+    const titleEl   = $('zoneTitleText');
+    const descEl    = $('zoneDescText');
+    if (iconEl)  iconEl.textContent  = zone.icon;
+    if (titleEl) titleEl.textContent = zone.name;
+    if (descEl)  descEl.textContent  = zone.desc;
+    if (iconEl) {
+      iconEl.style.borderColor = zone.color;
+      iconEl.style.boxShadow   = `0 0 20px rgba(${zone.colorRgb},0.4)`;
+      iconEl.style.color       = zone.color;
+    }
+
+    PP.showScreen('zoneScreen');
+
+    // Build puzzle
+    if (PP.zones && PP.zones.load) PP.zones.load(zone);
+  },
+  goToFinal() {
+    // Stop animations
+    if (PP.zones && PP.zones.stopCurrent) PP.zones.stopCurrent();
+    PP.showScreen('finalScreen');
+    $('hudZoneLabel').textContent = 'مركز الكوكب';
+    PP.finalScreen.init();
+  },
+};
+
+// ---------------------------------------------------------------
+// SUCCESS OVERLAY
+// ---------------------------------------------------------------
+PP.showSuccess = function(zoneId) {
+  const zone = PP.zoneData[zoneId - 1];
+  if (!zone) return;
+
+  const overlay = $('successOverlay');
+  const coreEl  = $('successCoreDisplay');
+  const msgEl   = $('successMsg');
+  const nameEl  = $('successCoreName');
+
+  if (coreEl) {
+    coreEl.textContent = zone.icon;
+    coreEl.style.borderColor = zone.color;
+    coreEl.style.color       = zone.color;
+    coreEl.style.boxShadow   = `0 0 40px rgba(${zone.colorRgb},0.5)`;
+    coreEl.style.setProperty('--before-color', zone.color);
+  }
+  if (msgEl)  msgEl.textContent  = `لقد أكملت ${zone.name} بنجاح!`;
+  if (nameEl) nameEl.textContent = zone.coreName;
+  if (nameEl) nameEl.style.color = zone.color;
+
+  overlay.classList.add('visible');
+
+  PP.spawnSuccessParticles(zone.color);
+};
+
+PP.spawnSuccessParticles = function(color) {
+  const container = $('particleContainer');
+  if (!container) return;
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'particle';
+      const size = PP.utils.rand(4, 10);
+      el.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${PP.utils.rand(20, 80)}%;
+        background:${color};
+        animation-duration:${PP.utils.rand(1.5, 3)}s;
+        animation-delay:0s;
+        box-shadow:0 0 10px ${color};
+      `;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }, i * 60);
+  }
+};
+
+// ---------------------------------------------------------------
+// FINAL SCREEN
+// ---------------------------------------------------------------
+PP.finalScreen = {
+  animId: null,
+  init() {
+    const canvas = $('finalCanvas');
+    if (!canvas) return;
+    if (this.animId) cancelAnimationFrame(this.animId);
+    const anim = () => {
+      PP.drawPlanet(canvas, performance.now(), {
+        lightColor:  '#2a4a1a',
+        midColor:    '#0a2010',
+        darkColor:   '#020805',
+        atmosColor:  'rgba(255,215,0,0.25)',
+        layers: [
+          { color: 'rgba(255,215,0,0.1)',   freq: 2.0, amp: 0.3,  speed: 0.4 },
+          { color: 'rgba(0,255,136,0.08)',   freq: 1.5, amp: 0.35, speed: 0.2 },
+          { color: 'rgba(0,200,255,0.08)',   freq: 3.0, amp: 0.2,  speed: 0.6 },
+          { color: 'rgba(155,48,255,0.06)',  freq: 4.0, amp: 0.15, speed: 0.8 },
+        ],
+      });
+      this.animId = requestAnimationFrame(anim);
+    };
+    anim();
+  },
+};
+
+// ---------------------------------------------------------------
+// LOADING SEQUENCE
+// ---------------------------------------------------------------
+PP.boot = function() {
+  // Init visual systems
+  PP.starField.init();
+  PP.particles.init();
+  PP.introPlanet.init();
+
+  // Button listeners
+  const btnStart = $('btnStart');
+  if (btnStart) btnStart.addEventListener('click', () => {
+    PP.state.started = true;
+    PP.nav.goToMap();
+  });
+
+  const btnMapFromHUD = $('btnMapFromHUD');
+  if (btnMapFromHUD) btnMapFromHUD.addEventListener('click', () => PP.nav.goToMap());
+
+  const btnBackToMap = $('btnBackToMap');
+  if (btnBackToMap) btnBackToMap.addEventListener('click', () => PP.nav.goToMap());
+
+  const btnContinue = $('btnContinue');
+  if (btnContinue) btnContinue.addEventListener('click', () => {
+    $('successOverlay').classList.remove('visible');
+    // Check if all cores collected
+    const allDone = PP.state.cores.every(Boolean);
+    if (allDone) {
+      setTimeout(() => PP.nav.goToFinal(), 400);
+    } else {
+      PP.nav.goToMap();
+    }
+  });
+
+  const btnRestart = $('btnRestart');
+  if (btnRestart) btnRestart.addEventListener('click', () => {
+    PP.state.cores = [false, false, false, false, false];
+    PP.state.currentZone = null;
+    PP.updateHUD();
+    PP.showScreen('introScreen');
+    $('gameHUD').classList.remove('visible');
+    if (PP.finalScreen.animId) cancelAnimationFrame(PP.finalScreen.animId);
+  });
+
+  // Zone buttons on map
+  PP.zoneData.forEach(zone => {
+    const btn = $(`zoneBtn${zone.id}`);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('locked')) {
+        PP.toast('هذه المنطقة مقفلة!', 'error');
+        return;
+      }
+      PP.nav.goToZone(zone.id);
+    });
+  });
+
+  // Hide loader
+  setTimeout(() => {
+    const loader = $('loadingScreen');
+    if (loader) {
+      loader.style.transition = 'opacity 0.6s ease';
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 600);
+    }
+    PP.mapCanvas.init();
+    PP.updateHUD();
+  }, 1200);
+};
+
+// Signal part 2 done
+window.__PP_part2_ready = true;
+console.log('[PP] Part 2 loaded ✓');
+
+/* ================================================================
+   PUZZLE PLANET — PART 3
+   Zone Puzzles: Logic (Z1), Maze (Z2), Machine (Z3)
+   ================================================================ */
+'use strict';
+
+const PP3 = window.PP;
+
+// ---------------------------------------------------------------
+// ZONE PUZZLE MANAGER
+// ---------------------------------------------------------------
+PP3.zones = {
+  currentAnimId: null,
+  stopCurrent() {
+    if (this.currentAnimId) {
+      cancelAnimationFrame(this.currentAnimId);
+      this.currentAnimId = null;
+    }
+    if (PP3.mazePuzzle && PP3.mazePuzzle.stopAnim) PP3.mazePuzzle.stopAnim();
+    if (PP3.lightPuzzle && PP3.lightPuzzle.stopAnim) PP3.lightPuzzle.stopAnim();
+  },
+  load(zone) {
+    this.stopCurrent();
+    const area = PP3.utils.$('puzzleArea');
+    if (!area) return;
+    area.innerHTML = '';
+
+    switch (zone.type) {
+      case 'logic':   PP3.logicPuzzle.build(area, zone);   break;
+      case 'maze':    PP3.mazePuzzle.build(area, zone);    break;
+      case 'machine': PP3.machinePuzzle.build(area, zone); break;
+      case 'light':   PP3.lightPuzzle.build(area, zone);   break;
+      case 'time':    PP3.timePuzzle.build(area, zone);    break;
+      default: area.innerHTML = '<p>منطقة غير معروفة</p>';
+    }
+  },
+};
+
+// ================================================================
+// ZONE 1 — LOGIC PUZZLE
+// ================================================================
+PP3.logicPuzzle = {
+  questions: [
+    {
+      q: 'في مجرة ZORAX، كل نجم أزرق أكبر من أي نجم أحمر. نجم ARIA أزرق. ما يمكن استنتاجه؟',
+      choices: ['ARIA أصغر من جميع النجوم الحمراء', 'ARIA أكبر من جميع النجوم الحمراء', 'ARIA متوسط الحجم', 'لا يمكن تحديد ذلك'],
+      answer: 1,
+      explanation: 'بما أن كل نجم أزرق أكبر من أي نجم أحمر، وARIA أزرق، فهو أكبر من جميع النجوم الحمراء.',
+    },
+    {
+      q: 'لديك 5 بوابات مرقمة 1-5. البوابة الزوجية تفتح الباب الذي يسبقها. أي بوابة تفتح الباب 3؟',
+      choices: ['البوابة 2', 'البوابة 4', 'البوابة 6', 'لا توجد بوابة'],
+      answer: 1,
+      explanation: 'البوابة 4 (زوجية) تفتح الباب الذي يسبقها وهو الباب 3.',
+    },
+    {
+      q: 'كود الكوكب يتبع نمط: 2, 6, 18, 54, ___. ما الرقم التالي؟',
+      choices: ['108', '162', '108', '216'],
+      answer: 1,
+      explanation: 'كل رقم يُضرب في 3: 2×3=6, 6×3=18, 18×3=54, 54×3=162.',
+    },
+    {
+      q: 'ثلاثة مستكشفين: AXE يكذب دائماً، BOX يصدق دائماً، COX يتناوب. قال AXE: "BOX كذاب". قال BOX: "COX كذاب الآن". هل COX صادق الآن؟',
+      choices: ['نعم، صادق', 'لا، كاذب', 'مستحيل تحديده', 'كلاهما'],
+      answer: 1,
+      explanation: 'AXE يكذب دائماً → BOX ليس كذاباً (صادق دائماً ✓). BOX صادق قال COX كاذب الآن → COX كاذب.',
+    },
+    {
+      q: 'سفينة تسافر 60 كم/ساعة شمالاً لمدة ساعتين، ثم 80 كم/ساعة شرقاً لمدة ساعة. ما المسافة الإجمالية المقطوعة؟',
+      choices: ['200 كم', '220 كم', '180 كم', '240 كم'],
+      answer: 1,
+      explanation: '60×2=120كم + 80×1=80كم. المجموع: 120+80=200كم.',
+    },
+  ],
+
+  currentQ: 0,
+  score: 0,
+  answered: false,
+
+  build(area, zone) {
+    this.currentQ = 0;
+    this.score    = 0;
+    this.answered = false;
+
+    area.innerHTML = `
+      <div class="zone-intro-card">
+        <h3 style="color:${zone.color}">⚡ اختبار المنطق</h3>
+        <p>أجب على 5 أسئلة منطقية بشكل صحيح لجمع نواة الطاقة الأولى.</p>
+      </div>
+      <div class="logic-puzzle" id="logicPuzzleRoot" style="width:100%;max-width:520px">
+        <div class="puzzle-progress">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="logicProgress" style="width:0%"></div>
+          </div>
+          <div class="progress-text" id="logicProgressText">0 / 5</div>
+        </div>
+        <div id="logicQuestionArea"></div>
+      </div>
+    `;
+    this.renderQuestion();
+  },
+
+  renderQuestion() {
+    const area = PP3.utils.$('logicQuestionArea');
+    if (!area) return;
+    if (this.currentQ >= this.questions.length) {
+      this.onComplete();
+      return;
+    }
+
+    const q = this.questions[this.currentQ];
+    this.answered = false;
+    const shuffled = PP3.utils.shuffle(q.choices.map((c, i) => ({ text: c, idx: i })));
+
+    area.innerHTML = `
+      <div class="logic-question">
+        <div class="logic-question-text" style="direction:rtl">${q.q}</div>
+        <div class="logic-choices" id="choicesContainer">
+          ${shuffled.map(c => '<button class="logic-choice" data-original="' + c.idx + '">' + c.text + '</button>').join('')}
+        </div>
+        <div id="logicFeedback" style="margin-top:0.8rem;font-size:0.82rem;color:var(--text-secondary);line-height:1.6;min-height:1.5rem;text-align:center"></div>
+      </div>
+    `;
+
+    area.querySelectorAll('.logic-choice').forEach(btn => {
+      btn.addEventListener('click', (e) => this.onAnswer(e, q));
+    });
+
+    // Update progress
+    const prog = PP3.utils.$('logicProgress');
+    const progText = PP3.utils.$('logicProgressText');
+    if (prog) prog.style.width = `${(this.currentQ / this.questions.length) * 100}%`;
+    if (progText) progText.textContent = `${this.currentQ} / ${this.questions.length}`;
+  },
+
+  onAnswer(e, q) {
+    if (this.answered) return;
+    this.answered = true;
+    const btn    = e.currentTarget;
+    const chosen = parseInt(btn.dataset.original);
+    const isCorrect = chosen === q.answer;
+    const feedbackEl = PP3.utils.$('logicFeedback');
+
+    // Disable all
+    document.querySelectorAll('.logic-choice').forEach(b => {
+      b.style.pointerEvents = 'none';
+      if (parseInt(b.dataset.original) === q.answer) b.classList.add('correct');
+    });
+
+    if (isCorrect) {
+      btn.classList.add('correct');
+      this.score++;
+      if (feedbackEl) {
+        feedbackEl.textContent = '✓ إجابة صحيحة! ' + q.explanation;
+        feedbackEl.style.color = 'var(--glow-green)';
+      }
+      PP3.toast('إجابة صحيحة! ✓', 'success', 1500);
+    } else {
+      btn.classList.add('wrong');
+      if (feedbackEl) {
+        feedbackEl.textContent = '✗ إجابة خاطئة. ' + q.explanation;
+        feedbackEl.style.color = 'var(--glow-pink)';
+      }
+      PP3.toast('إجابة خاطئة ✗', 'error', 1500);
+    }
+
+    setTimeout(() => {
+      this.currentQ++;
+      this.renderQuestion();
+    }, 1800);
+  },
+
+  onComplete() {
+    const area = PP3.utils.$('logicQuestionArea');
+    if (!area) return;
+    const passed = this.score >= 3;
+
+    area.innerHTML = `
+      <div class="logic-question" style="text-align:center">
+        <div style="font-size:3rem;margin-bottom:1rem">${passed ? '🏆' : '💔'}</div>
+        <div class="logic-question-text">
+          ${passed
+            ? 'أحسنت! حصلت على <strong style="color:var(--glow-green)">' + this.score + '/5</strong> إجابات صحيحة.'
+            : 'حصلت على <strong style="color:var(--glow-pink)">' + this.score + '/5</strong>. تحتاج 3 إجابات صحيحة على الأقل.'
+          }
+        </div>
+        <button class="machine-check-btn" id="logicRetryOrClaim" style="background:linear-gradient(135deg,#00c8ff,#0060ff)">
+          ${passed ? '🔷 جمع نواة المنطق' : '🔄 حاول مجدداً'}
+        </button>
+      </div>
+    `;
+
+    const btn = PP3.utils.$('logicRetryOrClaim');
+    if (btn) btn.addEventListener('click', () => {
+      if (passed) {
+        PP3.state.cores[0] = true;
+        PP3.updateHUD();
+        PP3.showSuccess(1);
+      } else {
+        this.currentQ = 0;
+        this.score    = 0;
+        this.renderQuestion();
+      }
+    });
+  },
+};
+
+// ================================================================
+// ZONE 2 — MAZE PUZZLE
+// ================================================================
+PP3.mazePuzzle = {
+  CELL: 20,
+  COLS: 15, ROWS: 15,
+  grid: [], visited: [],
+  player: { col: 0, row: 0 },
+  exit:   { col: 14, row: 14 },
+  canvas: null, ctx: null,
+  animId: null,
+  fogMap: [],
+  moveCount: 0,
+
+  stopAnim() {
+    if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
+  },
+
+  build(area, zone) {
+    const fogRadius = 4;
+    this.COLS = 15; this.ROWS = 15;
+    this.player = { col: 0, row: 0 };
+    this.exit   = { col: this.COLS - 1, row: this.ROWS - 1 };
+    this.moveCount = 0;
+    this.generate();
+
+    const canvasSize = Math.min(420, window.innerWidth - 40);
+    this.CELL = Math.floor(canvasSize / this.COLS);
+
+    area.innerHTML = `
+      <div class="zone-intro-card" style="border-color:rgba(155,48,255,0.3)">
+        <h3 style="color:${zone.color}">🔮 المتاهة المظلمة</h3>
+        <p>تنقّل عبر المتاهة من الزاوية العلوية اليسارية (🟣) إلى الزاوية السفلية اليمينية (🎯). الرؤية محدودة!</p>
+      </div>
+      <div class="maze-container">
+        <canvas id="mazeCanvas" width="${this.COLS * this.CELL}" height="${this.ROWS * this.CELL}"></canvas>
+        <div class="maze-controls">
+          <div class="maze-btn empty"></div>
+          <button class="maze-btn" id="mzUp">▲</button>
+          <div class="maze-btn empty"></div>
+          <button class="maze-btn" id="mzLeft">◀</button>
+          <div class="maze-btn empty" style="background:rgba(155,48,255,0.05);border:1px solid rgba(155,48,255,0.2);border-radius:8px">
+            <span style="font-size:0.65rem;color:var(--text-dim)" id="mazeMoveCount">0</span>
+          </div>
+          <button class="maze-btn" id="mzRight">▶</button>
+          <div class="maze-btn empty"></div>
+          <button class="maze-btn" id="mzDown">▼</button>
+          <div class="maze-btn empty"></div>
+        </div>
+      </div>
+    `;
+
+    this.canvas = PP3.utils.$('mazeCanvas');
+    this.ctx    = this.canvas ? this.canvas.getContext('2d') : null;
+
+    // Controls
+    const dirs = {
+      mzUp:    { dc:  0, dr: -1 },
+      mzDown:  { dc:  0, dr:  1 },
+      mzLeft:  { dc: -1, dr:  0 },
+      mzRight: { dc:  1, dr:  0 },
+    };
+    Object.entries(dirs).forEach(([id, d]) => {
+      const btn = PP3.utils.$(id);
+      if (btn) btn.addEventListener('click', () => this.move(d.dc, d.dr));
+    });
+
+    // Keyboard
+    this._keyHandler = (e) => {
+      const map = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+                    w:[0,-1], s:[0,1], a:[-1,0], d:[1,0] };
+      const d = map[e.key];
+      if (d) { e.preventDefault(); this.move(d[0], d[1]); }
+    };
+    window.addEventListener('keydown', this._keyHandler);
+
+    this.drawLoop();
+  },
+
+  generate() {
+    const { COLS, ROWS } = this;
+    // Each cell: { top, right, bottom, left } = wall flags
+    this.grid = Array.from({ length: ROWS }, () =>
+      Array.from({ length: COLS }, () => ({ top:1, right:1, bottom:1, left:1 }))
+    );
+    this.visited = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+
+    // DFS maze generation
+    const stack = [{ col:0, row:0 }];
+    this.visited[0][0] = true;
+    let visitCount = 1;
+    const total = COLS * ROWS;
+
+    while (visitCount < total) {
+      const curr = stack[stack.length - 1];
+      const neighbors = this.getUnvisitedNeighbors(curr.col, curr.row);
+      if (neighbors.length > 0) {
+        const next = neighbors[PP3.utils.randInt(0, neighbors.length - 1)];
+        this.removeWall(curr, next);
+        this.visited[next.row][next.col] = true;
+        stack.push(next);
+        visitCount++;
+      } else {
+        stack.pop();
+      }
+    }
+
+    // Build fog map
+    this.fogMap = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+    this.updateFog();
+  },
+
+  getUnvisitedNeighbors(col, row) {
+    const result = [];
+    const { COLS, ROWS } = this;
+    if (row > 0      && !this.visited[row-1][col])   result.push({ col, row:row-1, dir:'top' });
+    if (row < ROWS-1 && !this.visited[row+1][col])   result.push({ col, row:row+1, dir:'bottom' });
+    if (col > 0      && !this.visited[row][col-1])   result.push({ col:col-1, row, dir:'left' });
+    if (col < COLS-1 && !this.visited[row][col+1])   result.push({ col:col+1, row, dir:'right' });
+    return result;
+  },
+
+  removeWall(a, b) {
+    const dc = b.col - a.col, dr = b.row - a.row;
+    if (dc === 1)  { this.grid[a.row][a.col].right  = 0; this.grid[b.row][b.col].left   = 0; }
+    if (dc === -1) { this.grid[a.row][a.col].left   = 0; this.grid[b.row][b.col].right  = 0; }
+    if (dr === 1)  { this.grid[a.row][a.col].bottom = 0; this.grid[b.row][b.col].top    = 0; }
+    if (dr === -1) { this.grid[a.row][a.col].top    = 0; this.grid[b.row][b.col].bottom = 0; }
+  },
+
+  updateFog() {
+    const { player, COLS, ROWS } = this;
+    const RADIUS = 3;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const dist = Math.abs(c - player.col) + Math.abs(r - player.row);
+        if (dist <= RADIUS) this.fogMap[r][c] = true;
+      }
+    }
+  },
+
+  move(dc, dr) {
+    const { player, grid, COLS, ROWS } = this;
+    const nc = player.col + dc, nr = player.row + dr;
+    if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) return;
+
+    // Check wall
+    let canMove = false;
+    if (dc === 1  && !grid[player.row][player.col].right)  canMove = true;
+    if (dc === -1 && !grid[player.row][player.col].left)   canMove = true;
+    if (dr === 1  && !grid[player.row][player.col].bottom) canMove = true;
+    if (dr === -1 && !grid[player.row][player.col].top)    canMove = true;
+
+    if (!canMove) { PP3.toast('جدار! ⛔', 'error', 800); return; }
+
+    player.col = nc; player.row = nr;
+    this.moveCount++;
+    const mc = PP3.utils.$('mazeMoveCount');
+    if (mc) mc.textContent = this.moveCount;
+    this.updateFog();
+
+    if (player.col === this.exit.col && player.row === this.exit.row) {
+      this.onWin();
+    }
+  },
+
+  drawLoop() {
+    if (!this.canvas || !this.ctx) return;
+    this.draw();
+    this.animId = requestAnimationFrame(() => this.drawLoop());
+  },
+
+  draw() {
+    const { ctx, canvas, grid, player, exit, CELL, COLS, ROWS, fogMap } = this;
+    if (!ctx) return;
+    const W = COLS * CELL, H = ROWS * CELL;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#040c18';
+    ctx.fillRect(0, 0, W, H);
+
+    // Cells & walls
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const x = c * CELL, y = r * CELL;
+        const visible = fogMap[r][c];
+
+        // Fog
+        if (!visible) {
+          ctx.fillStyle = '#020810';
+          ctx.fillRect(x, y, CELL, CELL);
+          continue;
+        }
+
+        // Floor
+        ctx.fillStyle = 'rgba(30,10,60,0.9)';
+        ctx.fillRect(x, y, CELL, CELL);
+
+        // Subtle grid pattern
+        ctx.strokeStyle = 'rgba(155,48,255,0.08)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(x+1, y+1, CELL-2, CELL-2);
+
+        const cell = grid[r][c];
+        ctx.strokeStyle = 'rgba(155,48,255,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'square';
+
+        ctx.beginPath();
+        if (cell.top)    { ctx.moveTo(x, y);        ctx.lineTo(x+CELL, y); }
+        if (cell.right)  { ctx.moveTo(x+CELL, y);   ctx.lineTo(x+CELL, y+CELL); }
+        if (cell.bottom) { ctx.moveTo(x, y+CELL);   ctx.lineTo(x+CELL, y+CELL); }
+        if (cell.left)   { ctx.moveTo(x, y);        ctx.lineTo(x, y+CELL); }
+        ctx.stroke();
+      }
+    }
+
+    // Exit marker
+    if (fogMap[exit.row]?.[exit.col]) {
+      ctx.fillStyle = 'rgba(255,215,0,0.2)';
+      ctx.fillRect(exit.col * CELL + 2, exit.row * CELL + 2, CELL - 4, CELL - 4);
+      ctx.fillStyle = '#ffd700';
+      ctx.font = `${CELL * 0.7}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎯', exit.col * CELL + CELL / 2, exit.row * CELL + CELL / 2);
+    }
+
+    // Player
+    const t = performance.now() / 500;
+    const pulse = 0.8 + 0.2 * Math.sin(t);
+    ctx.save();
+    ctx.shadowColor = '#9b30ff';
+    ctx.shadowBlur  = 12 * pulse;
+    ctx.fillStyle   = '#9b30ff';
+    ctx.beginPath();
+    ctx.arc(
+      player.col * CELL + CELL / 2,
+      player.row * CELL + CELL / 2,
+      CELL * 0.32 * pulse, 0, Math.PI * 2
+    );
+    ctx.fill();
+    ctx.restore();
+
+    // Fog gradient overlay at visible boundary
+    const px = player.col * CELL + CELL / 2;
+    const py = player.row * CELL + CELL / 2;
+    const fogGrad = ctx.createRadialGradient(px, py, CELL * 2, px, py, CELL * 4.5);
+    fogGrad.addColorStop(0, 'transparent');
+    fogGrad.addColorStop(1, 'rgba(2,4,8,0.92)');
+    ctx.fillStyle = fogGrad;
+    ctx.fillRect(0, 0, W, H);
+  },
+
+  onWin() {
+    this.stopAnim();
+    window.removeEventListener('keydown', this._keyHandler);
+
+    const area = PP3.utils.$('puzzleArea');
+    if (!area) return;
+    area.innerHTML += `<div style="text-align:center;margin-top:1rem;animation:fadeSlideIn 0.4s ease">
+      <div style="font-size:2rem;margin-bottom:0.5rem">🏆</div>
+      <div style="color:var(--glow-green);font-weight:600;margin-bottom:1rem">وصلت! خطوات: ${this.moveCount}</div>
+      <button class="machine-check-btn" id="mazeClaim" style="background:linear-gradient(135deg,#9b30ff,#6010cc)">
+        🔮 جمع نواة المتاهة
+      </button>
+    </div>`;
+    PP3.utils.$('mazeClaim')?.addEventListener('click', () => {
+      PP3.state.cores[1] = true;
+      PP3.updateHUD();
+      PP3.showSuccess(2);
+    });
+  },
+};
+
+// ================================================================
+// ZONE 3 — MACHINE PUZZLE
+// ================================================================
+PP3.machinePuzzle = {
+  machines: [
+    { id: 0, icon: '⚙️',  name: 'محرك التوربين',  active: false },
+    { id: 1, icon: '🔋',  name: 'بطارية الطاقة',  active: false },
+    { id: 2, icon: '💡',  name: 'مولّد الضوء',    active: false },
+    { id: 3, icon: '🌀',  name: 'ضاغط البلازما',  active: false },
+    { id: 4, icon: '📡',  name: 'هوائي الإشارة',  active: false },
+    { id: 5, icon: '🔌',  name: 'موزع الطاقة',    active: false },
+    { id: 6, icon: '🧲',  name: 'المغناطيس الأيوني', active: false },
+    { id: 7, icon: '⚡',  name: 'مُفجّر الكهرباء', active: false },
+    { id: 8, icon: '🔧',  name: 'أداة الإصلاح',   active: false },
+    { id: 9, icon: '🛸',  name: 'محرك الكوكب',    active: false },
+    { id: 10, icon: '🌡️', name: 'جهاز الحرارة',   active: false },
+    { id: 11, icon: '💎', name: 'بلورة الطاقة',   active: false },
+  ],
+  correctSequence: [],
+  playerSequence: [],
+  revealed: false,
+  revealTimer: null,
+  attempts: 0,
+
+  build(area, zone) {
+    this.machines.forEach(m => m.active = false);
+    this.playerSequence = [];
+    this.attempts = 0;
+    this.revealed  = false;
+
+    // Pick 4 random machines as correct sequence
+    const shuffled = PP3.utils.shuffle([...Array(12).keys()]);
+    this.correctSequence = shuffled.slice(0, 4);
+
+    area.innerHTML = `
+      <div class="zone-intro-card" style="border-color:rgba(255,123,0,0.3)">
+        <h3 style="color:${zone.color}">⚙️ تفعيل الآلات</h3>
+        <p id="machineInstructions">احفظ تسلسل الآلات الوامضة، ثم اضغط عليها بنفس الترتيب!</p>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%">
+        <div class="machine-grid" id="machineGrid">
+          ${this.machines.map(m => '<div class="machine-cell" id="mach_' + m.id + '" data-id="' + m.id + '" title="' + m.name + '">' + m.icon + '</div>').join('')}
+        </div>
+        <div class="machine-hint" id="machineHint">
+          الصواب: ${this.correctSequence.length} آلات. انتظر التسلسل...
+        </div>
+        <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:center">
+          <button class="machine-check-btn" id="btnShowSeq" style="background:linear-gradient(135deg,#ff7b00,#cc4400)">
+            👁 أظهر التسلسل
+          </button>
+          <button class="machine-check-btn" id="btnCheckSeq" style="background:linear-gradient(135deg,#444,#222);opacity:0.5" disabled>
+            ✅ تحقق من الإجابة
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Grid click
+    document.querySelectorAll('.machine-cell').forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        if (!this.revealed) { PP3.toast('أظهر التسلسل أولاً!', 'info', 1500); return; }
+        this.onCellClick(parseInt(cell.dataset.id));
+      });
+    });
+
+    PP3.utils.$('btnShowSeq')?.addEventListener('click', () => this.playSequence());
+    PP3.utils.$('btnCheckSeq')?.addEventListener('click', () => this.checkAnswer());
+  },
+
+  async playSequence() {
+    this.playerSequence = [];
+    this.revealed = false;
+    const btn = PP3.utils.$('btnShowSeq');
+    const checkBtn = PP3.utils.$('btnCheckSeq');
+    const hintEl  = PP3.utils.$('machineHint');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ العرض...'; }
+    if (checkBtn) { checkBtn.disabled = true; checkBtn.style.opacity = '0.5'; }
+    if (hintEl) hintEl.textContent = 'احفظ الترتيب جيداً!';
+
+    // Reset all
+    this.machines.forEach(m => {
+      m.active = false;
+      const el = PP3.utils.$(`mach_${m.id}`);
+      if (el) el.classList.remove('active');
+    });
+
+    await PP3.utils.delay(500);
+
+    for (let i = 0; i < this.correctSequence.length; i++) {
+      const id  = this.correctSequence[i];
+      const el  = PP3.utils.$(`mach_${id}`);
+      if (el) {
+        el.classList.add('active');
+        // Pulse effect
+        el.style.transform = 'scale(1.2)';
+      }
+      await PP3.utils.delay(700);
+      if (el) {
+        el.classList.remove('active');
+        el.style.transform = '';
+      }
+      await PP3.utils.delay(300);
+    }
+
+    this.revealed = true;
+    if (btn) { btn.disabled = false; btn.textContent = '👁 أعد العرض'; }
+    if (checkBtn) { checkBtn.disabled = false; checkBtn.style.opacity = '1'; }
+    if (hintEl) hintEl.textContent = `الآن اضغط على الآلات بنفس الترتيب (0/${this.correctSequence.length})`;
+  },
+
+  onCellClick(id) {
+    this.playerSequence.push(id);
+    const el = PP3.utils.$(`mach_${id}`);
+    if (el) {
+      el.classList.add('active');
+      el.style.transform = 'scale(1.15)';
+      setTimeout(() => {
+        el.classList.remove('active');
+        el.style.transform = '';
+      }, 300);
+    }
+
+    const hintEl = PP3.utils.$('machineHint');
+    if (hintEl) hintEl.textContent = `اختيارك: ${this.playerSequence.length} / ${this.correctSequence.length}`;
+
+    // Auto check if enough selected
+    if (this.playerSequence.length >= this.correctSequence.length) {
+      setTimeout(() => this.checkAnswer(), 300);
+    }
+  },
+
+  checkAnswer() {
+    this.attempts++;
+    const correct = this.correctSequence.every((v, i) => v === this.playerSequence[i]);
+    const hintEl  = PP3.utils.$('machineHint');
+    const area    = PP3.utils.$('puzzleArea');
+
+    if (correct) {
+      if (hintEl) {
+        hintEl.innerHTML = `<span style="color:var(--glow-green)">✓ ممتاز! التسلسل صحيح!</span>`;
+      }
+      // Flash all
+      this.correctSequence.forEach(id => {
+        const el = PP3.utils.$(`mach_${id}`);
+        if (el) {
+          el.classList.add('active');
+          el.style.boxShadow = '0 0 30px rgba(255,123,0,0.8)';
+        }
+      });
+      setTimeout(() => {
+        const claimDiv = document.createElement('div');
+        claimDiv.style.cssText = 'text-align:center;margin-top:1rem';
+        claimDiv.innerHTML = `
+          <button class="machine-check-btn" id="machineClaim" style="background:linear-gradient(135deg,#ff7b00,#cc5500)">
+            🔶 جمع نواة الآلات
+          </button>
+        `;
+        area?.appendChild(claimDiv);
+        PP3.utils.$('machineClaim')?.addEventListener('click', () => {
+          PP3.state.cores[2] = true;
+          PP3.updateHUD();
+          PP3.showSuccess(3);
+        });
+      }, 800);
+    } else {
+      if (hintEl) {
+        hintEl.innerHTML = `<span style="color:var(--glow-pink)">✗ خطأ في الترتيب. المحاولة: ${this.attempts}</span>`;
+      }
+      PP3.toast('ترتيب خاطئ! أعد المحاولة ✗', 'error', 1500);
+      this.playerSequence = [];
+      // Reset
+      this.machines.forEach(m => {
+        const el = PP3.utils.$(`mach_${m.id}`);
+        if (el) { el.classList.remove('active'); el.style.transform = ''; el.style.boxShadow = ''; }
+      });
+      setTimeout(() => {
+        if (hintEl) hintEl.textContent = `حاول مجدداً! يمكنك إعادة العرض.`;
+      }, 1500);
+    }
+  },
+};
+
+window.__PP_part3_ready = true;
+console.log('[PP] Part 3 loaded ✓');
+
+/* ================================================================
+   PUZZLE PLANET — PART 4
+   Zone Puzzles: Light (Z4), Time (Z5) + Final Boot
+   ================================================================ */
+'use strict';
+
+const PP4 = window.PP;
+
+// ================================================================
+// ZONE 4 — LIGHT PUZZLE (Mirror/Beam routing)
+// ================================================================
+PP4.lightPuzzle = {
+  GRID: 7,
+  CELL: 56,
+  canvas: null, ctx: null,
+  animId: null,
+  tiles: [],
+  beamReachesGoal: false,
+  goalPos: { col: 6, row: 3 },
+  sourcePos: { col: 0, row: 3 },
+
+  stopAnim() {
+    if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
+  },
+
+  build(area, zone) {
+    this.beamReachesGoal = false;
+    this.initGrid();
+
+    const size = this.GRID * this.CELL;
+    area.innerHTML = `
+      <div class="zone-intro-card" style="border-color:rgba(0,255,136,0.3)">
+        <h3 style="color:${zone.color}">💎 توجيه الضوء</h3>
+        <p>اضغط على المرايا لتدويرها وتوجيه شعاع الضوء من المصدر (🔦) إلى الهدف (🎯).</p>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.8rem">
+        <canvas id="lightCanvas" width="${size}" height="${size}"></canvas>
+        <div class="light-info" id="lightInfo">
+          وجّه الشعاع نحو الهدف!
+        </div>
+        <button class="machine-check-btn" id="lightReset" style="background:linear-gradient(135deg,#00ff88,#008844);color:#000">
+          🔄 إعادة تعيين المرايا
+        </button>
+      </div>
+    `;
+
+    this.canvas = PP4.utils.$('lightCanvas');
+    this.ctx    = this.canvas ? this.canvas.getContext('2d') : null;
+
+    this.canvas?.addEventListener('click', (e) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const scaleX = this.canvas.width / rect.width;
+      const scaleY = this.canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top)  * scaleY;
+      const col = Math.floor(x / this.CELL);
+      const row = Math.floor(y / this.CELL);
+      this.rotateTile(col, row);
+    });
+
+    PP4.utils.$('lightReset')?.addEventListener('click', () => {
+      this.initGrid();
+      const info = PP4.utils.$('lightInfo');
+      if (info) info.textContent = 'وجّه الشعاع نحو الهدف!';
+    });
+
+    this.drawLoop();
+  },
+
+  initGrid() {
+    const G = this.GRID;
+    this.tiles = Array.from({ length: G }, () =>
+      Array.from({ length: G }, () => ({ type: 'empty', angle: 0 }))
+    );
+
+    // Source & goal fixed
+    this.tiles[this.sourcePos.row][this.sourcePos.col] = { type: 'source', angle: 0 };
+    this.tiles[this.goalPos.row][this.goalPos.col]     = { type: 'goal',   angle: 0 };
+
+    // Place mirrors
+    const mirrorPositions = [
+      { col:2, row:3, angle:45 },
+      { col:2, row:1, angle:135},
+      { col:4, row:1, angle:135},
+      { col:4, row:3, angle:45 },
+      { col:5, row:3, angle:135},
+      { col:1, row:3, angle:45 },
+    ];
+    mirrorPositions.forEach(mp => {
+      if (mp.col >= 0 && mp.col < G && mp.row >= 0 && mp.row < G) {
+        this.tiles[mp.row][mp.col] = { type: 'mirror', angle: mp.angle };
+      }
+    });
+
+    // Walls (blockers)
+    [[1,2],[3,2],[5,1],[6,2]].forEach(([col,row]) => {
+      if (col < G && row < G) this.tiles[row][col] = { type: 'wall', angle: 0 };
+    });
+  },
+
+  rotateTile(col, row) {
+    if (col < 0 || col >= this.GRID || row < 0 || row >= this.GRID) return;
+    const tile = this.tiles[row][col];
+    if (tile.type === 'source' || tile.type === 'goal' || tile.type === 'empty') return;
+    if (tile.type === 'wall') return;
+    tile.angle = (tile.angle + 45) % 180;
+    this.checkWin();
+  },
+
+  traceBeam() {
+    // Trace light ray from source rightward
+    const beamSegments = [];
+    let col = this.sourcePos.col + 1;
+    let row = this.sourcePos.row;
+    let dir = { dc: 1, dr: 0 }; // starts going right
+    const MAX_STEPS = 100;
+    let steps = 0;
+
+    beamSegments.push({ x1: this.sourcePos.col, y1: row, x2: col, y2: row });
+
+    while (steps++ < MAX_STEPS) {
+      if (col < 0 || col >= this.GRID || row < 0 || row >= this.GRID) break;
+      const tile = this.tiles[row][col];
+
+      if (tile.type === 'goal') {
+        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col, y2: row });
+        this.beamReachesGoal = true;
+        break;
+      }
+      if (tile.type === 'wall') {
+        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col - dir.dc, y2: row - dir.dr });
+        break;
+      }
+      if (tile.type === 'mirror') {
+        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col, y2: row });
+        // Reflect based on angle
+        const angle = tile.angle;
+        if (angle === 45) {
+          // '/' mirror
+          if (dir.dc === 1 && dir.dr === 0)  dir = { dc:  0, dr: -1 };
+          else if (dir.dc === -1 && dir.dr === 0) dir = { dc: 0, dr:  1 };
+          else if (dir.dc === 0 && dir.dr === 1)  dir = { dc: -1, dr: 0 };
+          else if (dir.dc === 0 && dir.dr === -1) dir = { dc:  1, dr: 0 };
+        } else {
+          // '\' mirror (135 deg)
+          if (dir.dc === 1 && dir.dr === 0)  dir = { dc:  0, dr:  1 };
+          else if (dir.dc === -1 && dir.dr === 0) dir = { dc: 0, dr: -1 };
+          else if (dir.dc === 0 && dir.dr === 1)  dir = { dc:  1, dr: 0 };
+          else if (dir.dc === 0 && dir.dr === -1) dir = { dc: -1, dr: 0 };
+        }
+      } else {
+        // Empty — continue
+        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col, y2: row });
+      }
+      col += dir.dc;
+      row += dir.dr;
+    }
+    return beamSegments;
+  },
+
+  checkWin() {
+    this.beamReachesGoal = false;
+    this.traceBeam();
+    if (this.beamReachesGoal) {
+      const info = PP4.utils.$('lightInfo');
+      if (info) info.innerHTML = '<span style="color:var(--glow-green)">✓ الضوء وصل للهدف!</span>';
+      setTimeout(() => {
+        const area = PP4.utils.$('puzzleArea');
+        const claimDiv = document.createElement('div');
+        claimDiv.style.cssText = 'text-align:center;margin-top:1rem';
+        claimDiv.innerHTML = `
+          <button class="machine-check-btn" id="lightClaim" style="background:linear-gradient(135deg,#00ff88,#008855);color:#000">
+            💎 جمع نواة الضوء
+          </button>
+        `;
+        area?.appendChild(claimDiv);
+        PP4.utils.$('lightClaim')?.addEventListener('click', () => {
+          PP4.state.cores[3] = true;
+          PP4.updateHUD();
+          PP4.showSuccess(4);
+        });
+        this.stopAnim();
+      }, 600);
+    }
+  },
+
+  drawLoop() {
+    if (!this.canvas || !this.ctx) return;
+    this.beamReachesGoal = false;
+    this.draw();
+    if (!this.beamReachesGoal) {
+      this.animId = requestAnimationFrame(() => this.drawLoop());
+    }
+  },
+
+  draw() {
+    const { ctx, GRID, CELL, tiles } = this;
+    if (!ctx) return;
+    const W = GRID * CELL, H = GRID * CELL;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#030f0a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(0,255,136,0.08)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= GRID; i++) {
+      ctx.beginPath(); ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i * CELL); ctx.lineTo(W, i * CELL); ctx.stroke();
+    }
+
+    // Draw tiles
+    for (let r = 0; r < GRID; r++) {
+      for (let c = 0; c < GRID; c++) {
+        const tile = tiles[r][c];
+        const cx = c * CELL + CELL / 2;
+        const cy = r * CELL + CELL / 2;
+
+        if (tile.type === 'wall') {
+          ctx.fillStyle = 'rgba(255,255,255,0.06)';
+          ctx.fillRect(c * CELL + 3, r * CELL + 3, CELL - 6, CELL - 6);
+          ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(c * CELL + 3, r * CELL + 3, CELL - 6, CELL - 6);
+          ctx.fillStyle = 'rgba(255,255,255,0.4)';
+          ctx.font = `${CELL * 0.5}px serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🧱', cx, cy);
+        } else if (tile.type === 'source') {
+          ctx.fillStyle = 'rgba(255,200,0,0.15)';
+          ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.38, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#ffd700';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#ffd700';
+          ctx.font = `${CELL * 0.55}px serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🔦', cx, cy);
+        } else if (tile.type === 'goal') {
+          const t = performance.now() / 500;
+          const pulse = 0.8 + 0.2 * Math.sin(t);
+          ctx.fillStyle = `rgba(0,255,136,${0.15 * pulse})`;
+          ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.38 * pulse, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#00ff88';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#00ff88';
+          ctx.font = `${CELL * 0.55}px serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🎯', cx, cy);
+        } else if (tile.type === 'mirror') {
+          ctx.fillStyle = 'rgba(0,200,255,0.08)';
+          ctx.fillRect(c * CELL + 4, r * CELL + 4, CELL - 8, CELL - 8);
+          ctx.save();
+          ctx.translate(cx, cy);
+          const lineAngle = tile.angle === 45 ? -Math.PI / 4 : Math.PI / 4;
+          ctx.rotate(lineAngle);
+          ctx.strokeStyle = '#00c8ff';
+          ctx.lineWidth = 3;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#00c8ff';
+          ctx.beginPath();
+          ctx.moveTo(-CELL * 0.32, 0);
+          ctx.lineTo( CELL * 0.32, 0);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    }
+
+    // Trace and draw beam
+    this.beamReachesGoal = false;
+    const segments = this.traceBeam();
+    const t = performance.now() / 1000;
+    const beamAlpha = 0.7 + 0.3 * Math.sin(t * 4);
+
+    ctx.save();
+    ctx.strokeStyle = `rgba(255,220,0,${beamAlpha})`;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = '#ffee00';
+    ctx.lineCap = 'round';
+    segments.forEach(seg => {
+      if (seg.x1 === seg.x2 && seg.y1 === seg.y2) return;
+      ctx.beginPath();
+      ctx.moveTo(seg.x1 * CELL + CELL / 2, seg.y1 * CELL + CELL / 2);
+      ctx.lineTo(seg.x2 * CELL + CELL / 2, seg.y2 * CELL + CELL / 2);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // Outer border
+    ctx.strokeStyle = 'rgba(0,255,136,0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, W - 2, H - 2);
+  },
+};
+
+// ================================================================
+// ZONE 5 — TIME PUZZLE (Sequence pattern)
+// ================================================================
+PP4.timePuzzle = {
+  sequences: [
+    {
+      title: 'تسلسل الأرقام',
+      visible: ['2️⃣','4️⃣','8️⃣','🔲','3️⃣','2️⃣'],
+      hiddenIndex: 3,
+      answer: '1️⃣',
+      choices: ['1️⃣','6️⃣','5️⃣','3️⃣'],
+      hint: 'كل رقم ضعف السابق: 2→4→8→?',
+    },
+    {
+      title: 'تسلسل الكواكب',
+      visible: ['🌍','🌕','⭐','🌌','🔲'],
+      hiddenIndex: 4,
+      answer: '🌠',
+      choices: ['🌠','☀️','🪐','💫'],
+      hint: 'تسلسل الابتعاد من الأرض...',
+    },
+    {
+      title: 'تسلسل الألوان',
+      visible: ['🔴','🟡','🟢','🔵','🟣','🔲'],
+      hiddenIndex: 5,
+      answer: '⚫',
+      choices: ['⚫','🟤','⬜','🔶'],
+      hint: 'نهاية قوس قزح الكوكبي...',
+    },
+    {
+      title: 'تسلسل الوقت',
+      visible: ['🌅','☀️','🌤️','🔲','🌙'],
+      hiddenIndex: 3,
+      answer: '🌆',
+      choices: ['🌆','🌃','🌄','⛅'],
+      hint: 'أحداث اليوم من الفجر حتى الليل...',
+    },
+    {
+      title: 'تسلسل الطاقة',
+      visible: ['🔲','⚡','💥','🌟','✨'],
+      hiddenIndex: 0,
+      answer: '🔋',
+      choices: ['🔋','💡','🔌','🕯️'],
+      hint: 'من المصدر... إلى الانبثاق...',
+    },
+  ],
+  currentRound: 0,
+  score: 0,
+  selectedAnswer: null,
+  completed: false,
+
+  build(area, zone) {
+    this.currentRound = 0;
+    this.score = 0;
+    this.selectedAnswer = null;
+    this.completed = false;
+
+    area.innerHTML = `
+      <div class="zone-intro-card" style="border-color:rgba(255,45,120,0.3)">
+        <h3 style="color:${zone.color}">⏳ ألغاز الزمن</h3>
+        <p>اكتشف النمط الخفي في كل تسلسل واختر الرمز المفقود.</p>
+      </div>
+      <div class="time-puzzle" id="timePuzzleRoot">
+        <div class="puzzle-progress">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="timeProgress" style="width:0%;background:linear-gradient(90deg,#ff2d78,#9b30ff)"></div>
+          </div>
+          <div class="progress-text" id="timeProgressText">0 / ${this.sequences.length}</div>
+        </div>
+        <div id="timeRoundArea"></div>
+      </div>
+    `;
+    this.renderRound();
+  },
+
+  renderRound() {
+    const area = PP4.utils.$('timeRoundArea');
+    if (!area) return;
+    if (this.currentRound >= this.sequences.length) {
+      this.onComplete();
+      return;
+    }
+
+    const seq  = this.sequences[this.currentRound];
+    const shuffledChoices = PP4.utils.shuffle([...seq.choices]);
+    this.selectedAnswer = null;
+
+    area.innerHTML = `
+      <div class="logic-question" style="border-color:rgba(255,45,120,0.2)">
+        <div style="text-align:center;margin-bottom:0.5rem;font-size:0.8rem;color:var(--glow-pink);font-weight:600;letter-spacing:0.1em">
+          ${seq.title}
+        </div>
+        <div class="time-sequence-display" id="seqDisplay">
+          ${seq.visible.map((sym, i) => '<div class="seq-symbol ' + (i === seq.hiddenIndex ? 'hidden' : 'revealed') + '" id="seq_' + i + '">' + (i === seq.hiddenIndex ? '❓' : sym) + '</div>').join('')}
+        </div>
+        <div style="text-align:center;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.8rem">
+          💡 ${seq.hint}
+        </div>
+        <div class="time-input-row">
+          ${shuffledChoices.map(c => '<button class="time-choice-btn" data-value="' + c + '">' + c + '</button>').join('')}
+        </div>
+        <div style="text-align:center;margin-top:0.5rem">
+          <button class="machine-check-btn" id="timeConfirmBtn"
+            style="background:linear-gradient(135deg,#ff2d78,#8b0040);opacity:0.5"
+            disabled>
+            ✓ تأكيد الإجابة
+          </button>
+        </div>
+        <div id="timeFeedback" style="text-align:center;font-size:0.82rem;margin-top:0.7rem;min-height:1.2rem;color:var(--text-secondary)"></div>
+      </div>
+    `;
+
+    // Animate sequence in
+    seq.visible.forEach((_, i) => {
+      setTimeout(() => {
+        const el = PP4.utils.$(`seq_${i}`);
+        if (el) el.style.opacity = '1';
+      }, i * 100);
+    });
+
+    // Choice buttons
+    area.querySelectorAll('.time-choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        area.querySelectorAll('.time-choice-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        this.selectedAnswer = btn.dataset.value;
+        const confirmBtn = PP4.utils.$('timeConfirmBtn');
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.style.opacity = '1'; }
+      });
+    });
+
+    PP4.utils.$('timeConfirmBtn')?.addEventListener('click', () => this.checkAnswer(seq));
+
+    // Progress
+    const prog = PP4.utils.$('timeProgress');
+    const progText = PP4.utils.$('timeProgressText');
+    if (prog) prog.style.width = `${(this.currentRound / this.sequences.length) * 100}%`;
+    if (progText) progText.textContent = `${this.currentRound} / ${this.sequences.length}`;
+  },
+
+  checkAnswer(seq) {
+    const feedbackEl = PP4.utils.$('timeFeedback');
+    const seqEl      = PP4.utils.$(`seq_${seq.hiddenIndex}`);
+    const isCorrect  = this.selectedAnswer === seq.answer;
+
+    // Reveal
+    if (seqEl) {
+      seqEl.textContent = seq.answer;
+      seqEl.classList.add('revealed');
+      seqEl.classList.remove('hidden');
+      seqEl.style.borderColor = isCorrect ? 'var(--glow-green)' : 'var(--glow-pink)';
+      seqEl.style.background  = isCorrect ? 'rgba(0,255,136,0.15)' : 'rgba(255,45,120,0.15)';
+    }
+
+    // Disable confirm
+    const confirmBtn = PP4.utils.$('timeConfirmBtn');
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    if (isCorrect) {
+      this.score++;
+      if (feedbackEl) {
+        feedbackEl.innerHTML = '<span style="color:var(--glow-green)">✓ إجابة صحيحة!</span>';
+      }
+      PP4.toast('ممتاز! ✓', 'success', 1200);
+    } else {
+      if (feedbackEl) {
+        feedbackEl.innerHTML = `<span style="color:var(--glow-pink)">✗ الإجابة الصحيحة: ${seq.answer}</span>`;
+      }
+      PP4.toast('إجابة خاطئة ✗', 'error', 1200);
+    }
+
+    setTimeout(() => {
+      this.currentRound++;
+      this.renderRound();
+    }, 1800);
+  },
+
+  onComplete() {
+    const area = PP4.utils.$('timeRoundArea');
+    if (!area) return;
+    const passed = this.score >= 3;
+
+    const prog = PP4.utils.$('timeProgress');
+    const progText = PP4.utils.$('timeProgressText');
+    if (prog) prog.style.width = '100%';
+    if (progText) progText.textContent = `${this.sequences.length} / ${this.sequences.length}`;
+
+    area.innerHTML = `
+      <div class="logic-question" style="text-align:center">
+        <div style="font-size:3rem;margin-bottom:1rem">${passed ? '⏳✨' : '⌛'}</div>
+        <div class="logic-question-text">
+          ${passed
+            ? 'رائع! حللت <strong style="color:var(--glow-green)">' + this.score + '/' + this.sequences.length + '</strong> تسلسلات.'
+            : 'حللت <strong style="color:var(--glow-pink)">' + this.score + '/' + this.sequences.length + '</strong>. تحتاج 3 على الأقل.'
+          }
+        </div>
+        <button class="machine-check-btn" id="timeRetryOrClaim"
+          style="background:linear-gradient(135deg,#ff2d78,#8b0040)">
+          ${passed ? '❤️‍🔥 جمع نواة الزمن' : '🔄 حاول مجدداً'}
+        </button>
+      </div>
+    `;
+
+    PP4.utils.$('timeRetryOrClaim')?.addEventListener('click', () => {
+      if (passed) {
+        PP4.state.cores[4] = true;
+        PP4.updateHUD();
+        PP4.showSuccess(5);
+      } else {
+        this.currentRound = 0;
+        this.score = 0;
+        this.renderRound();
+      }
+    });
+  },
+};
+
+// ================================================================
+// BOOT — FINAL INITIALIZATION
+// ================================================================
+window.__puzzlePlanetReady = function() {
+  try {
+    PP4.boot();
+    console.log('[PP] 🚀 Puzzle Planet is running!');
+  } catch (err) {
+    console.error('[PP] Boot error:', err);
+    // Graceful fallback: hide loader and show intro anyway
+    const loader = document.getElementById('loadingScreen');
+    if (loader) loader.remove();
+    const intro = document.getElementById('introScreen');
+    if (intro) intro.classList.add('active');
+    const hud = document.getElementById('gameHUD');
+    if (hud) hud.classList.remove('visible');
+  }
+};
+
+// If parts loaded out of order, try booting now
+if (window.__PP_part2_ready && window.__PP_part3_ready) {
+  window.__puzzlePlanetReady();
+}
+
+window.__PP_part4_ready = true;
+console.log('[PP] Part 4 loaded ✓');
+
+
