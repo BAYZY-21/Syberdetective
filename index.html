@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="description" content="CyberDetective - لعبة تعليمية في مجال Cybersecurity">
+<link rel="manifest" href="manifest.json">
+<title>CyberDetective - محقق الشبكات</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #04080f;
+  --bg-mid: #070d1a;
+  --bg-card: #0b1220;
+  --bg-card2: #0e1628;
+  --accent: #00ffe7;
+  --accent2: #ff3e6c;
+  --accent3: #f7c948;
+  --accent4: #7b5ea7;
+  --text: #c8deff;
+  --text-dim: #3a5070;
+  --green: #00ff9d;
+  --red: #ff3e6c;
+  --orange: #ff8c42;
+  --border: rgba(0,255,231,0.1);
+  --glow: 0 0 25px rgba(0,255,231,0.35);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ============================
+   MATRIX CANVAS BACKGROUND
+============================ */
+#matrixCanvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  opacity: 0.13;
+  pointer-events: none;
+}
+
+/* Moving grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,231,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,231,0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridMove 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes gridMove {
+  0%   { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
+
+/* Scanline */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================
+   PWA INSTALL BANNER
+============================ */
+#installBanner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: linear-gradient(135deg, #0a1a2e, #061020);
+  border-bottom: 1px solid var(--accent);
+  box-shadow: 0 0 30px rgba(0,255,231,0.2);
+  z-index: 9999;
+  display: none;
+  padding: 0.6rem 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  animation: bannerSlide 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes bannerSlide {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+#installBanner.show { display: flex; }
+.banner-icon { font-size: 1.5rem; flex-shrink: 0; }
+.banner-text { flex: 1; font-size: 0.82rem; color: var(--text); }
+.banner-text strong { color: var(--accent); }
+.banner-install {
+  background: linear-gradient(135deg, var(--accent), #0088ff);
+  color: #000;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.45rem 1.2rem;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.banner-install:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,255,231,0.5); }
+.banner-close {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+.banner-close:hover { color: var(--red); }
+
+/* ============================
+   SCREENS
+============================ */
+.screen { display: none; position: relative; z-index: 1; }
+.screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ============================
+   LOGIN SCREEN
+============================ */
+#loginScreen {
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem 2rem;
+  min-height: 100vh;
+}
+
+/* Floating particles */
+.particles-wrap {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: floatParticle linear infinite;
+  opacity: 0;
+}
+@keyframes floatParticle {
+  0%   { transform: translateY(100vh) rotate(0deg);   opacity: 0; }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.3; }
+  100% { transform: translateY(-20px) rotate(360deg); opacity: 0; }
+}
+
+/* Orbiting rings behind logo */
+.orbit-wrap {
+  position: relative;
+  width: 120px; height: 120px;
+  margin: 0 auto 2rem;
+}
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(0,255,231,0.2);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+}
+.orbit-ring:nth-child(1) { width: 120px; height: 120px; animation: spinRing 6s linear infinite; }
+.orbit-ring:nth-child(2) { width: 160px; height: 160px; animation: spinRing 10s linear infinite reverse; border-color: rgba(0,136,255,0.15); }
+.orbit-ring:nth-child(3) { width: 200px; height: 200px; animation: spinRing 15s linear infinite; border-color: rgba(123,94,167,0.12); }
+@keyframes spinRing {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to   { transform: translate(-50%,-50%) rotate(360deg); }
+}
+.orbit-dot {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+}
+.orbit-ring:nth-child(2) .orbit-dot { background: #0088ff; box-shadow: 0 0 8px #0088ff; }
+.orbit-ring:nth-child(3) .orbit-dot { background: var(--accent4); box-shadow: 0 0 8px var(--accent4); }
+
+.logo-core {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 80px; height: 80px;
+  background: radial-gradient(circle, rgba(0,255,231,0.15), rgba(0,136,255,0.1));
+  border-radius: 50%;
+  border: 2px solid rgba(0,255,231,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 0 40px rgba(0,255,231,0.3), inset 0 0 20px rgba(0,255,231,0.05);
+  animation: logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%,100% { box-shadow: 0 0 40px rgba(0,255,231,0.3), inset 0 0 20px rgba(0,255,231,0.05); }
+  50%      { box-shadow: 0 0 60px rgba(0,255,231,0.5), inset 0 0 30px rgba(0,255,231,0.1); }
+}
+
+.game-title {
+  font-size: clamp(2rem,6vw,3.5rem);
+  font-weight: 900;
+  color: var(--accent);
+  text-shadow: 0 0 30px rgba(0,255,231,0.6), 0 0 60px rgba(0,255,231,0.2);
+  letter-spacing: -1px;
+  text-align: center;
+  animation: titleGlow 3s ease-in-out infinite;
+}
+@keyframes titleGlow {
+  0%,100% { text-shadow: 0 0 30px rgba(0,255,231,0.6), 0 0 60px rgba(0,255,231,0.2); }
+  50%      { text-shadow: 0 0 50px rgba(0,255,231,0.9), 0 0 80px rgba(0,255,231,0.4); }
+}
+.game-subtitle {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  text-align: center;
+  margin-top: 0.3rem;
+  animation: typing 3s steps(20) 0.5s both;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0.3rem auto 0;
+  width: fit-content;
+}
+@keyframes typing {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* ---- LOGIN CARD ---- */
+.login-card {
+  background: rgba(11,18,32,0.85);
+  border: 1px solid rgba(0,255,231,0.15);
+  border-radius: 20px;
+  padding: 2rem 1.8rem;
+  max-width: 440px;
+  width: 100%;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,255,231,0.08);
+  position: relative;
+  overflow: hidden;
+  margin-top: 2rem;
+  animation: cardAppear 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+}
+@keyframes cardAppear {
+  from { transform: translateY(30px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 20%; right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scanTop 3s ease-in-out infinite;
+}
+@keyframes scanTop {
+  0%,100% { opacity: 0.3; left: 20%; right: 20%; }
+  50%      { opacity: 1; left: 5%; right: 5%; }
+}
+
+/* Corner decorations */
+.corner { position: absolute; width: 16px; height: 16px; }
+.corner.tl { top: 10px; right: 10px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+.corner.tr { top: 10px; left: 10px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+.corner.bl { bottom: 10px; right: 10px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+.corner.br { bottom: 10px; left: 10px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+
+.login-section-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  position: relative;
+}
+.login-section-title::after {
+  content: '';
+  display: block;
+  width: 40px; height: 1px;
+  background: var(--accent);
+  margin: 0.5rem auto 0;
+  opacity: 0.4;
+}
+
+/* ---- CYBER PUZZLE ---- */
+.puzzle-container {
+  background: rgba(0,255,231,0.04);
+  border: 1px solid rgba(0,255,231,0.12);
+  border-radius: 14px;
+  padding: 1.3rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.puzzle-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.puzzle-badge {
+  background: rgba(0,255,231,0.12);
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 1px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0,255,231,0.2);
+  animation: badgePulse 2s ease infinite;
+}
+@keyframes badgePulse {
+  0%,100% { box-shadow: none; }
+  50%      { box-shadow: 0 0 12px rgba(0,255,231,0.3); }
+}
+.puzzle-question {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+.puzzle-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  font-family: 'Share Tech Mono', monospace;
+}
+.puzzle-sub span { color: var(--accent3); }
+
+.puzzle-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+.puzzle-opt {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 0.7rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.puzzle-opt:hover {
+  border-color: rgba(0,255,231,0.3);
+  background: rgba(0,255,231,0.06);
+  transform: translateY(-1px);
+}
+.puzzle-opt.selected-correct {
+  border-color: var(--green);
+  background: rgba(0,255,157,0.1);
+  box-shadow: 0 0 15px rgba(0,255,157,0.2);
+}
+.puzzle-opt.selected-wrong {
+  border-color: var(--red);
+  background: rgba(255,62,108,0.1);
+  animation: shakeOpt 0.4s ease;
+}
+@keyframes shakeOpt {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+.puzzle-opt.disabled { pointer-events: none; opacity: 0.5; }
+.opt-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
+.opt-text { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+.opt-code { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+.puzzle-feedback {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  display: none;
+  line-height: 1.6;
+}
+.puzzle-feedback.show { display: block; }
+.puzzle-feedback.correct { background: rgba(0,255,157,0.08); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
+.puzzle-feedback.wrong   { background: rgba(255,62,108,0.08); color: var(--red); border: 1px solid rgba(255,62,108,0.2); }
+
+/* Enter button */
+.btn-enter {
+  width: 100%;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, var(--accent), #0088ff);
+  color: #000;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(0,255,231,0.3);
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.btn-enter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s;
+}
+.btn-enter:hover::before { transform: translateX(100%); }
+.btn-enter.unlocked {
+  opacity: 1;
+  pointer-events: all;
+}
+.btn-enter.unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(0,255,231,0.5);
+}
+
+/* Status bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: dotBlink 1.5s ease infinite;
+}
+@keyframes dotBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* Developer credit */
+.dev-credit {
+  margin-top: 2rem;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+}
+.dev-credit::before {
+  content: 'DEVELOPED BY';
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.dev-name {
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #0088ff, var(--accent4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: nameShimmer 4s linear infinite;
+  background-size: 200% auto;
+}
+@keyframes nameShimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+.dev-role {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+  letter-spacing: 1px;
+}
+
+/* ============================
+   INTRO SCREEN (after login)
+============================ */
+#intro {
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem 2rem;
+  text-align: center;
+}
+
+.logo-wrap {
+  margin-bottom: 2rem;
+  animation: floatLogo 4s ease-in-out infinite;
+}
+@keyframes floatLogo {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.logo-icon {
+  width: 90px; height: 90px;
+  background: radial-gradient(circle, rgba(0,255,231,0.15), rgba(0,136,255,0.1));
+  border-radius: 50%;
+  border: 2px solid rgba(0,255,231,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 0.75rem;
+  box-shadow: 0 0 40px rgba(0,255,231,0.4);
+  animation: logoPulse 3s ease-in-out infinite;
+}
+
+.intro-desc {
+  max-width: 540px;
+  margin: 1.5rem auto;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  background: rgba(11,18,32,0.7);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.3rem;
+  backdrop-filter: blur(10px);
+}
+
+.attack-types {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 0.7rem;
+  max-width: 540px;
+  margin: 0 auto 1.5rem;
+}
+.attack-type-card {
+  background: rgba(11,18,32,0.7);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem;
+  text-align: right;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+.attack-type-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.atk-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
+.atk-name { font-size: 0.82rem; font-weight: 700; color: var(--accent3); }
+.atk-desc { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: linear-gradient(135deg, var(--accent), #0088ff);
+  color: #000;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 700; font-size: 1.05rem;
+  padding: 0.85rem 2.3rem;
+  border: none; border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(0,255,231,0.4);
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s;
+}
+.btn-primary:hover::before { transform: translateX(100%); }
+.btn-primary:hover { transform: scale(1.04); box-shadow: 0 0 45px rgba(0,255,231,0.6); }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: transparent; color: var(--text);
+  font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 0.95rem;
+  padding: 0.65rem 1.8rem;
+  border: 1px solid var(--border); border-radius: 50px;
+  cursor: pointer; transition: all 0.2s; margin-top: 0.7rem;
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============================
+   LEVEL SELECT
+============================ */
+#levelSelect {
+  align-items: center;
+  justify-content: flex-start;
+  padding: 5rem 1.5rem 2rem;
+}
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px,1fr));
+  gap: 1rem; max-width: 900px; width: 100%; margin-top: 1.2rem;
+}
+.level-card {
+  background: rgba(11,18,32,0.8);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.4rem;
+  cursor: pointer; transition: all 0.25s;
+  text-align: center; position: relative; overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+.level-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
+.level-card.locked { opacity: 0.35; cursor: not-allowed; }
+.level-card.locked:hover { transform: none; border-color: var(--border); box-shadow: none; }
+.level-card.completed { border-color: rgba(0,255,157,0.4); }
+.level-card.completed::after { content:'✓'; position:absolute; top:0.5rem; left:0.75rem; color:var(--green); font-size:1rem; font-weight:900; }
+.lc-num { font-size:0.68rem; font-family:'Share Tech Mono',monospace; color:var(--text-dim); margin-bottom:0.4rem; }
+.lc-icon { font-size:1.9rem; margin-bottom:0.4rem; }
+.lc-name { font-size:0.88rem; font-weight:700; color:var(--text); }
+.lc-type { font-size:0.68rem; color:var(--text-dim); margin-top:0.25rem; }
+.lc-diff { display:flex; justify-content:center; gap:0.2rem; margin-top:0.6rem; }
+.diff-dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.08); }
+.diff-dot.filled { background:var(--accent3); }
+
+/* ============================
+   GAME SCREEN
+============================ */
+#game { padding: 0; flex-direction: column; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.7rem 1.1rem;
+  background: rgba(7,13,26,0.9);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  gap: 0.75rem; flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-left { display:flex; align-items:center; gap:0.75rem; }
+.topbar-right { display:flex; align-items:center; gap:0.75rem; }
+.game-logo-sm { font-size:1rem; font-weight:900; color:var(--accent); text-shadow:0 0 10px rgba(0,255,231,0.4); }
+.level-badge {
+  background: linear-gradient(135deg, var(--accent4), #3b2a6e);
+  padding: 0.28rem 0.8rem; border-radius:20px; font-size:0.75rem; font-weight:700; color:#fff;
+}
+.attack-badge {
+  padding: 0.28rem 0.8rem; border-radius:20px;
+  font-size:0.72rem; font-weight:700;
+  font-family:'Share Tech Mono',monospace; letter-spacing:0.5px;
+}
+.ab-ddos  { background:rgba(255,62,108,0.15);  color:var(--red);    border:1px solid rgba(255,62,108,0.25); }
+.ab-exfil { background:rgba(247,201,72,0.15);  color:var(--accent3);border:1px solid rgba(247,201,72,0.25); }
+.ab-beacon{ background:rgba(123,94,167,0.15);  color:#b08fdc;       border:1px solid rgba(123,94,167,0.25); }
+.ab-login { background:rgba(255,140,66,0.15);  color:var(--orange); border:1px solid rgba(255,140,66,0.25); }
+.timer-wrap { display:flex; align-items:center; gap:0.5rem; font-family:'Share Tech Mono',monospace; }
+.timer-num { font-size:1.3rem; font-weight:700; color:var(--accent); min-width:3ch; text-align:center; transition:color 0.3s; }
+.timer-num.urgent { color:var(--red); animation:blink 0.6s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.timer-bar-wrap { width:110px; height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; }
+.timer-bar { height:100%; background:linear-gradient(90deg,var(--accent),#0088ff); transition:width 1s linear,background 0.5s; border-radius:3px; }
+.score-display { display:flex; align-items:center; gap:0.3rem; font-family:'Share Tech Mono',monospace; font-size:0.95rem; color:var(--accent3); }
+.lives-display { display:flex; gap:0.2rem; font-size:0.9rem; }
+.hint-toggle { background:rgba(247,201,72,0.12); color:var(--accent3); border:1px solid rgba(247,201,72,0.25); border-radius:20px; padding:0.28rem 0.7rem; font-size:0.72rem; font-family:'Cairo',sans-serif; cursor:pointer; transition:all 0.2s; }
+.hint-toggle:hover { background:rgba(247,201,72,0.22); }
+
+/* GAME CONTENT */
+.game-content {
+  flex: 1;
+  display: grid; grid-template-columns: 1fr 330px;
+  height: calc(100vh - 56px); overflow: hidden;
+}
+@media(max-width:768px) {
+  .game-content { grid-template-columns:1fr; height:auto; overflow:auto; }
+  .side-panel { display:none; }
+}
+
+/* NETWORK */
+.network-area { position:relative; background:var(--bg-deep); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+#networkCanvas { position:absolute; inset:0; width:100%; height:100%; }
+.devices-layer { position:absolute; inset:0; }
+.device-node { position:absolute; transform:translate(-50%,-50%); cursor:pointer; transition:all 0.3s; }
+.device-card {
+  background: rgba(11,18,32,0.9);
+  border: 1px solid var(--border);
+  border-radius: 11px; padding:0.6rem 0.9rem;
+  min-width: 130px; text-align:center;
+  transition: all 0.3s;
+  position: relative; overflow:hidden;
+  backdrop-filter: blur(8px);
+}
+.device-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:0.3; }
+.device-card.selected { border-color:var(--accent3); box-shadow:0 0 20px rgba(247,201,72,0.3); }
+.device-card.suspected { border-color:rgba(255,62,108,0.4); animation:suspectPulse 2s ease infinite; }
+@keyframes suspectPulse { 0%,100%{box-shadow:0 0 8px rgba(255,62,108,0.15);} 50%{box-shadow:0 0 22px rgba(255,62,108,0.45);} }
+.device-icon { font-size:1.5rem; margin-bottom:0.25rem; }
+.device-name { font-size:0.72rem; font-weight:700; color:var(--text); }
+.device-ip { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--text-dim); margin-top:0.1rem; }
+.device-metrics { display:flex; justify-content:center; gap:0.4rem; margin-top:0.35rem; flex-wrap:wrap; }
+.metric-pill { background:rgba(255,255,255,0.04); padding:0.12rem 0.35rem; border-radius:4px; font-size:0.58rem; font-family:'Share Tech Mono',monospace; color:var(--text-dim); }
+.metric-pill.anomaly { color:var(--red); background:rgba(255,62,108,0.1); }
+.activity-dot { width:7px; height:7px; border-radius:50%; background:var(--green); margin:0.25rem auto 0; animation:dotPulse 2s ease infinite; }
+@keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+.activity-dot.high { background:var(--red); animation:dotPulse 0.4s ease infinite; }
+.activity-dot.mid  { background:var(--orange); animation:dotPulse 1s ease infinite; }
+.scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--red),transparent); animation:scanMove 1.5s linear infinite; opacity:0; }
+.device-card.suspected .scan-line { opacity:1; }
+@keyframes scanMove { 0%{top:0;} 100%{top:100%;} }
+.packet { position:absolute; width:5px; height:5px; border-radius:50%; background:var(--accent); box-shadow:0 0 5px var(--accent); pointer-events:none; opacity:0.8; }
+
+/* SIDE PANEL */
+.side-panel { background:rgba(11,18,32,0.95); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; backdrop-filter:blur(20px); }
+.panel-tabs { display:flex; border-bottom:1px solid var(--border); }
+.panel-tab { flex:1; padding:0.65rem 0.4rem; font-size:0.72rem; font-weight:700; text-align:center; cursor:pointer; color:var(--text-dim); border-bottom:2px solid transparent; transition:all 0.2s; }
+.panel-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.panel-content { flex:1; overflow-y:auto; padding:0.9rem; }
+.panel-content::-webkit-scrollbar { width:3px; }
+.panel-content::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.no-select-msg { text-align:center; color:var(--text-dim); font-size:0.82rem; margin-top:3rem; line-height:1.8; }
+.detail-header { display:flex; align-items:center; gap:0.7rem; margin-bottom:0.9rem; }
+.detail-icon { font-size:1.8rem; }
+.detail-title { font-weight:700; font-size:0.95rem; }
+.detail-ip { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); }
+.stat-row { display:flex; justify-content:space-between; align-items:center; padding:0.45rem 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.77rem; }
+.stat-label { color:var(--text-dim); }
+.stat-val { font-family:'Share Tech Mono',monospace; color:var(--text); font-weight:700; }
+.stat-val.red { color:var(--red); } .stat-val.orange { color:var(--orange); } .stat-val.green { color:var(--green); }
+.section-title { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--text-dim); margin:0.9rem 0 0.45rem; }
+.log-entry { font-family:'Share Tech Mono',monospace; font-size:0.62rem; padding:0.35rem 0.45rem; border-radius:5px; margin-bottom:0.25rem; background:rgba(255,255,255,0.025); color:var(--text-dim); line-height:1.5; }
+.log-entry.warn { background:rgba(255,62,108,0.07); color:var(--red); }
+.log-entry.info { background:rgba(0,255,231,0.05); color:var(--accent); }
+.bar-wrap { margin:0.25rem 0; }
+.bar-label { display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-dim); margin-bottom:0.18rem; }
+.bar-bg { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; transition:width 0.5s; }
+.bar-fill.normal  { background:linear-gradient(90deg,var(--green),#00a066); }
+.bar-fill.warn    { background:linear-gradient(90deg,var(--orange),#cc6000); }
+.bar-fill.danger  { background:linear-gradient(90deg,var(--red),#cc0030); }
+.inspect-btn { width:100%; padding:0.72rem; border-radius:9px; border:none; font-family:'Cairo',sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; margin-top:0.6rem; transition:all 0.2s; }
+.inspect-btn.report { background:linear-gradient(135deg,var(--red),#8a0020); color:#fff; box-shadow:0 0 15px rgba(255,62,108,0.25); }
+.inspect-btn.report:hover { box-shadow:0 0 25px rgba(255,62,108,0.45); transform:translateY(-1px); }
+.inspect-btn.clear { background:rgba(0,255,157,0.08); color:var(--green); border:1px solid rgba(0,255,157,0.25); }
+.inspect-btn.clear:hover { background:rgba(0,255,157,0.15); }
+.global-log { font-family:'Share Tech Mono',monospace; font-size:0.63rem; }
+.glog-entry { display:flex; gap:0.45rem; padding:0.3rem 0; border-bottom:1px solid rgba(255,255,255,0.03); align-items:flex-start; }
+.glog-time { color:var(--text-dim); white-space:nowrap; }
+.glog-src { color:var(--accent); font-weight:700; }
+.glog-msg { color:var(--text); flex:1; }
+.glog-entry.alert .glog-msg { color:var(--red); }
+.hint-card { background:var(--bg-card2); border:1px solid var(--border); border-radius:9px; padding:0.85rem; margin-bottom:0.7rem; }
+.hint-title { font-size:0.77rem; font-weight:700; color:var(--accent3); margin-bottom:0.35rem; }
+.hint-body { font-size:0.72rem; color:var(--text); line-height:1.6; }
+
+/* RESULT OVERLAY */
+.overlay { position:fixed; inset:0; background:rgba(4,8,15,0.88); backdrop-filter:blur(14px); z-index:100; display:none; align-items:center; justify-content:center; padding:1.5rem; }
+.overlay.active { display:flex; }
+.result-card { background:rgba(11,18,32,0.95); border-radius:22px; padding:2.3rem 1.8rem; max-width:460px; width:100%; text-align:center; position:relative; overflow:hidden; animation:slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1); backdrop-filter:blur(20px); }
+@keyframes slideUp { from{transform:translateY(40px) scale(0.94);opacity:0;} to{transform:translateY(0) scale(1);opacity:1;} }
+.result-card.win  { border:1px solid rgba(0,255,157,0.35); box-shadow:0 0 60px rgba(0,255,157,0.15); }
+.result-card.lose { border:1px solid rgba(255,62,108,0.35); box-shadow:0 0 60px rgba(255,62,108,0.15); }
+.result-icon { font-size:3.5rem; margin-bottom:0.75rem; }
+.result-title { font-size:1.7rem; font-weight:900; margin-bottom:0.4rem; }
+.result-title.win-text  { color:var(--green); text-shadow:0 0 20px rgba(0,255,157,0.4); }
+.result-title.lose-text { color:var(--red);   text-shadow:0 0 20px rgba(255,62,108,0.4); }
+.result-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.6rem; margin:1.3rem 0; }
+.result-stat { background:rgba(255,255,255,0.03); border-radius:10px; padding:0.65rem; }
+.rs-val { font-size:1.3rem; font-weight:900; color:var(--accent); }
+.rs-label { font-size:0.68rem; color:var(--text-dim); margin-top:0.15rem; }
+.result-explanation { background:rgba(0,255,231,0.05); border:1px solid rgba(0,255,231,0.12); border-radius:10px; padding:0.9rem; margin-bottom:1.2rem; text-align:right; font-size:0.78rem; line-height:1.7; color:var(--text); }
+.result-explanation strong { color:var(--accent); }
+.result-msg { color:var(--text-dim); font-size:0.85rem; line-height:1.7; margin-bottom:1.3rem; }
+.result-btns { display:flex; gap:0.65rem; justify-content:center; flex-wrap:wrap; }
+
+/* misc */
+.back-btn { display:inline-flex; align-items:center; gap:0.35rem; background:transparent; color:var(--text-dim); font-family:'Cairo',sans-serif; font-size:0.82rem; padding:0.45rem 0.9rem; border:1px solid var(--border); border-radius:20px; cursor:pointer; transition:all 0.2s; margin-bottom:1.2rem; }
+.back-btn:hover { color:var(--accent); border-color:var(--accent); }
+.page-title { font-size:1.7rem; font-weight:900; color:var(--accent); margin-bottom:0.25rem; }
+.page-sub { font-size:0.85rem; color:var(--text-dim); }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- Matrix canvas -->
+<canvas id="matrixCanvas"></canvas>
+
+<!-- Floating particles -->
+<div class="particles-wrap" id="particlesWrap"></div>
+
+<!-- ========================
+     PWA INSTALL BANNER
+======================== -->
+<div id="installBanner">
+  <div class="banner-icon">🛡️</div>
+  <div class="banner-text">
+    <strong>ثبّت CyberDetective</strong> على جهازك للعب بدون إنترنت!
+  </div>
+  <button class="banner-install" id="installBtn">📲 تثبيت</button>
+  <button class="banner-close" id="closeBanner" title="إغلاق">✕</button>
+</div>
+
+<!-- ========================
+     LOGIN SCREEN
+======================== -->
+<div id="loginScreen" class="screen active">
+  <div class="orbit-wrap">
+    <div class="orbit-ring"><div class="orbit-dot"></div></div>
+    <div class="orbit-ring"><div class="orbit-dot"></div></div>
+    <div class="orbit-ring"><div class="orbit-dot"></div></div>
+    <div class="logo-core">🛡️</div>
+  </div>
+
+  <div class="game-title">CyberDetective</div>
+  <div class="game-subtitle">NETWORK SECURITY TRAINING</div>
+
+  <div class="login-card">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <div class="login-section-title">التحقق الأمني / SECURITY CHECK</div>
+
+    <!-- CYBER PUZZLE -->
+    <div class="puzzle-container">
+      <div class="puzzle-header">
+        <span style="font-size:1.1rem;">🔐</span>
+        <span class="puzzle-badge">CYBER PUZZLE</span>
+      </div>
+      <div class="puzzle-question">هل تدخل من الباب أم النافذة؟</div>
+      <div class="puzzle-sub">
+        في الأمن السيبراني، المهاجم الذكي لا يكسر الباب — بل يبحث عن
+        <span>الثغرة المخفية</span>. أي طريقة يستخدمها الهاكر للوصول الخفي إلى النظام؟
+      </div>
+
+      <div class="puzzle-options" id="puzzleOpts">
+        <div class="puzzle-opt" onclick="answerPuzzle(this, false)" data-val="door">
+          <div class="opt-icon">🚪</div>
+          <div class="opt-text">الباب الأمامي</div>
+          <div class="opt-code">Port 80/443 (HTTP/S)</div>
+        </div>
+        <div class="puzzle-opt" onclick="answerPuzzle(this, true)" data-val="window">
+          <div class="opt-icon">🪟</div>
+          <div class="opt-text">النافذة الخلفية</div>
+          <div class="opt-code">Backdoor / Exploit</div>
+        </div>
+        <div class="puzzle-opt" onclick="answerPuzzle(this, false)" data-val="knock">
+          <div class="opt-icon">🔔</div>
+          <div class="opt-text">يطرق ويطلب الإذن</div>
+          <div class="opt-code">Social Engineering</div>
+        </div>
+        <div class="puzzle-opt" onclick="answerPuzzle(this, false)" data-val="key">
+          <div class="opt-icon">🗝️</div>
+          <div class="opt-text">ينسخ المفتاح</div>
+          <div class="opt-code">Credential Theft</div>
+        </div>
+      </div>
+
+      <div class="puzzle-feedback" id="puzzleFeedback"></div>
+    </div>
+
+    <button class="btn-enter" id="enterBtn" onclick="enterGame()">
+      🔓 دخول النظام — ACCESS GRANTED
+    </button>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span id="statusText">في انتظار التحقق الأمني...</span>
+    </div>
+
+    <!-- Developer Credit -->
+    <div class="dev-credit">
+      <div class="dev-name">حارث حسيب السامرائي</div>
+      <div class="dev-role">Cybersecurity Game Developer · Iraq 🇮🇶</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================
+     INTRO SCREEN
+======================== -->
+<div id="intro" class="screen">
+  <div class="logo-wrap">
+    <div class="logo-icon">🛡️</div>
+    <div class="game-title" style="font-size:2.5rem;">CyberDetective</div>
+    <div class="game-subtitle">محقق الشبكات الأمنية</div>
+  </div>
+
+  <div class="intro-desc">
+    مهمتك هي <strong>تحليل الشبكة</strong> واكتشاف الجهاز المخترق قبل انتهاء الوقت!
+    راقب معدلات حركة البيانات، سجلات الاتصالات، والأنشطة المشبوهة لكل جهاز.
+  </div>
+
+  <div class="attack-types">
+    <div class="attack-type-card"><div class="atk-icon">🌊</div><div class="atk-name">DDoS Attack</div><div class="atk-desc">فيضان من الحزم</div></div>
+    <div class="attack-type-card"><div class="atk-icon">📤</div><div class="atk-name">Data Exfiltration</div><div class="atk-desc">تسريب بيانات</div></div>
+    <div class="attack-type-card"><div class="atk-icon">📡</div><div class="atk-name">Malware Beacon</div><div class="atk-desc">اتصال C2</div></div>
+    <div class="attack-type-card"><div class="atk-icon">🔑</div><div class="atk-name">Suspicious Login</div><div class="atk-desc">دخول مشبوه</div></div>
+  </div>
+
+  <button class="btn-primary" onclick="showScreen('levelSelect')">🎮 ابدأ اللعبة</button>
+  <br>
+  <button class="btn-secondary" onclick="startLevel(0)">▶ لعب سريع</button>
+</div>
+
+<!-- ========================
+     LEVEL SELECT
+======================== -->
+<div id="levelSelect" class="screen">
+  <div style="padding:5rem 1.5rem 2rem;width:100%;max-width:960px;margin:0 auto;">
+    <button class="back-btn" onclick="showScreen('intro')">← رجوع</button>
+    <div class="page-title">🗺️ اختر المرحلة</div>
+    <div class="page-sub">10 مراحل — كل مرحلة نوع هجوم مختلف وتحدٍّ أصعب</div>
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+</div>
+
+<!-- ========================
+     GAME SCREEN
+======================== -->
+<div id="game" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" style="margin:0;padding:0.25rem 0.7rem;font-size:0.72rem;" onclick="confirmExit()">← خروج</button>
+      <div class="game-logo-sm">🛡️ CyberDetective</div>
+      <div class="level-badge" id="levelLabel">المرحلة 1</div>
+      <div class="attack-badge ab-ddos" id="attackLabel">DDoS</div>
+    </div>
+    <div class="topbar-right">
+      <div class="score-display">⭐ <span id="scoreDisplay">0</span></div>
+      <div class="lives-display" id="livesDisplay">❤️❤️❤️</div>
+      <div class="timer-wrap">
+        <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar"></div></div>
+        <div class="timer-num" id="timerNum">60</div>
+      </div>
+      <button class="hint-toggle" onclick="useHint()">💡 تلميح</button>
+    </div>
+  </div>
+  <div class="game-content">
+    <div class="network-area" id="networkArea">
+      <canvas id="networkCanvas"></canvas>
+      <div class="devices-layer" id="devicesLayer"></div>
+    </div>
+    <div class="side-panel">
+      <div class="panel-tabs">
+        <div class="panel-tab active" onclick="switchTab('detail')" id="tabDetail">🔍 التفاصيل</div>
+        <div class="panel-tab" onclick="switchTab('log')" id="tabLog">📋 السجل</div>
+        <div class="panel-tab" onclick="switchTab('hints')" id="tabHints">💡 تلميحات</div>
+      </div>
+      <div class="panel-content" id="panelContent">
+        <div class="no-select-msg"><div style="font-size:2rem;margin-bottom:0.5rem;">👆</div><div>اضغط على أي جهاز<br>لعرض تفاصيله</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================
+     RESULT OVERLAY
+======================== -->
+<div class="overlay" id="resultOverlay">
+  <div class="result-card" id="resultCard">
+    <div class="result-icon" id="resultIcon"></div>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-stats">
+      <div class="result-stat"><div class="rs-val" id="rsTime">--</div><div class="rs-label">الوقت المتبقي</div></div>
+      <div class="result-stat"><div class="rs-val" id="rsScore">--</div><div class="rs-label">النقاط</div></div>
+      <div class="result-stat"><div class="rs-val" id="rsAccuracy">--%</div><div class="rs-label">الدقة</div></div>
+    </div>
+    <div class="result-explanation" id="resultExplanation"></div>
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="result-btns">
+      <button class="btn-primary" id="nextBtn" onclick="nextLevel()">التالي ➜</button>
+      <button class="btn-secondary" onclick="retryLevel()">🔄 إعادة</button>
+      <button class="btn-secondary" onclick="showScreen('levelSelect')">🗺️ الخريطة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+//  MATRIX RAIN ANIMATION
+// =====================================================
+(function initMatrix() {
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,.<>?/\\~`ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩアイウエオカキクケコ';
+  let drops = [];
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const cols = Math.floor(canvas.width / 16);
+    drops = Array.from({length: cols}, () => Math.random() * -50);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  function draw() {
+    ctx.fillStyle = 'rgba(4,8,15,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '13px Share Tech Mono, monospace';
+    drops.forEach((y, i) => {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      const bright = Math.random() > 0.95;
+      ctx.fillStyle = bright ? '#ffffff' : (Math.random() > 0.5 ? '#00ffe7' : '#00a070');
+      ctx.fillText(ch, i * 16, y * 16);
+      if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 0.5;
+    });
+  }
+  setInterval(draw, 50);
+})();
+
+// =====================================================
+//  FLOATING PARTICLES
+// =====================================================
+(function initParticles() {
+  const wrap = document.getElementById('particlesWrap');
+  const symbols = ['🔒','🔑','🛡️','⚡','🌐','💻','📡','🔐','⚙️','🔍'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const isSymbol = Math.random() > 0.6;
+    if (isSymbol) {
+      p.style.cssText = `
+        font-size: ${10 + Math.random()*16}px;
+        left: ${Math.random()*100}%;
+        animation-duration: ${15 + Math.random()*20}s;
+        animation-delay: ${-Math.random()*25}s;
+        background: transparent;
+        border-radius: 0;
+      `;
+      p.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+    } else {
+      const size = 2 + Math.random() * 4;
+      const colors = ['rgba(0,255,231,', 'rgba(0,136,255,', 'rgba(123,94,167,', 'rgba(0,255,157,'];
+      const col = colors[Math.floor(Math.random()*colors.length)];
+      p.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        background:${col}0.7)};
+        box-shadow:0 0 6px ${col}0.5)};
+        animation-duration:${10 + Math.random()*20}s;
+        animation-delay:${-Math.random()*30}s;
+      `;
+    }
+    wrap.appendChild(p);
+  }
+})();
+
+// =====================================================
+//  PWA INSTALL BANNER
+// =====================================================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('installBanner');
+  banner.classList.add('show');
+  // push screens down
+  document.querySelectorAll('.screen').forEach(s => s.style.paddingTop = '');
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    document.getElementById('installBanner').classList.remove('show');
+  }
+  deferredPrompt = null;
+});
+
+document.getElementById('closeBanner').addEventListener('click', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+// Show banner on iOS (no beforeinstallprompt)
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = window.matchMedia('(display-mode: standalone)').matches;
+if (isIOS && !isInStandalone) {
+  setTimeout(() => {
+    const banner = document.getElementById('installBanner');
+    banner.querySelector('.banner-text').innerHTML =
+      '<strong>ثبّت CyberDetective</strong> — Safari ⬆️ ثم "Add to Home Screen"';
+    banner.querySelector('.banner-install').style.display = 'none';
+    banner.classList.add('show');
+  }, 2000);
+}
+
+// =====================================================
+//  PUZZLE LOGIC
+// =====================================================
+let puzzleSolved = false;
+
+function answerPuzzle(el, isCorrect) {
+  if (puzzleSolved) return;
+  const opts = document.querySelectorAll('.puzzle-opt');
+  opts.forEach(o => o.classList.add('disabled'));
+
+  const feedback = document.getElementById('puzzleFeedback');
+  const enterBtn  = document.getElementById('enterBtn');
+  const statusTxt = document.getElementById('statusText');
+
+  if (isCorrect) {
+    el.classList.add('selected-correct');
+    feedback.className = 'puzzle-feedback show correct';
+    feedback.innerHTML = `✅ <strong>إجابة صحيحة!</strong> — في الأمن السيبراني، المهاجم يدخل من "النافذة الخلفية" (Backdoor) أو عبر ثغرة (Exploit) دون علم صاحب النظام — تمامًا مثل اللص الذي يتجنب الباب الرئيسي!`;
+    puzzleSolved = true;
+    enterBtn.classList.add('unlocked');
+    statusTxt.textContent = '✅ تم التحقق — ACCESS GRANTED';
+    statusTxt.style.color = 'var(--green)';
+  } else {
+    el.classList.add('selected-wrong');
+    feedback.className = 'puzzle-feedback show wrong';
+    const texts = {
+      door: '❌ الباب الأمامي هو الدخول العلني الرسمي — الهاكر يتجنبه!',
+      knock: '❌ طلب الإذن = Social Engineering، لكن الهاكر الحقيقي يتجنب أي تفاعل مباشر!',
+      key:   '❌ نسخ المفتاح = سرقة بيانات الدخول، لكن الدخول الخفي الحقيقي هو Backdoor!'
+    };
+    const val = el.getAttribute('data-val');
+    feedback.textContent = texts[val] || '❌ حاول مرة أخرى!';
+    setTimeout(() => {
+      opts.forEach(o => { o.classList.remove('disabled'); o.classList.remove('selected-wrong'); });
+      feedback.className = 'puzzle-feedback';
+    }, 1800);
+  }
+}
+
+function enterGame() {
+  if (!puzzleSolved) return;
+  showScreen('intro');
+}
+
+// =====================================================
+//  LEVELS DATA
+// =====================================================
+const LEVELS = [
+  { id:0, name:"الشبكة المكتبية",   icon:"🏢", attack:"ddos",   attackLabel:"DDoS Attack",         attackClass:"ab-ddos",   difficulty:1, devices:4, time:60, hints:["ابحث عن جهاز يرسل آلاف الحزم بالثانية","DDoS: packets/s أعلى 10-20× من الطبيعي","تحقق من عمود Packets/Sec"] },
+  { id:1, name:"شبكة الشركة",       icon:"🏗️", attack:"exfil",  attackLabel:"Data Exfiltration",   attackClass:"ab-exfil",  difficulty:2, devices:5, time:55, hints:["ابحث عن جهاز يتصل بـ IP خارجي","راقب Upload Rate — يجب أن يكون منخفضاً","الجهاز المخترق يرسل للخارج بكميات كبيرة"] },
+  { id:2, name:"مركز البيانات",      icon:"🖥️", attack:"beacon", attackLabel:"Malware Beacon",      attackClass:"ab-beacon", difficulty:2, devices:5, time:50, hints:["الـ Beacon يتصل كل 30-60 ثانية","ابحث عن اتصالات متكررة بنفس الـ IP","حجم البيانات صغير لكن متكرر جداً"] },
+  { id:3, name:"الشبكة الصناعية",    icon:"⚙️", attack:"login",  attackLabel:"Suspicious Login",    attackClass:"ab-login",  difficulty:3, devices:6, time:50, hints:["ابحث عن جهاز به محاولات دخول فاشلة كثيرة","تسجيل دخول من بلد غير متوقع","الوقت غير المعتاد لتسجيل الدخول تحذير"] },
+  { id:4, name:"شبكة المستشفى",      icon:"🏥", attack:"ddos",   attackLabel:"DDoS Attack",         attackClass:"ab-ddos",   difficulty:3, devices:6, time:45, hints:["بعض الأجهزة تبدو مشبوهة لكن واحد فقط الحقيقي","قارن packets بعناية","الفارق سيكون واضحاً"] },
+  { id:5, name:"شبكة الجامعة",       icon:"🎓", attack:"exfil",  attackLabel:"Data Exfiltration",   attackClass:"ab-exfil",  difficulty:4, devices:7, time:45, hints:["Upload أقل من Download في الأجهزة الطبيعية","Upload Rate مرتفع = علامة تسريب","تحقق من Destination IP"] },
+  { id:6, name:"البنية التحتية",      icon:"🌐", attack:"beacon", attackLabel:"Malware Beacon",      attackClass:"ab-beacon", difficulty:4, devices:7, time:40, hints:["الـ Beacon الخفي له فترات أطول","ابحث عن نمط منتظم في السجل","حجم البيانات صغير لكن التوقيت منتظم"] },
+  { id:7, name:"شبكة البنك",         icon:"🏦", attack:"login",  attackLabel:"Suspicious Login",    attackClass:"ab-login",  difficulty:4, devices:8, time:40, hints:["8 أجهزة — كن دقيقاً","ابحث عن failed attempts ثم success","المواقع الجغرافية غير المعتادة هي المفتاح"] },
+  { id:8, name:"شبكة الحكومة",       icon:"🏛️", attack:"exfil",  attackLabel:"Data Exfiltration",   attackClass:"ab-exfil",  difficulty:5, devices:8, time:35, hints:["مستوى صعب — راقب كل تفصيلة","Upload مرتفع + IP خارجي = تسريب","حظاً سعيداً 🎯"] },
+  { id:9, name:"الشبكة النووية",     icon:"☢️", attack:"beacon", attackLabel:"Malware Beacon (APT)",attackClass:"ab-beacon", difficulty:5, devices:9, time:30, hints:["APT = Advanced Persistent Threat","الـ Beacon يتخفى في حركة HTTPS","راقب التوقيت والنمط بعناية"] }
+];
+
+const DEVICE_TYPES = [
+  {icon:"💻",names:["Laptop-Alice","Laptop-Bob","Laptop-Carol","Laptop-Dave"]},
+  {icon:"🖥️",names:["Desktop-A","Desktop-B","Desktop-C","Desktop-HR"]},
+  {icon:"📱",names:["Mobile-01","Mobile-02","Phone-Mgr"]},
+  {icon:"🖨️",names:["Printer-1F","Printer-2F","Printer-Lab"]},
+  {icon:"💾",names:["Server-DB","Server-Web","Server-File"]},
+  {icon:"📡",names:["Router-Core","Switch-Floor1"]},
+  {icon:"🔌",names:["IoT-Sensor","IoT-Camera"]}
+];
+
+let state = {
+  currentLevel:0, score:0, lives:3, completed:[],
+  timerInterval:null, timeLeft:60, totalTime:60,
+  hackedDevice:-1, devices:[], selectedDevice:-1,
+  activeTab:'detail', hintUsed:0, attempts:0,
+  globalLogs:[], hintRevealed:false, devicePositions:[]
+};
+
+// =====================================================
+//  SCREEN MANAGEMENT
+// =====================================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  if (name === 'levelSelect') renderLevelGrid();
+  if (name !== 'game') stopTimer();
+}
+
+// =====================================================
+//  LEVEL GRID
+// =====================================================
+function renderLevelGrid() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  LEVELS.forEach((lv, i) => {
+    const isLocked = i > 0 && !state.completed.includes(i-1);
+    const isCompleted = state.completed.includes(i);
+    const div = document.createElement('div');
+    div.className = `level-card${isLocked?' locked':''}${isCompleted?' completed':''}`;
+    const dots = Array.from({length:5},(_,d)=>`<div class="diff-dot${d<lv.difficulty?' filled':''}"></div>`).join('');
+    div.innerHTML = `<div class="lc-num">المرحلة ${i+1}</div><div class="lc-icon">${lv.icon}</div><div class="lc-name">${lv.name}</div><div class="lc-type">${lv.attackLabel}</div><div class="lc-diff">${dots}</div>${isLocked?'<div style="font-size:0.68rem;color:var(--text-dim);margin-top:0.4rem;">🔒 محجوب</div>':''}`;
+    if (!isLocked) div.onclick = () => startLevel(i);
+    grid.appendChild(div);
+  });
+}
+
+// =====================================================
+//  START LEVEL
+// =====================================================
+function startLevel(idx) {
+  state.currentLevel = idx;
+  const lv = LEVELS[idx];
+  state.timeLeft = lv.time; state.totalTime = lv.time;
+  state.selectedDevice = -1; state.activeTab = 'detail';
+  state.hintUsed = 0; state.attempts = 0;
+  state.globalLogs = []; state.hintRevealed = false;
+  generateDevices(lv);
+  showScreen('game');
+  document.getElementById('levelLabel').textContent = `المرحلة ${idx+1}`;
+  document.getElementById('attackLabel').textContent = lv.attackLabel;
+  document.getElementById('attackLabel').className = `attack-badge ${lv.attackClass}`;
+  document.getElementById('scoreDisplay').textContent = state.score;
+  updateLives(); updatePanelNoSelect();
+  renderNetwork(); switchTab('detail');
+  startTimer(); startPacketAnimation(); generateInitialLogs();
+}
+
+// =====================================================
+//  DEVICE GENERATION
+// =====================================================
+function generateDevices(lv) {
+  const count = lv.devices;
+  const hackedIdx = Math.floor(Math.random() * count);
+  state.hackedDevice = hackedIdx; state.devices = [];
+  for (let i = 0; i < count; i++) {
+    const typeIdx = i % DEVICE_TYPES.length;
+    const dt = DEVICE_TYPES[typeIdx];
+    const name = dt.names[i % dt.names.length];
+    const ip = `192.168.1.${10+i}`;
+    state.devices.push(generateDeviceStats(name, dt.icon, ip, i === hackedIdx, lv.attack));
+  }
+}
+
+function generateDeviceStats(name, icon, ip, isHacked, attackType) {
+  let pkts = 50+Math.random()*150, upload = 0.5+Math.random()*3,
+      download = 1+Math.random()*8, conns = 2+Math.floor(Math.random()*8);
+  let extIP=null, loginInfo=null, beaconInfo=null, anomalyFlags=[];
+  if (isHacked) {
+    if (attackType==='ddos') {
+      pkts=8000+Math.random()*12000; conns=500+Math.floor(Math.random()*1000);
+      upload=50+Math.random()*100; anomalyFlags=['packets_spike','conn_spike'];
+    } else if (attackType==='exfil') {
+      upload=80+Math.random()*120;
+      extIP=`104.21.${rnd(254)}.${rnd(254)}`; anomalyFlags=['upload_high','external_ip'];
+    } else if (attackType==='beacon') {
+      beaconInfo={ip:`45.33.${rnd(254)}.${rnd(254)}`,interval:30+rnd(30)};
+      extIP=beaconInfo.ip; anomalyFlags=['beacon','external_ip'];
+    } else if (attackType==='login') {
+      loginInfo={ip:`185.${rnd(254)}.${rnd(254)}.${rnd(254)}`,
+        country:['Russia','China','Iran','North Korea'][rnd(4)],
+        failedAttempts:15+rnd(30)};
+      anomalyFlags=['failed_logins','geo_anomaly'];
+    }
+  }
+  const logs = generateDeviceLogs(name, ip, isHacked, attackType, extIP, loginInfo, beaconInfo);
+  return {
+    name, icon, ip, isHacked, attackType,
+    packets:Math.round(pkts), upload:parseFloat(upload.toFixed(1)),
+    download:parseFloat(download.toFixed(1)), connections:Math.round(conns),
+    extIP, loginInfo, beaconInfo, anomalyFlags, logs,
+    cpuUsage:isHacked?70+Math.random()*28:5+Math.random()*40,
+    memUsage:isHacked?60+Math.random()*35:10+Math.random()*50,
+    os:['Windows 11','Ubuntu 22.04','macOS 14','Windows Server 2022'][rnd(4)]
+  };
+}
+function rnd(n) { return Math.floor(Math.random()*n); }
+
+function generateDeviceLogs(name, ip, isHacked, attackType, extIP, loginInfo, beaconInfo) {
+  const now = new Date(); const logs = [];
+  const fmt = d=>`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const pad = n=>String(n).padStart(2,'0');
+  for (let i=0;i<3;i++) { const t=new Date(now-Math.random()*300000); logs.push({time:fmt(t),msg:`TCP connection to 192.168.1.1:443`,type:'info'}); }
+  logs.push({time:fmt(now),msg:`DNS query: internal.company.local`,type:'info'});
+  if (isHacked) {
+    if (attackType==='ddos') {
+      logs.push({time:fmt(now),msg:`⚠ ALERT: 9,847 packets/sec detected`,type:'warn'});
+      logs.push({time:fmt(new Date(now-5000)),msg:`SYN flood burst: 743 connections`,type:'warn'});
+    } else if (attackType==='exfil') {
+      logs.push({time:fmt(now),msg:`⚠ Large upload to ${extIP}:443`,type:'warn'});
+      logs.push({time:fmt(new Date(now-10000)),msg:`File transfer: 2.3GB to ${extIP}`,type:'warn'});
+    } else if (attackType==='beacon') {
+      logs.push({time:fmt(now),msg:`Periodic connect to ${beaconInfo.ip}:4444`,type:'warn'});
+      logs.push({time:fmt(new Date(now-30000)),msg:`C2 heartbeat — interval: ${beaconInfo.interval}s`,type:'warn'});
+    } else if (attackType==='login') {
+      logs.push({time:fmt(now),msg:`⚠ ${loginInfo.failedAttempts}x failed auth from ${loginInfo.ip}`,type:'warn'});
+      logs.push({time:fmt(new Date(now-5000)),msg:`SSH login SUCCESS from ${loginInfo.country}`,type:'warn'});
+    }
+  }
+  return logs.reverse();
+}
+
+// =====================================================
+//  NETWORK RENDERING
+// =====================================================
+function renderNetwork() {
+  const area = document.getElementById('networkArea');
+  const layer = document.getElementById('devicesLayer');
+  layer.innerHTML = '';
+  const W = area.offsetWidth||600, H = area.offsetHeight||500;
+  const positions = getDevicePositions(state.devices.length, W, H);
+  state.devicePositions = positions;
+  state.devices.forEach((dev, i) => {
+    const pos = positions[i];
+    const node = document.createElement('div');
+    node.className = 'device-node'; node.id = `dev-${i}`;
+    node.style.left = pos.x+'px'; node.style.top = pos.y+'px';
+    const actClass = dev.packets>5000?'high':dev.packets>500?'mid':'';
+    node.innerHTML = `
+      <div class="device-card${state.selectedDevice===i?' selected':''}${dev.anomalyFlags.length>0&&state.hintRevealed?' suspected':''}" id="dc-${i}">
+        <div class="scan-line"></div>
+        <div class="device-icon">${dev.icon}</div>
+        <div class="device-name">${dev.name}</div>
+        <div class="device-ip">${dev.ip}</div>
+        <div class="device-metrics">
+          <div class="metric-pill${dev.anomalyFlags.includes('packets_spike')?' anomaly':''}">${fmtPkts(dev.packets)}/s</div>
+          <div class="metric-pill${dev.anomalyFlags.includes('upload_high')?' anomaly':''}">${dev.upload}MB↑</div>
+        </div>
+        <div class="activity-dot ${actClass}"></div>
+      </div>`;
+    node.onclick = () => selectDevice(i);
+    layer.appendChild(node);
+  });
+  drawCanvas(positions, W, H);
+}
+
+function getDevicePositions(count, W, H) {
+  const cx=W/2, cy=H/2, r=Math.min(W,H)*0.33, pts=[];
+  for (let i=0;i<count;i++) {
+    const a=(i/count)*Math.PI*2-Math.PI/2;
+    pts.push({x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)});
+  }
+  return pts;
+}
+
+function drawCanvas(positions, W, H) {
+  const canvas=document.getElementById('networkCanvas');
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  // Hub
+  const grd=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,20);
+  grd.addColorStop(0,'rgba(0,255,231,0.6)'); grd.addColorStop(1,'rgba(0,100,200,0.3)');
+  ctx.beginPath(); ctx.arc(W/2,H/2,20,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
+  ctx.font='14px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🌐',W/2,H/2);
+  // Lines
+  positions.forEach((pos,i) => {
+    const dev=state.devices[i];
+    ctx.beginPath(); ctx.moveTo(W/2,H/2); ctx.lineTo(pos.x,pos.y);
+    if (state.selectedDevice===i) { ctx.strokeStyle='rgba(0,255,231,0.5)'; ctx.lineWidth=2; }
+    else if (dev.anomalyFlags.length>0&&state.hintRevealed) { ctx.strokeStyle='rgba(255,62,108,0.3)'; ctx.lineWidth=1.5; }
+    else { ctx.strokeStyle='rgba(0,255,231,0.07)'; ctx.lineWidth=1; }
+    ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+  });
+}
+
+function fmtPkts(n) { return n>=1000?(n/1000).toFixed(1)+'K':Math.round(n).toString(); }
+
+// =====================================================
+//  DEVICE SELECTION
+// =====================================================
+function selectDevice(idx) {
+  state.selectedDevice=idx; renderNetwork();
+  if (state.activeTab==='detail') renderDeviceDetail(idx);
+}
+
+function renderDeviceDetail(idx) {
+  const dev=state.devices[idx]; const panel=document.getElementById('panelContent');
+  const cpuC=dev.cpuUsage>80?'danger':dev.cpuUsage>50?'warn':'normal';
+  const memC=dev.memUsage>80?'danger':dev.memUsage>50?'warn':'normal';
+  const uplC=dev.upload>50?'danger':dev.upload>15?'warn':'normal';
+  const pktC=dev.packets>5000?'danger':dev.packets>500?'warn':'normal';
+  let extra='';
+  if (dev.extIP) extra+=`<div class="stat-row"><span class="stat-label">External IP</span><span class="stat-val red">${dev.extIP}</span></div>`;
+  if (dev.loginInfo) {
+    extra+=`<div class="stat-row"><span class="stat-label">Failed Logins</span><span class="stat-val red">${dev.loginInfo.failedAttempts}x</span></div>`;
+    extra+=`<div class="stat-row"><span class="stat-label">Source Country</span><span class="stat-val orange">${dev.loginInfo.country}</span></div>`;
+    extra+=`<div class="stat-row"><span class="stat-label">Source IP</span><span class="stat-val red">${dev.loginInfo.ip}</span></div>`;
+  }
+  if (dev.beaconInfo) {
+    extra+=`<div class="stat-row"><span class="stat-label">C2 Server</span><span class="stat-val red">${dev.beaconInfo.ip}</span></div>`;
+    extra+=`<div class="stat-row"><span class="stat-label">Beacon Interval</span><span class="stat-val orange">${dev.beaconInfo.interval}s</span></div>`;
+  }
+  panel.innerHTML=`
+    <div class="detail-header">
+      <div class="detail-icon">${dev.icon}</div>
+      <div><div class="detail-title">${dev.name}</div><div class="detail-ip">${dev.ip}</div><div style="font-size:0.62rem;color:var(--text-dim);margin-top:0.15rem;">${dev.os}</div></div>
+    </div>
+    <div class="section-title">📊 الإحصائيات</div>
+    <div class="stat-row"><span class="stat-label">Packets/sec</span><span class="stat-val ${pktC==='danger'?'red':pktC==='warn'?'orange':'green'}">${fmtPkts(dev.packets)}</span></div>
+    <div class="stat-row"><span class="stat-label">Upload Rate</span><span class="stat-val ${uplC==='danger'?'red':uplC==='warn'?'orange':'green'}">${dev.upload} MB/s</span></div>
+    <div class="stat-row"><span class="stat-label">Download Rate</span><span class="stat-val">${dev.download} MB/s</span></div>
+    <div class="stat-row"><span class="stat-label">Active Connections</span><span class="stat-val ${dev.connections>300?'red':''}">${dev.connections}</span></div>
+    ${extra}
+    <div class="section-title">💻 الأداء</div>
+    <div class="bar-wrap"><div class="bar-label"><span>CPU</span><span>${Math.round(dev.cpuUsage)}%</span></div><div class="bar-bg"><div class="bar-fill ${cpuC}" style="width:${dev.cpuUsage}%"></div></div></div>
+    <div class="bar-wrap"><div class="bar-label"><span>Memory</span><span>${Math.round(dev.memUsage)}%</span></div><div class="bar-bg"><div class="bar-fill ${memC}" style="width:${dev.memUsage}%"></div></div></div>
+    <div class="section-title">📋 آخر السجلات</div>
+    ${dev.logs.slice(0,5).map(l=>`<div class="log-entry ${l.type}"><span>${l.time}</span> ${l.msg}</div>`).join('')}
+    <button class="inspect-btn report" onclick="reportDevice(${idx})">⚠️ الإبلاغ عن هذا الجهاز</button>
+    <button class="inspect-btn clear" onclick="clearDevice(${idx})">✅ هذا الجهاز آمن</button>`;
+}
+
+// =====================================================
+//  TABS
+// =====================================================
+function switchTab(tab) {
+  state.activeTab=tab;
+  ['detail','log','hints'].forEach(t=>{
+    document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle('active',t===tab);
+  });
+  if (tab==='detail') { if (state.selectedDevice>=0) renderDeviceDetail(state.selectedDevice); else updatePanelNoSelect(); }
+  else if (tab==='log') renderGlobalLog();
+  else renderHints();
+}
+
+function updatePanelNoSelect() {
+  document.getElementById('panelContent').innerHTML=`<div class="no-select-msg"><div style="font-size:2rem;margin-bottom:0.5rem;">👆</div><div>اضغط على أي جهاز<br>لعرض تفاصيله</div></div>`;
+}
+
+function renderGlobalLog() {
+  const panel=document.getElementById('panelContent');
+  const logs=state.globalLogs.slice(-50).reverse();
+  panel.innerHTML=`<div class="section-title">📋 سجل الشبكة الكامل</div><div class="global-log">${logs.map(l=>`<div class="glog-entry ${l.cls}"><span class="glog-time">${l.time}</span><span class="glog-src">${l.src}</span><span class="glog-msg">${l.msg}</span></div>`).join('')}</div>`;
+}
+
+function renderHints() {
+  const lv=LEVELS[state.currentLevel];
+  document.getElementById('panelContent').innerHTML=`
+    <div class="section-title">💡 تلميحات</div>
+    <div class="hint-card"><div class="hint-title">🎯 ${lv.attackLabel}</div><div class="hint-body">${lv.name} — ${['1','2','3','4','5'][lv.difficulty-1]} ⭐</div></div>
+    ${lv.hints.map((h,i)=>`<div class="hint-card"><div class="hint-title">تلميح ${i+1}</div><div class="hint-body">${h}</div></div>`).join('')}
+    <div class="hint-card" style="border-color:rgba(255,62,108,0.3)"><div class="hint-title" style="color:var(--red)">⚠️</div><div class="hint-body">استخدام التلميحات يقلل النقاط النهائية.</div></div>`;
+}
+
+// =====================================================
+//  GAME ACTIONS
+// =====================================================
+function reportDevice(idx) {
+  state.attempts++;
+  const dev=state.devices[idx];
+  if (dev.isHacked) {
+    stopTimer();
+    const hintPen=state.hintUsed*100, attPen=Math.max(0,(state.attempts-1)*200);
+    const earned=Math.max(100,1000+state.timeLeft*15-hintPen-attPen);
+    state.score+=earned; state.completed.push(state.currentLevel);
+    showResult(true,dev,earned,state.timeLeft);
+  } else {
+    state.lives--; updateLives();
+    if (state.lives<=0) { stopTimer(); showResult(false,state.devices[state.hackedDevice],0,state.timeLeft); }
+    else {
+      const card=document.getElementById(`dc-${idx}`);
+      if(card){card.style.borderColor='rgba(255,62,108,0.8)';card.style.boxShadow='0 0 20px rgba(255,62,108,0.5)';setTimeout(()=>{card.style.borderColor='';card.style.boxShadow='';},1000);}
+      addLog(dev.ip,`❌ إبلاغ خاطئ عن ${dev.name}`,'alert');
+      if(state.activeTab==='detail') renderDeviceDetail(idx);
+    }
+  }
+}
+
+function clearDevice(idx) { addLog(state.devices[idx].ip,`✓ تم تصنيف ${state.devices[idx].name} كآمن`,''); if(state.activeTab==='detail') renderDeviceDetail(idx); }
+
+function useHint() { state.hintUsed++; state.hintRevealed=true; renderNetwork(); switchTab('hints'); }
+
+function showResult(win, hackedDev, earned, timeLeft) {
+  const card=document.getElementById('resultCard');
+  card.className=`result-card ${win?'win':'lose'}`;
+  document.getElementById('resultIcon').textContent=win?'🎯':'💀';
+  document.getElementById('resultTitle').textContent=win?'تم الاكتشاف!':'فشلت المهمة!';
+  document.getElementById('resultTitle').className=`result-title ${win?'win-text':'lose-text'}`;
+  document.getElementById('rsTime').textContent=timeLeft+'s';
+  document.getElementById('rsScore').textContent=earned;
+  document.getElementById('rsAccuracy').textContent=(state.attempts>0?Math.round(100/state.attempts):0)+'%';
+  const lv=LEVELS[state.currentLevel];
+  const expls={
+    ddos:  `<strong>DDoS Attack:</strong> الجهاز <strong>${hackedDev.name}</strong> كان يرسل <strong>${fmtPkts(hackedDev.packets)} packets/s</strong> — أعلى بكثير من الطبيعي (50-200/s). هجوم SYN Flood.`,
+    exfil: `<strong>Data Exfiltration:</strong> الجهاز <strong>${hackedDev.name}</strong> رفع بيانات بمعدل <strong>${hackedDev.upload} MB/s</strong> إلى <strong>${hackedDev.extIP}</strong>.`,
+    beacon:`<strong>Malware Beacon:</strong> الجهاز <strong>${hackedDev.name}</strong> يتصل بخادم C2 <strong>${hackedDev.beaconInfo?.ip}</strong> كل <strong>${hackedDev.beaconInfo?.interval}s</strong>.`,
+    login: `<strong>Suspicious Login:</strong> الجهاز <strong>${hackedDev.name}</strong> سجّل <strong>${hackedDev.loginInfo?.failedAttempts} محاولة فاشلة</strong> من <strong>${hackedDev.loginInfo?.country}</strong>.`
+  };
+  document.getElementById('resultExplanation').innerHTML=expls[lv.attack]||'';
+  document.getElementById('resultMsg').textContent=win?'أحسنت! نجحت في حماية الشبكة.':'الجهاز المخترق كان: '+hackedDev.name+' ('+hackedDev.ip+')';
+  const isLast=state.currentLevel>=LEVELS.length-1;
+  document.getElementById('nextBtn').textContent=isLast?'🏆 إنهاء':'التالي ➜';
+  document.getElementById('nextBtn').disabled=!win;
+  document.getElementById('nextBtn').style.opacity=win?'1':'0.4';
+  document.getElementById('resultOverlay').classList.add('active');
+}
+
+function nextLevel() { document.getElementById('resultOverlay').classList.remove('active'); if(state.currentLevel<LEVELS.length-1) startLevel(state.currentLevel+1); else showScreen('levelSelect'); }
+function retryLevel() { document.getElementById('resultOverlay').classList.remove('active'); startLevel(state.currentLevel); }
+function confirmExit() { stopTimer(); showScreen('levelSelect'); }
+
+// =====================================================
+//  TIMER
+// =====================================================
+function startTimer() {
+  stopTimer(); updateTimerDisplay();
+  state.timerInterval=setInterval(()=>{
+    state.timeLeft--; updateTimerDisplay();
+    if(state.timeLeft<=0){stopTimer();showResult(false,state.devices[state.hackedDevice],0,0);}
+  },1000);
+}
+function stopTimer() { if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null;} }
+function updateTimerDisplay() {
+  const el=document.getElementById('timerNum'); const bar=document.getElementById('timerBar'); if(!el||!bar)return;
+  el.textContent=state.timeLeft;
+  const pct=(state.timeLeft/state.totalTime)*100; bar.style.width=pct+'%';
+  if(state.timeLeft<=10){el.classList.add('urgent');bar.style.background='linear-gradient(90deg,var(--red),#8a0020)';}
+  else if(state.timeLeft<=20){bar.style.background='linear-gradient(90deg,var(--orange),#cc6000)';el.classList.remove('urgent');}
+  else{bar.style.background='linear-gradient(90deg,var(--accent),#0088ff)';el.classList.remove('urgent');}
+}
+
+function updateLives() { const el=document.getElementById('livesDisplay'); if(!el)return; el.innerHTML=Array.from({length:3},(_,i)=>i<state.lives?'❤️':'🖤').join(''); }
+
+// =====================================================
+//  PACKET ANIMATION
+// =====================================================
+let packetLoop=null;
+function startPacketAnimation() {
+  if(packetLoop)clearInterval(packetLoop);
+  packetLoop=setInterval(spawnPackets,900);
+}
+function spawnPackets() {
+  const area=document.getElementById('networkArea'); if(!area||!state.devicePositions.length)return;
+  const W=area.offsetWidth,H=area.offsetHeight,cx=W/2,cy=H/2;
+  state.devices.forEach((dev,i)=>{
+    const count=dev.packets>5000?4:dev.packets>500?2:1;
+    for(let c=0;c<count;c++){
+      setTimeout(()=>{
+        const pos=state.devicePositions[i]; if(!pos)return;
+        const pkt=document.createElement('div'); pkt.className='packet';
+        pkt.style.cssText=`left:${cx}px;top:${cy}px;position:absolute;width:5px;height:5px;border-radius:50%;background:${dev.isHacked?'var(--red)':'var(--accent)'};box-shadow:0 0 5px ${dev.isHacked?'var(--red)':'var(--accent)'};pointer-events:none;transition:transform 1.4s linear,opacity 1.4s;`;
+        area.appendChild(pkt);
+        setTimeout(()=>{pkt.style.transform=`translate(${pos.x-cx}px,${pos.y-cy}px)`;pkt.style.opacity='0';},50);
+        setTimeout(()=>pkt.remove(),1500);
+      },c*200);
+    }
+  });
+}
+
+// =====================================================
+//  GLOBAL LOGS
+// =====================================================
+function generateInitialLogs() {
+  state.devices.forEach(dev=>dev.logs.forEach(l=>state.globalLogs.push({time:l.time,src:dev.ip,msg:l.msg,cls:l.type==='warn'?'alert':''})));
+  state.globalLogs.sort((a,b)=>a.time.localeCompare(b.time));
+  setInterval(()=>{
+    const dev=state.devices[Math.floor(Math.random()*state.devices.length)];
+    if(dev) addLog(dev.ip,`TCP established port ${1024+Math.floor(Math.random()*60000)}`,'');
+  },2500);
+}
+function addLog(src,msg,cls) {
+  const now=new Date();
+  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  state.globalLogs.push({time:t,src,msg,cls});
+  if(state.activeTab==='log') renderGlobalLog();
+}
+
+// =====================================================
+//  RESIZE
+// =====================================================
+window.addEventListener('resize',()=>{
+  if(document.getElementById('game').classList.contains('active')&&state.devices.length>0) renderNetwork();
+});
+
+// =====================================================
+//  INIT
+// =====================================================
+document.addEventListener('DOMContentLoaded',()=>{
+  try { const s=JSON.parse(localStorage.getItem('cyberdetective_state')||'{}'); state.score=s.score||0; state.completed=s.completed||[]; } catch(e){}
+  showScreen('loginScreen');
+});
+setInterval(()=>{try{localStorage.setItem('cyberdetective_state',JSON.stringify({score:state.score,completed:state.completed}));}catch(e){}},5000);
+if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
