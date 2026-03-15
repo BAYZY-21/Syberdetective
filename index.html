@@ -3,3078 +3,1099 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Puzzle Planet - كوكب الألغاز</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<title>محاكي الدفاع السيبراني الذكي</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-/* =============================================
-   PUZZLE PLANET - GLOBAL VARIABLES & RESET
-   ============================================= */
 :root {
-  --bg-deep:        #020408;
-  --bg-dark:        #050d18;
-  --bg-mid:         #0a1628;
-  --panel-bg:       rgba(10, 22, 40, 0.92);
-  --panel-border:   rgba(0, 200, 255, 0.18);
-  --glow-cyan:      #00c8ff;
-  --glow-purple:    #9b30ff;
-  --glow-green:     #00ff88;
-  --glow-orange:    #ff7b00;
-  --glow-pink:      #ff2d78;
-  --glow-gold:      #ffd700;
-  --text-primary:   #e8f4ff;
-  --text-secondary: #7ab8d4;
-  --text-dim:       #3a6080;
-  --star-color:     rgba(255,255,255,0.8);
-  --font-game:      'Orbitron', monospace;
-  --font-ui:        'Cairo', sans-serif;
-  --zone1-color:    #00c8ff;
-  --zone2-color:    #9b30ff;
-  --zone3-color:    #ff7b00;
-  --zone4-color:    #00ff88;
-  --zone5-color:    #ff2d78;
-  --transition-fast: 0.15s ease;
-  --transition-mid:  0.3s ease;
-  --transition-slow: 0.6s ease;
+  --bg: #020c18;
+  --bg2: #071525;
+  --bg3: #0a1e35;
+  --pri: #00ff88;
+  --sec: #00d4ff;
+  --dan: #ff3366;
+  --war: #ffaa00;
+  --pur: #a78bfa;
+  --txt: #c8e0f0;
+  --mut: #4a6a89;
+  --bdr: #1a3a5c;
+  --bdr2: #2a5a8c;
 }
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html { font-size:16px; scroll-behavior:smooth; }
-body {
-  background: var(--bg-deep);
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  min-height: 100vh;
-  overflow-x: hidden;
-  cursor: default;
-  user-select: none;
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Cairo',sans-serif;
+  background-image:
+    radial-gradient(ellipse at 15% 50%,rgba(0,212,255,.05) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 20%,rgba(0,255,136,.04) 0%,transparent 55%);
 }
-button { cursor: pointer; border: none; outline: none; background: none; font-family: var(--font-ui); }
-input, select { font-family: var(--font-ui); outline: none; }
-canvas { display: block; }
-
-/* =============================================
-   SCROLLBAR
-   ============================================= */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-dark); }
-::-webkit-scrollbar-thumb { background: var(--glow-cyan); border-radius: 3px; }
-
-/* =============================================
-   STAR CANVAS BACKGROUND
-   ============================================= */
-#starCanvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 0;
-  pointer-events: none;
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);
+  pointer-events:none;z-index:999;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,212,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.025) 1px,transparent 1px);
+  background-size:50px 50px;pointer-events:none;z-index:-1;
 }
 
-/* =============================================
-   NOISE OVERLAY
-   ============================================= */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  opacity: 0.4;
-  z-index: 1;
-  pointer-events: none;
+/* ── HEADER ── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;background:rgba(7,21,37,.97);
+  border-bottom:1px solid var(--bdr);position:relative;z-index:10;
+  flex-shrink:0;
 }
+.logo{display:flex;align-items:center;gap:10px}
+.logo-ico{
+  width:36px;height:36px;border-radius:7px;
+  background:linear-gradient(135deg,var(--pri),var(--sec));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;animation:logoPulse 2.5s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,136,.3)}50%{box-shadow:0 0 22px rgba(0,255,136,.7)}}
+.logo-t{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:var(--pri);letter-spacing:2px}
+.logo-s{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mut);letter-spacing:1px}
+.hdr-lvls{display:flex;gap:6px;align-items:center}
+.lvl-btn{
+  padding:5px 12px;border:1px solid var(--bdr);background:transparent;
+  color:var(--mut);font-family:'Cairo',sans-serif;font-size:11px;
+  cursor:pointer;border-radius:4px;transition:all .2s;
+}
+.lvl-btn:hover,.lvl-btn.act{border-color:var(--sec);color:var(--sec);background:rgba(0,212,255,.1)}
+.lvl-btn.act{font-weight:700}
+.hdr-stats{display:flex;gap:12px}
+.hpill{
+  display:flex;flex-direction:column;align-items:center;
+  padding:3px 10px;border:1px solid var(--bdr);border-radius:4px;
+  background:rgba(10,30,53,.8);min-width:60px;
+}
+.hpill .v{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:var(--pri)}
+.hpill .l{font-size:8px;color:var(--mut);letter-spacing:1px;text-transform:uppercase}
 
-/* =============================================
-   APP WRAPPER
-   ============================================= */
-#app {
-  position: relative;
-  z-index: 2;
-  min-height: 100vh;
+/* ── LAYOUT ── */
+.grid{
+  display:grid;
+  grid-template-columns:350px 1fr 300px;
+  grid-template-rows:1fr 36px;
+  height:calc(100vh - 53px);
 }
+.pnl{border-right:1px solid var(--bdr);overflow:hidden;display:flex;flex-direction:column}
+.pnl:last-of-type{border-right:none}
+.pnl-hdr{
+  padding:8px 14px;background:rgba(10,30,53,.7);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.pnl-t{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--sec);letter-spacing:2px}
+.badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border:1px solid;border-radius:2px}
+.badge.ok{color:var(--pri);border-color:var(--pri);background:rgba(0,255,136,.08)}
+.badge.alert{color:var(--dan);border-color:var(--dan);background:rgba(255,51,102,.1);animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* =============================================
-   SCREENS (ROUTING)
-   ============================================= */
-.screen {
-  display: none;
-  min-height: 100vh;
-  animation: screenFadeIn 0.5s ease forwards;
+/* ── CANVAS ── */
+#cvs{width:100%;flex:1;display:block;cursor:default}
+.net-leg{
+  padding:6px 14px;display:flex;gap:10px;flex-wrap:wrap;
+  background:rgba(7,21,37,.9);border-top:1px solid var(--bdr);flex-shrink:0;
 }
-.screen.active { display: flex; flex-direction: column; }
-@keyframes screenFadeIn {
-  from { opacity:0; transform: translateY(10px); }
-  to   { opacity:1; transform: translateY(0); }
-}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--mut)}
+.leg-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
-/* =============================================
-   FLOATING PARTICLES
-   ============================================= */
-.particle-container {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
+/* ── ATTACKS ── */
+.atks{
+  padding:10px;max-height:270px;min-height:80px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:7px;flex-shrink:0;border-bottom:1px solid var(--bdr);
 }
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  animation: floatParticle linear infinite;
-  opacity: 0;
+.atk{
+  background:rgba(10,30,53,.9);border:1px solid rgba(255,51,102,.35);
+  border-radius:6px;padding:9px 12px;animation:sldIn .3s ease;overflow:hidden;
 }
-@keyframes floatParticle {
-  0%   { opacity:0; transform: translateY(100vh) scale(0); }
-  10%  { opacity: 0.6; }
-  90%  { opacity: 0.6; }
-  100% { opacity:0; transform: translateY(-10vh) scale(1.2); }
+@keyframes sldIn{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+.atk.blocked{border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.04);opacity:.7;transition:opacity .5s}
+.atk.breached{border-color:rgba(255,51,102,.6);background:rgba(255,51,102,.07);opacity:.7}
+.atk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.atk-name{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.atk-info{font-size:10px;color:var(--mut);font-family:'JetBrains Mono',monospace}
+.atk-timer{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:700;color:var(--war);min-width:32px;text-align:center}
+.atk-timer.urg{color:var(--dan);animation:blink .5s step-end infinite}
+.atk-prog{height:3px;background:rgba(255,51,102,.15);border-radius:2px;margin-top:7px;overflow:hidden}
+.atk-bar{height:100%;background:linear-gradient(90deg,var(--dan),#ff6699);border-radius:2px;transition:width .4s linear}
+.def-btns{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.dbtn{
+  padding:3px 9px;font-family:'Cairo',sans-serif;font-size:10px;
+  border:1px solid var(--bdr);background:rgba(0,212,255,.04);color:var(--txt);
+  cursor:pointer;border-radius:3px;transition:all .2s;display:flex;align-items:center;gap:3px;
 }
+.dbtn:hover{border-color:var(--sec);background:rgba(0,212,255,.14);color:var(--sec);transform:translateY(-1px)}
+.dbtn.opt{border-color:var(--pri);color:var(--pri);background:rgba(0,255,136,.07);animation:gPulse 1.5s ease-in-out infinite}
+@keyframes gPulse{0%,100%{box-shadow:0 0 4px rgba(0,255,136,.15)}50%{box-shadow:0 0 12px rgba(0,255,136,.45)}}
+.dbtn:disabled{opacity:.25;cursor:not-allowed;animation:none;transform:none!important}
+.no-atk{text-align:center;color:var(--mut);font-size:11px;padding:20px;font-family:'JetBrains Mono',monospace}
 
-/* =============================================
-   INTRO SCREEN
-   ============================================= */
-#introScreen {
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 2rem;
-  text-align: center;
-  position: relative;
+/* ── TERMINAL ── */
+.term{
+  flex:1;overflow-y:auto;padding:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.8;
+  background:rgba(2,12,24,.4);
 }
-.intro-planet-wrapper {
-  position: relative;
-  width: 260px; height: 260px;
-  margin: 0 auto 2.5rem;
-}
-.planet-glow-ring {
-  position: absolute;
-  inset: -30px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center,
-    rgba(0,200,255,0.12) 0%,
-    rgba(155,48,255,0.08) 40%,
-    transparent 70%);
-  animation: pulseRing 3s ease-in-out infinite;
-}
-@keyframes pulseRing {
-  0%,100% { transform: scale(1); opacity:0.7; }
-  50%      { transform: scale(1.1); opacity:1; }
-}
-.planet-orbit {
-  position: absolute;
-  inset: -20px;
-  border-radius: 50%;
-  border: 1px solid rgba(0,200,255,0.2);
-  animation: orbitSpin 8s linear infinite;
-}
-@keyframes orbitSpin { to { transform: rotate(360deg); } }
-.orbit-dot {
-  position: absolute;
-  top: -4px; left: calc(50% - 4px);
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--glow-cyan);
-  box-shadow: 0 0 12px var(--glow-cyan);
-}
-#introPlanetCanvas {
-  width: 260px; height: 260px;
-  border-radius: 50%;
-  box-shadow:
-    0 0 60px rgba(0,200,255,0.3),
-    0 0 120px rgba(155,48,255,0.2),
-    inset 0 0 40px rgba(0,0,0,0.5);
-}
-.intro-title-block { margin-bottom: 1.5rem; }
-.intro-subtitle {
-  font-family: var(--font-game);
-  font-size: 0.65rem;
-  letter-spacing: 0.35em;
-  color: var(--glow-cyan);
-  text-transform: uppercase;
-  opacity: 0.8;
-  margin-bottom: 0.6rem;
-  animation: fadeSlideIn 0.8s ease 0.2s both;
-}
-.intro-title {
-  font-family: var(--font-game);
-  font-size: clamp(2.2rem, 6vw, 3.8rem);
-  font-weight: 900;
-  line-height: 1;
-  background: linear-gradient(135deg, var(--glow-cyan) 0%, #fff 40%, var(--glow-purple) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: fadeSlideIn 0.8s ease 0.4s both;
-  text-shadow: none;
-  letter-spacing: 0.05em;
-}
-.intro-tagline {
-  margin-top: 0.8rem;
-  font-size: 1.05rem;
-  color: var(--text-secondary);
-  font-weight: 300;
-  animation: fadeSlideIn 0.8s ease 0.6s both;
-}
-@keyframes fadeSlideIn {
-  from { opacity:0; transform: translateY(20px); }
-  to   { opacity:1; transform: translateY(0); }
-}
-.intro-lore {
-  max-width: 500px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  padding: 1.2rem 1.6rem;
-  margin-bottom: 2rem;
-  font-size: 0.92rem;
-  color: var(--text-secondary);
-  line-height: 1.8;
-  animation: fadeSlideIn 0.8s ease 0.8s both;
-  backdrop-filter: blur(10px);
-}
-.intro-lore span { color: var(--glow-cyan); font-weight: 600; }
-.intro-cores-preview {
-  display: flex;
-  gap: 0.8rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-  animation: fadeSlideIn 0.8s ease 1s both;
-}
-.core-badge {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  position: relative;
-  transition: transform 0.2s ease;
-}
-.core-badge:hover { transform: scale(1.15); }
-.core-badge[data-zone="1"] { border-color: var(--zone1-color); box-shadow: 0 0 14px rgba(0,200,255,0.4); }
-.core-badge[data-zone="2"] { border-color: var(--zone2-color); box-shadow: 0 0 14px rgba(155,48,255,0.4); }
-.core-badge[data-zone="3"] { border-color: var(--zone3-color); box-shadow: 0 0 14px rgba(255,123,0,0.4); }
-.core-badge[data-zone="4"] { border-color: var(--zone4-color); box-shadow: 0 0 14px rgba(0,255,136,0.4); }
-.core-badge[data-zone="5"] { border-color: var(--zone5-color); box-shadow: 0 0 14px rgba(255,45,120,0.4); }
-.btn-start {
-  font-family: var(--font-game);
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 1rem 3rem;
-  border-radius: 50px;
-  background: linear-gradient(135deg, var(--glow-cyan), var(--glow-purple));
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 0 30px rgba(0,200,255,0.4), 0 0 60px rgba(155,48,255,0.2);
-  animation: fadeSlideIn 0.8s ease 1.2s both;
-}
-.btn-start::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.btn-start:hover { transform: scale(1.05); box-shadow: 0 0 50px rgba(0,200,255,0.6), 0 0 80px rgba(155,48,255,0.3); }
-.btn-start:hover::before { opacity: 1; }
-.btn-start:active { transform: scale(0.97); }
+.tlog{display:flex;gap:7px;padding:1px 3px;border-radius:2px;animation:fdIn .25s ease}
+@keyframes fdIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+.tlog:hover{background:rgba(255,255,255,.025)}
+.tl-t{color:var(--mut);flex-shrink:0}
+.tl-c{flex-shrink:0;min-width:75px}
+.tl-c.atk{color:var(--dan)}.tl-c.def{color:var(--pri)}.tl-c.inf{color:var(--sec)}.tl-c.ai{color:var(--pur)}.tl-c.brc{color:#ff6b6b}
+.tl-m{color:var(--txt)}
 
-/* =============================================
-   HUD (ALWAYS VISIBLE IN GAME)
-   ============================================= */
-#gameHUD {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  padding: 0.8rem 1.2rem;
-  background: linear-gradient(180deg, rgba(2,4,8,0.95) 0%, rgba(2,4,8,0) 100%);
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  backdrop-filter: blur(4px);
+/* ── AI PANEL ── */
+.ai-scrl{overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+.acard{background:rgba(10,30,53,.6);border:1px solid var(--bdr);border-radius:7px;padding:11px}
+.acard-t{
+  font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:var(--sec);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:9px;
+  display:flex;align-items:center;gap:7px;
 }
-#gameHUD.visible { display: flex; }
-.hud-left { display: flex; align-items: center; gap: 0.8rem; }
-.hud-logo {
-  font-family: var(--font-game);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--glow-cyan);
-  text-shadow: 0 0 10px rgba(0,200,255,0.5);
+.acard-t::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.ai-txt{font-size:11px;line-height:1.9;color:var(--txt);min-height:60px}
+.ai-spin{display:flex;align-items:center;gap:8px;color:var(--pur);font-family:'JetBrains Mono',monospace;font-size:10px}
+.dots{display:flex;gap:4px}
+.dots span{width:5px;height:5px;background:var(--pur);border-radius:50%;animation:dotB 1.2s ease-in-out infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotB{0%,80%,100%{transform:scale(.5);opacity:.4}40%{transform:scale(1);opacity:1}}
+.ai-reqbtn{
+  margin-top:9px;width:100%;padding:7px;background:rgba(167,139,250,.08);
+  border:1px solid rgba(167,139,250,.3);color:var(--pur);font-family:'Cairo',sans-serif;
+  font-size:11px;border-radius:4px;cursor:pointer;transition:all .2s;
 }
-.hud-zone-indicator {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  padding: 0.25rem 0.7rem;
-  border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  background: var(--panel-bg);
-}
-.hud-center {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.hud-core {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem;
-  transition: all 0.4s ease;
-  position: relative;
-}
-.hud-core.collected {
-  animation: coreCollected 0.6s ease forwards;
-}
-@keyframes coreCollected {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.4); }
-  100% { transform: scale(1); }
-}
-.hud-core[data-z="1"] { border-color: rgba(0,200,255,0.4); color: rgba(0,200,255,0.4); }
-.hud-core[data-z="2"] { border-color: rgba(155,48,255,0.4); color: rgba(155,48,255,0.4); }
-.hud-core[data-z="3"] { border-color: rgba(255,123,0,0.4); color: rgba(255,123,0,0.4); }
-.hud-core[data-z="4"] { border-color: rgba(0,255,136,0.4); color: rgba(0,255,136,0.4); }
-.hud-core[data-z="5"] { border-color: rgba(255,45,120,0.4); color: rgba(255,45,120,0.4); }
-.hud-core[data-z="1"].collected { border-color: var(--zone1-color); color: var(--zone1-color); box-shadow: 0 0 12px rgba(0,200,255,0.6); }
-.hud-core[data-z="2"].collected { border-color: var(--zone2-color); color: var(--zone2-color); box-shadow: 0 0 12px rgba(155,48,255,0.6); }
-.hud-core[data-z="3"].collected { border-color: var(--zone3-color); color: var(--zone3-color); box-shadow: 0 0 12px rgba(255,123,0,0.6); }
-.hud-core[data-z="4"].collected { border-color: var(--zone4-color); color: var(--zone4-color); box-shadow: 0 0 12px rgba(0,255,136,0.6); }
-.hud-core[data-z="5"].collected { border-color: var(--zone5-color); color: var(--zone5-color); box-shadow: 0 0 12px rgba(255,45,120,0.6); }
-.hud-right { display: flex; align-items: center; gap: 0.8rem; }
-.btn-hud {
-  font-size: 0.75rem;
-  padding: 0.3rem 0.8rem;
-  border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  color: var(--text-secondary);
-  background: var(--panel-bg);
-  transition: all 0.2s ease;
-}
-.btn-hud:hover { color: var(--text-primary); border-color: var(--glow-cyan); }
+.ai-reqbtn:hover{background:rgba(167,139,250,.18)}
+.ai-reqbtn:disabled{opacity:.4;cursor:not-allowed}
 
-/* =============================================
-   MAP SCREEN
-   ============================================= */
-#mapScreen {
-  align-items: center;
-  justify-content: flex-start;
-  padding: 6rem 1.5rem 2rem;
-  flex-direction: column;
-}
-.map-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.map-header h2 {
-  font-family: var(--font-game);
-  font-size: clamp(1.4rem, 4vw, 2rem);
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.08em;
-}
-.map-header p {
-  margin-top: 0.4rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-.planet-map-container {
-  position: relative;
-  width: min(620px, 95vw);
-  aspect-ratio: 1;
-  margin: 0 auto;
-}
-#planetMapCanvas {
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  cursor: default;
-}
-.zone-btn {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-  transition: all 0.2s ease;
-}
-.zone-btn-circle {
-  width: 54px; height: 54px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem;
-  background: var(--panel-bg);
-  backdrop-filter: blur(8px);
-  transition: all 0.2s ease;
-  position: relative;
-  cursor: pointer;
-}
-.zone-btn-circle::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px solid;
-  opacity: 0.3;
-  animation: zonePulse 2s ease-in-out infinite;
-}
-@keyframes zonePulse {
-  0%,100% { transform: scale(1); opacity:0.3; }
-  50%      { transform: scale(1.2); opacity:0.6; }
-}
-.zone-btn-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-  padding: 0.15rem 0.5rem;
-  border-radius: 10px;
-  background: var(--panel-bg);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-.zone-btn:hover .zone-btn-circle { transform: scale(1.1); }
-.zone-btn.completed .zone-btn-circle { opacity: 1; }
-.zone-btn.locked .zone-btn-circle { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
+/* Risk bars */
+.risk-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.risk-lbl{font-size:10px;min-width:68px;color:var(--mut);font-family:'JetBrains Mono',monospace;text-align:right}
+.risk-wrap{flex:1;height:5px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden}
+.risk-bar{height:100%;border-radius:3px;transition:width .8s ease}
+.risk-v{font-size:9px;min-width:28px;font-family:'JetBrains Mono',monospace;text-align:left}
 
-/* Zone colors */
-.zone-btn[data-zone="1"] .zone-btn-circle { border-color: var(--zone1-color); box-shadow: 0 0 20px rgba(0,200,255,0.3); color: var(--zone1-color); }
-.zone-btn[data-zone="2"] .zone-btn-circle { border-color: var(--zone2-color); box-shadow: 0 0 20px rgba(155,48,255,0.3); color: var(--zone2-color); }
-.zone-btn[data-zone="3"] .zone-btn-circle { border-color: var(--zone3-color); box-shadow: 0 0 20px rgba(255,123,0,0.3); color: var(--zone3-color); }
-.zone-btn[data-zone="4"] .zone-btn-circle { border-color: var(--zone4-color); box-shadow: 0 0 20px rgba(0,255,136,0.3); color: var(--zone4-color); }
-.zone-btn[data-zone="5"] .zone-btn-circle { border-color: var(--zone5-color); box-shadow: 0 0 20px rgba(255,45,120,0.3); color: var(--zone5-color); }
-.zone-btn[data-zone="1"] .zone-btn-circle::before { border-color: var(--zone1-color); }
-.zone-btn[data-zone="2"] .zone-btn-circle::before { border-color: var(--zone2-color); }
-.zone-btn[data-zone="3"] .zone-btn-circle::before { border-color: var(--zone3-color); }
-.zone-btn[data-zone="4"] .zone-btn-circle::before { border-color: var(--zone4-color); }
-.zone-btn[data-zone="5"] .zone-btn-circle::before { border-color: var(--zone5-color); }
-.zone-btn[data-zone="1"] .zone-btn-label { color: var(--zone1-color); border-color: rgba(0,200,255,0.2); }
-.zone-btn[data-zone="2"] .zone-btn-label { color: var(--zone2-color); border-color: rgba(155,48,255,0.2); }
-.zone-btn[data-zone="3"] .zone-btn-label { color: var(--zone3-color); border-color: rgba(255,123,0,0.2); }
-.zone-btn[data-zone="4"] .zone-btn-label { color: var(--zone4-color); border-color: rgba(0,255,136,0.2); }
-.zone-btn[data-zone="5"] .zone-btn-label { color: var(--zone5-color); border-color: rgba(255,45,120,0.2); }
-.map-legend {
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
+/* Health grid */
+.hgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.hnode{
+  background:rgba(2,12,24,.6);border:1px solid var(--bdr);border-radius:5px;
+  padding:7px 5px;text-align:center;transition:all .3s;
 }
-.legend-item {
-  display: flex; align-items: center; gap: 0.4rem;
-  font-size: 0.78rem; color: var(--text-secondary);
-}
-.legend-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-}
+.hnode.comp{border-color:rgba(255,51,102,.5);background:rgba(255,51,102,.07)}
+.hnode .ni{font-size:14px;margin-bottom:3px}
+.hnode .nn{font-size:8px;color:var(--mut);margin-bottom:3px;font-family:'JetBrains Mono',monospace}
+.hbar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.hfill{height:100%;border-radius:2px;transition:all .5s ease}
 
-/* =============================================
-   ZONE SCREEN
-   ============================================= */
-#zoneScreen {
-  flex-direction: column;
-  padding: 5rem 1rem 1rem;
-  min-height: 100vh;
-}
-.zone-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  margin-bottom: 1.5rem;
-}
-.zone-icon-big {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem;
-}
-.zone-title-block h2 {
-  font-family: var(--font-game);
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-}
-.zone-title-block p {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin-top: 0.15rem;
-}
+/* Charts */
+.cw{position:relative;height:150px}
 
-/* =============================================
-   PUZZLE AREA
-   ============================================= */
-.puzzle-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 0.5rem;
-  max-width: 700px;
-  margin: 0 auto;
-  width: 100%;
+/* ── STATS BAR ── */
+.sbar{
+  grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;background:rgba(7,21,37,.97);border-top:1px solid var(--bdr);
+  font-family:'JetBrains Mono',monospace;font-size:10px;
 }
+.sg{display:flex;gap:16px;align-items:center}
+.si{display:flex;align-items:center;gap:6px}
+.si .sl{color:var(--mut)}.si .sv{font-weight:600}
+.sv.g{color:var(--pri)}.sv.r{color:var(--dan)}.sv.y{color:var(--war)}.sv.b{color:var(--sec)}
 
-/* =============================================
-   LOGIC PUZZLE (ZONE 1)
-   ============================================= */
-.logic-puzzle {
-  width: 100%;
+/* ── START OVERLAY ── */
+.ov{
+  position:fixed;inset:0;background:rgba(2,12,24,.96);
+  display:flex;align-items:center;justify-content:center;
+  z-index:500;backdrop-filter:blur(12px);
 }
-.logic-question {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 1.2rem;
-  backdrop-filter: blur(10px);
+.scard{
+  background:var(--bg3);border:1px solid var(--bdr2);border-radius:14px;
+  padding:36px;max-width:540px;width:92%;text-align:center;
+  box-shadow:0 0 60px rgba(0,212,255,.14);position:relative;overflow:hidden;
 }
-.logic-question-text {
-  font-size: 1.05rem;
-  line-height: 1.8;
-  color: var(--text-primary);
-  margin-bottom: 1.2rem;
+.scard::before{
+  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,rgba(0,212,255,.04) 60deg,transparent 120deg);
+  animation:rot 8s linear infinite;pointer-events:none;
 }
-.logic-choices {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.7rem;
+@keyframes rot{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.st{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--pri);
+  margin-bottom:4px;text-shadow:0 0 28px rgba(0,255,136,.5);letter-spacing:3px}
+.ss{font-size:14px;color:var(--sec);margin-bottom:20px;font-weight:600}
+.sdesc{font-size:13px;line-height:2.1;color:var(--txt);margin-bottom:24px}
+.slvls{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.slvl{
+  flex:1;padding:14px 10px;border:1px solid var(--bdr);border-radius:7px;
+  cursor:pointer;transition:all .3s;background:rgba(2,12,24,.5);position:relative;z-index:1;
 }
-.logic-choice {
-  padding: 0.8rem 1rem;
-  border-radius: 10px;
-  border: 1px solid var(--panel-border);
-  background: rgba(0,200,255,0.04);
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  text-align: center;
-  transition: all 0.2s ease;
-  cursor: pointer;
+.slvl:hover{border-color:var(--sec);background:rgba(0,212,255,.07);transform:translateY(-2px)}
+.slvl.sel{border-color:var(--pri);background:rgba(0,255,136,.07);box-shadow:0 0 20px rgba(0,255,136,.12)}
+.slvl-ico{font-size:26px;margin-bottom:6px}
+.slvl-n{font-size:12px;font-weight:700;color:var(--txt);margin-bottom:3px}
+.slvl-d{font-size:9px;color:var(--mut);line-height:1.7}
+.sbtn{
+  padding:13px 44px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:3px;background:linear-gradient(135deg,var(--pri),var(--sec));
+  color:#020c18;border:none;border-radius:7px;cursor:pointer;
+  transition:all .3s;text-transform:uppercase;position:relative;z-index:1;
 }
-.logic-choice:hover { border-color: var(--zone1-color); background: rgba(0,200,255,0.1); transform: translateY(-2px); }
-.logic-choice.correct { border-color: var(--glow-green) !important; background: rgba(0,255,136,0.15) !important; color: var(--glow-green); }
-.logic-choice.wrong { border-color: var(--glow-pink) !important; background: rgba(255,45,120,0.15) !important; color: var(--glow-pink); animation: shake 0.4s ease; }
-@keyframes shake {
-  0%,100% { transform: translateX(0); }
-  25%      { transform: translateX(-8px); }
-  75%      { transform: translateX(8px); }
-}
-.puzzle-progress {
-  display: flex; align-items: center; gap: 0.6rem;
-  margin-bottom: 1rem;
-}
-.progress-bar-bg {
-  flex: 1;
-  height: 6px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.progress-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.4s ease;
-  background: linear-gradient(90deg, var(--glow-cyan), var(--glow-purple));
-}
-.progress-text {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
+.sbtn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,255,136,.45)}
 
-/* =============================================
-   MAZE PUZZLE (ZONE 2)
-   ============================================= */
-.maze-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
+/* ── END OVERLAY ── */
+.endov{position:fixed;inset:0;background:rgba(2,12,24,.97);display:none;
+  align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(12px)}
+.ecard{
+  background:var(--bg3);border:1px solid var(--bdr2);border-radius:14px;
+  padding:36px;max-width:460px;width:90%;text-align:center;
 }
-#mazeCanvas {
-  border-radius: 12px;
-  border: 2px solid rgba(155,48,255,0.3);
-  box-shadow: 0 0 30px rgba(155,48,255,0.2);
-  max-width: min(400px, 90vw);
-  max-height: min(400px, 90vw);
-}
-.maze-controls {
-  display: grid;
-  grid-template-columns: repeat(3, 50px);
-  grid-template-rows: repeat(3, 50px);
-  gap: 0.3rem;
-}
-.maze-btn {
-  width: 50px; height: 50px;
-  border-radius: 8px;
-  border: 1px solid rgba(155,48,255,0.4);
-  background: rgba(155,48,255,0.1);
-  color: var(--zone2-color);
-  font-size: 1.2rem;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s ease;
-}
-.maze-btn:hover, .maze-btn:active { background: rgba(155,48,255,0.25); transform: scale(0.95); }
-.maze-btn.empty { border: none; background: none; pointer-events: none; }
+.et{font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;margin-bottom:10px}
+.et.w{color:var(--pri);text-shadow:0 0 28px rgba(0,255,136,.5)}
+.et.l{color:var(--dan);text-shadow:0 0 28px rgba(255,51,102,.5)}
+.estats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 24px}
+.es{padding:14px;background:rgba(2,12,24,.6);border:1px solid var(--bdr);border-radius:7px}
+.es .v{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:var(--pri)}
+.es .l{font-size:10px;color:var(--mut);margin-top:3px}
+.rbtn{padding:11px 32px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:2px;background:linear-gradient(135deg,var(--pri),var(--sec));
+  color:#020c18;border:none;border-radius:7px;cursor:pointer;text-transform:uppercase}
 
-/* =============================================
-   MACHINE PUZZLE (ZONE 3)
-   ============================================= */
-.machine-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.7rem;
-  width: 100%;
-  max-width: 400px;
-}
-.machine-cell {
-  aspect-ratio: 1;
-  border-radius: 12px;
-  border: 2px solid rgba(255,123,0,0.3);
-  background: rgba(255,123,0,0.06);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-.machine-cell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(255,123,0,0.2) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.machine-cell:hover::before { opacity: 1; }
-.machine-cell.active {
-  border-color: var(--zone3-color);
-  background: rgba(255,123,0,0.2);
-  box-shadow: 0 0 20px rgba(255,123,0,0.4);
-}
-.machine-cell.active::before { opacity: 1; }
-.machine-hint {
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-top: 0.8rem;
-  line-height: 1.6;
-}
-.machine-check-btn {
-  margin-top: 1rem;
-  padding: 0.7rem 2rem;
-  border-radius: 30px;
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, var(--zone3-color), #ff4400);
-  color: #fff;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 20px rgba(255,123,0,0.3);
-}
-.machine-check-btn:hover { transform: scale(1.04); box-shadow: 0 0 30px rgba(255,123,0,0.5); }
-
-/* =============================================
-   LIGHT PUZZLE (ZONE 4)
-   ============================================= */
-#lightCanvas {
-  border-radius: 12px;
-  border: 2px solid rgba(0,255,136,0.3);
-  box-shadow: 0 0 30px rgba(0,255,136,0.15);
-  max-width: min(420px, 92vw);
-  cursor: pointer;
-}
-.light-info {
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-top: 0.7rem;
-}
-
-/* =============================================
-   TIME PUZZLE (ZONE 5)
-   ============================================= */
-.time-puzzle {
-  width: 100%;
-  max-width: 500px;
-}
-.time-sequence-display {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 1.2rem;
-}
-.seq-symbol {
-  width: 52px; height: 52px;
-  border-radius: 10px;
-  border: 2px solid rgba(255,45,120,0.4);
-  background: rgba(255,45,120,0.08);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem;
-  transition: all 0.3s ease;
-  position: relative;
-}
-.seq-symbol.revealed {
-  border-color: var(--zone5-color);
-  background: rgba(255,45,120,0.2);
-  box-shadow: 0 0 14px rgba(255,45,120,0.4);
-  animation: symbolReveal 0.4s ease;
-}
-.seq-symbol.hidden {
-  background: rgba(255,45,120,0.04);
-  border-style: dashed;
-}
-@keyframes symbolReveal {
-  0%   { transform: scale(0.8) rotateY(90deg); opacity:0; }
-  100% { transform: scale(1)   rotateY(0deg);  opacity:1; }
-}
-.time-input-row {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-.time-choice-btn {
-  width: 52px; height: 52px;
-  border-radius: 10px;
-  border: 2px solid rgba(255,45,120,0.3);
-  background: rgba(255,45,120,0.06);
-  font-size: 1.3rem;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.time-choice-btn:hover {
-  border-color: var(--zone5-color);
-  background: rgba(255,45,120,0.18);
-  transform: scale(1.08);
-}
-.time-choice-btn.selected {
-  border-color: var(--zone5-color);
-  background: rgba(255,45,120,0.25);
-  box-shadow: 0 0 14px rgba(255,45,120,0.4);
-}
-
-/* =============================================
-   SUCCESS OVERLAY
-   ============================================= */
-#successOverlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(2,4,8,0.85);
-  backdrop-filter: blur(12px);
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 2rem;
-}
-#successOverlay.visible { display: flex; animation: screenFadeIn 0.4s ease forwards; }
-.success-core-display {
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  border: 3px solid;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 3.5rem;
-  margin: 0 auto 1.5rem;
-  animation: coreAppear 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
-  position: relative;
-}
-.success-core-display::before {
-  content: '';
-  position: absolute;
-  inset: -12px;
-  border-radius: 50%;
-  border: 2px solid;
-  opacity: 0.4;
-  animation: orbitSpin 3s linear infinite;
-}
-@keyframes coreAppear {
-  0%   { transform: scale(0) rotate(-180deg); opacity:0; }
-  100% { transform: scale(1) rotate(0deg);    opacity:1; }
-}
-.success-title {
-  font-family: var(--font-game);
-  font-size: 1.6rem;
-  font-weight: 900;
-  margin-bottom: 0.6rem;
-  background: linear-gradient(135deg, var(--glow-gold), #fff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.success-msg { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.4rem; line-height: 1.7; }
-.success-core-name { font-weight: 700; font-size: 1.05rem; margin-bottom: 1.5rem; }
-.btn-continue {
-  padding: 0.8rem 2.5rem;
-  border-radius: 40px;
-  font-family: var(--font-ui);
-  font-size: 0.95rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--glow-gold), var(--glow-orange));
-  color: #000;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 30px rgba(255,215,0,0.4);
-}
-.btn-continue:hover { transform: scale(1.05); }
-
-/* =============================================
-   FINAL SCREEN
-   ============================================= */
-#finalScreen {
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 3rem 1.5rem;
-  text-align: center;
-}
-.final-planet {
-  width: 200px; height: 200px;
-  border-radius: 50%;
-  margin: 0 auto 2rem;
-  position: relative;
-  animation: finalPlanetSpin 20s linear infinite;
-}
-@keyframes finalPlanetSpin {
-  to { filter: hue-rotate(360deg); }
-}
-#finalCanvas {
-  width: 200px; height: 200px;
-  border-radius: 50%;
-}
-.final-rings {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 280px; height: 60px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 2px solid rgba(255,215,0,0.4);
-  pointer-events: none;
-}
-.final-title {
-  font-family: var(--font-game);
-  font-size: clamp(1.8rem, 5vw, 2.8rem);
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--glow-gold), #fff, var(--glow-cyan));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 0.8rem;
-}
-.final-subtitle { font-size: 1rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.8; }
-.all-cores-display {
-  display: flex; gap: 0.8rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-.final-core-badge {
-  width: 50px; height: 50px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem;
-  animation: floatCore 2s ease-in-out infinite;
-}
-.final-core-badge:nth-child(2) { animation-delay: 0.2s; }
-.final-core-badge:nth-child(3) { animation-delay: 0.4s; }
-.final-core-badge:nth-child(4) { animation-delay: 0.6s; }
-.final-core-badge:nth-child(5) { animation-delay: 0.8s; }
-@keyframes floatCore {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
-}
-.btn-restart {
-  padding: 0.8rem 2.5rem;
-  border-radius: 40px;
-  font-family: var(--font-ui);
-  font-size: 0.95rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--glow-cyan), var(--glow-purple));
-  color: #fff;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 30px rgba(0,200,255,0.4);
-}
-.btn-restart:hover { transform: scale(1.05); }
-
-/* =============================================
-   TOAST NOTIFICATION
-   ============================================= */
-#toastContainer {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 300;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  pointer-events: none;
-}
-.toast {
-  padding: 0.7rem 1.4rem;
-  border-radius: 30px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  border: 1px solid;
-  backdrop-filter: blur(12px);
-  animation: toastIn 0.3s ease forwards;
-  white-space: nowrap;
-}
-@keyframes toastIn {
-  from { opacity:0; transform: translateY(12px) scale(0.95); }
-  to   { opacity:1; transform: translateY(0) scale(1); }
-}
-@keyframes toastOut {
-  from { opacity:1; transform: translateY(0) scale(1); }
-  to   { opacity:0; transform: translateY(-12px) scale(0.95); }
-}
-.toast.success { background: rgba(0,255,136,0.12); border-color: rgba(0,255,136,0.4); color: var(--glow-green); }
-.toast.error   { background: rgba(255,45,120,0.12); border-color: rgba(255,45,120,0.4); color: var(--glow-pink); }
-.toast.info    { background: rgba(0,200,255,0.12); border-color: rgba(0,200,255,0.4); color: var(--glow-cyan); }
-
-/* =============================================
-   ZONE INTRO CARD
-   ============================================= */
-.zone-intro-card {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  backdrop-filter: blur(10px);
-  width: 100%;
-  max-width: 500px;
-  text-align: center;
-}
-.zone-intro-card h3 {
-  font-family: var(--font-game);
-  font-size: 1rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.6rem;
-}
-.zone-intro-card p {
-  font-size: 0.87rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-/* =============================================
-   BACK BUTTON
-   ============================================= */
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  border: 1px solid var(--panel-border);
-  background: var(--panel-bg);
-  transition: all 0.2s ease;
-  margin-bottom: 0.5rem;
-}
-.btn-back:hover { color: var(--text-primary); border-color: var(--glow-cyan); }
-
-/* =============================================
-   RESPONSIVE
-   ============================================= */
-@media (max-width: 480px) {
-  .logic-choices { grid-template-columns: 1fr; }
-  .machine-grid  { grid-template-columns: repeat(3, 1fr); }
-  .zone-btn-circle { width: 44px; height: 44px; font-size: 1.1rem; }
-}
-
-/* =============================================
-   LOADING SCREEN
-   ============================================= */
-#loadingScreen {
-  position: fixed; inset:0; z-index:500;
-  background: var(--bg-deep);
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 1.5rem;
-}
-.loader-ring {
-  width: 80px; height: 80px;
-  border-radius: 50%;
-  border: 3px solid rgba(0,200,255,0.1);
-  border-top-color: var(--glow-cyan);
-  animation: spinLoader 0.8s linear infinite;
-}
-@keyframes spinLoader { to { transform: rotate(360deg); } }
-.loader-text {
-  font-family: var(--font-game);
-  font-size: 0.7rem;
-  letter-spacing: 0.3em;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  animation: loaderPulse 1.2s ease-in-out infinite;
-}
-@keyframes loaderPulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="loadingScreen">
-  <div class="loader-ring"></div>
-  <div class="loader-text">تهيئة الكوكب...</div>
+<!-- START OVERLAY -->
+<div class="ov" id="startOv">
+  <div class="scard">
+    <div style="font-size:44px;margin-bottom:10px">🛡️</div>
+    <div class="st">CYBER DEFENSE</div>
+    <div class="ss">محاكي الدفاع السيبراني الذكي</div>
+    <div class="sdesc">
+      أنت محلل أمني في شبكة تحت الهجوم<br>
+      راقب الشبكة — اكتشف الهجمات — نفّذ الدفاعات قبل الاختراق
+    </div>
+    <div class="slvls">
+      <div class="slvl sel" data-l="1" onclick="selLvl(1)">
+        <div class="slvl-ico">🟢</div>
+        <div class="slvl-n">متدرب</div>
+        <div class="slvl-d">5 أجهزة<br>هجوم كل 12 ثانية<br>تلميحات مساعدة</div>
+      </div>
+      <div class="slvl" data-l="2" onclick="selLvl(2)">
+        <div class="slvl-ico">🟡</div>
+        <div class="slvl-n">محلل</div>
+        <div class="slvl-d">8 أجهزة<br>هجومان متزامنان<br>بدون تلميحات</div>
+      </div>
+      <div class="slvl" data-l="3" onclick="selLvl(3)">
+        <div class="slvl-ico">🔴</div>
+        <div class="slvl-n">خبير</div>
+        <div class="slvl-d">11 جهاز<br>3 هجمات متزامنة<br>وضع احترافي</div>
+      </div>
+    </div>
+    <button class="sbtn" onclick="startGame()">▶ ابدأ المهمة</button>
+  </div>
 </div>
 
-<!-- STAR CANVAS -->
-<canvas id="starCanvas"></canvas>
-
-<!-- PARTICLES -->
-<div class="particle-container" id="particleContainer"></div>
-
-<!-- HUD -->
-<div id="gameHUD">
-  <div class="hud-left">
-    <div class="hud-logo">PUZZLE<br>PLANET</div>
-    <div class="hud-zone-indicator" id="hudZoneLabel">خريطة الكوكب</div>
-  </div>
-  <div class="hud-center">
-    <div class="hud-core" data-z="1">⬡</div>
-    <div class="hud-core" data-z="2">⬡</div>
-    <div class="hud-core" data-z="3">⬡</div>
-    <div class="hud-core" data-z="4">⬡</div>
-    <div class="hud-core" data-z="5">⬡</div>
-  </div>
-  <div class="hud-right">
-    <button class="btn-hud" id="btnMapFromHUD">🗺 الخريطة</button>
+<!-- END OVERLAY -->
+<div class="endov" id="endOv">
+  <div class="ecard">
+    <div id="eTitle" class="et">GAME OVER</div>
+    <div id="eMsg" style="font-size:13px;color:var(--mut);margin-bottom:4px"></div>
+    <div class="estats">
+      <div class="es"><div class="v" id="fScore">0</div><div class="l">النقاط</div></div>
+      <div class="es"><div class="v" id="fDef">0</div><div class="l">دفاعات ناجحة</div></div>
+      <div class="es"><div class="v" id="fBrc">0</div><div class="l">اختراقات</div></div>
+    </div>
+    <div id="endAIReport" style="font-size:11px;line-height:1.9;color:var(--txt);
+      border:1px solid var(--bdr);border-radius:6px;padding:12px;margin-bottom:18px;
+      text-align:right;min-height:60px;direction:rtl"></div>
+    <button class="rbtn" onclick="restartGame()">🔄 العب مجدداً</button>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app">
-
-  <!-- INTRO SCREEN -->
-  <div class="screen active" id="introScreen">
-    <div class="intro-planet-wrapper">
-      <div class="planet-glow-ring"></div>
-      <div class="planet-orbit"><div class="orbit-dot"></div></div>
-      <canvas id="introPlanetCanvas" width="260" height="260"></canvas>
-    </div>
-    <div class="intro-title-block">
-      <div class="intro-subtitle">⬡ &nbsp; SECTOR 7-ALPHA &nbsp; ⬡</div>
-      <div class="intro-title">PUZZLE PLANET</div>
-      <div class="intro-tagline">كوكب الألغاز المحظور</div>
-    </div>
-    <div class="intro-lore">
-      كوكب <span>ZORAX-9</span> مُغلق منذ 10,000 سنة. أبوابه الخمسة محصّنة بألغاز
-      خارقة تحمي <span>نوى الطاقة</span> الغامضة. أنت المستكشف الوحيد القادر على
-      فك شفراتها. حلّ الألغاز الخمسة واجمع النوى لتفتح قلب الكوكب.
-    </div>
-    <div class="intro-cores-preview">
-      <div class="core-badge" data-zone="1">🔷</div>
-      <div class="core-badge" data-zone="2">🔮</div>
-      <div class="core-badge" data-zone="3">🔶</div>
-      <div class="core-badge" data-zone="4">💎</div>
-      <div class="core-badge" data-zone="5">❤️‍🔥</div>
-    </div>
-    <button class="btn-start" id="btnStart">⚡ ابدأ المهمة</button>
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-ico">⚔</div>
+    <div><div class="logo-t">Cyber Defense</div><div class="logo-s">v2.5 // LIVE SIMULATION</div></div>
   </div>
-
-  <!-- MAP SCREEN -->
-  <div class="screen" id="mapScreen">
-    <div class="map-header">
-      <h2>🗺 خريطة ZORAX-9</h2>
-      <p id="mapStatusText">اختر منطقة للاستكشاف</p>
-    </div>
-    <div class="planet-map-container">
-      <canvas id="planetMapCanvas" width="620" height="620"></canvas>
-      <!-- Zone buttons overlaid on map -->
-      <div class="zone-btn" id="zoneBtn1" data-zone="1" style="top:22%;left:50%">
-        <div class="zone-btn-circle">🔷</div>
-        <div class="zone-btn-label">منطقة المنطق</div>
-      </div>
-      <div class="zone-btn" id="zoneBtn2" data-zone="2" style="top:42%;left:22%">
-        <div class="zone-btn-circle">🔮</div>
-        <div class="zone-btn-label">منطقة المتاهة</div>
-      </div>
-      <div class="zone-btn" id="zoneBtn3" data-zone="3" style="top:42%;left:78%">
-        <div class="zone-btn-circle">🔶</div>
-        <div class="zone-btn-label">منطقة الآلات</div>
-      </div>
-      <div class="zone-btn" id="zoneBtn4" data-zone="4" style="top:68%;left:30%">
-        <div class="zone-btn-circle">💎</div>
-        <div class="zone-btn-label">منطقة الضوء</div>
-      </div>
-      <div class="zone-btn" id="zoneBtn5" data-zone="5" style="top:68%;left:70%">
-        <div class="zone-btn-circle">❤️‍🔥</div>
-        <div class="zone-btn-label">منطقة الزمن</div>
-      </div>
-    </div>
-    <div class="map-legend">
-      <div class="legend-item">
-        <div class="legend-dot" style="background:var(--glow-green)"></div>
-        <span>مكتملة</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:var(--glow-cyan)"></div>
-        <span>متاحة</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:var(--text-dim)"></div>
-        <span>مقفلة</span>
-      </div>
-    </div>
+  <div class="hdr-lvls">
+    <span style="font-size:10px;color:var(--mut);font-family:'JetBrains Mono',monospace">LEVEL:</span>
+    <button class="lvl-btn act" id="lb1" onclick="changeLvl(1)">متدرب</button>
+    <button class="lvl-btn" id="lb2" onclick="changeLvl(2)">محلل</button>
+    <button class="lvl-btn" id="lb3" onclick="changeLvl(3)">خبير</button>
   </div>
-
-  <!-- ZONE SCREEN -->
-  <div class="screen" id="zoneScreen">
-    <div style="padding:0 1rem">
-      <button class="btn-back" id="btnBackToMap">← العودة للخريطة</button>
-    </div>
-    <div class="zone-header">
-      <div class="zone-icon-big" id="zoneIconBig">🔷</div>
-      <div class="zone-title-block">
-        <h2 id="zoneTitleText">منطقة المنطق</h2>
-        <p id="zoneDescText">حل الألغاز المنطقية لجمع نواة الطاقة</p>
-      </div>
-    </div>
-
-    <!-- PUZZLE AREA — content injected by JS -->
-    <div class="puzzle-area" id="puzzleArea"></div>
+  <div class="hdr-stats">
+    <div class="hpill"><div class="v" id="hScore">0</div><div class="l">نقاط</div></div>
+    <div class="hpill"><div class="v" id="hDef">0</div><div class="l">محمية</div></div>
+    <div class="hpill"><div class="v" id="hBrc" style="color:var(--dan)">0</div><div class="l">اختراق</div></div>
+    <div class="hpill"><div class="v" id="hTimer" style="color:var(--war)">10:00</div><div class="l">الوقت</div></div>
   </div>
-
-  <!-- FINAL SCREEN -->
-  <div class="screen" id="finalScreen">
-    <div class="final-planet">
-      <canvas id="finalCanvas" width="200" height="200"></canvas>
-      <div class="final-rings"></div>
-    </div>
-    <div class="final-title">⭐ ZORAX-9 مفتوح! ⭐</div>
-    <div class="final-subtitle">
-      لقد جمعت جميع نوى الطاقة الخمسة وفتحت سر قلب الكوكب.<br>
-      الكوكب يشكرك أيها المستكشف الأسطوري!
-    </div>
-    <div class="all-cores-display">
-      <div class="final-core-badge" style="border-color:var(--zone1-color);box-shadow:0 0 16px rgba(0,200,255,0.5)">🔷</div>
-      <div class="final-core-badge" style="border-color:var(--zone2-color);box-shadow:0 0 16px rgba(155,48,255,0.5)">🔮</div>
-      <div class="final-core-badge" style="border-color:var(--zone3-color);box-shadow:0 0 16px rgba(255,123,0,0.5)">🔶</div>
-      <div class="final-core-badge" style="border-color:var(--zone4-color);box-shadow:0 0 16px rgba(0,255,136,0.5)">💎</div>
-      <div class="final-core-badge" style="border-color:var(--zone5-color);box-shadow:0 0 16px rgba(255,45,120,0.5)">❤️‍🔥</div>
-    </div>
-    <button class="btn-restart" id="btnRestart">🔄 العب مجدداً</button>
-  </div>
-
-</div><!-- end #app -->
-
-<!-- SUCCESS OVERLAY -->
-<div id="successOverlay">
-  <div class="success-core-display" id="successCoreDisplay">⚡</div>
-  <div class="success-title">نواة الطاقة مجمّعة!</div>
-  <div class="success-msg" id="successMsg">لقد أكملت المنطقة بنجاح</div>
-  <div class="success-core-name" id="successCoreName">نواة المنطق الأزرق</div>
-  <button class="btn-continue" id="btnContinue">متابعة →</button>
 </div>
 
-<!-- TOAST -->
-<div id="toastContainer"></div>
+<!-- MAIN -->
+<div class="grid">
 
-<!-- SCRIPTS: parts 2, 3, 4 will be injected here via JS includes -->
+  <!-- LEFT: Network -->
+  <div class="pnl">
+    <div class="pnl-hdr">
+      <span class="pnl-t">🌐 طوبولوجيا الشبكة</span>
+      <span class="badge ok" id="netStatus">ONLINE</span>
+    </div>
+    <canvas id="cvs"></canvas>
+    <div class="net-leg">
+      <div class="leg-i"><div class="leg-d" style="background:#00ff88"></div>آمن</div>
+      <div class="leg-i"><div class="leg-d" style="background:#ffaa00"></div>خطر</div>
+      <div class="leg-i"><div class="leg-d" style="background:#ff3366"></div>هجوم</div>
+      <div class="leg-i"><div class="leg-d" style="background:#8b5cf6"></div>مخترق</div>
+      <div class="leg-i"><div class="leg-d" style="background:#00d4ff"></div>حزم بيانات</div>
+    </div>
+  </div>
+
+  <!-- CENTER: Console -->
+  <div class="pnl" style="flex-direction:column">
+    <div class="pnl-hdr">
+      <span class="pnl-t">⚠ مركز الهجمات النشطة</span>
+      <span class="badge ok" id="atkBadge">جاهز</span>
+    </div>
+    <div class="atks" id="atksEl">
+      <div class="no-atk"><div style="font-size:22px;margin-bottom:6px">🛡️</div>لا هجمات نشطة<br>الشبكة في وضع المراقبة</div>
+    </div>
+    <div class="pnl-hdr" style="border-top:1px solid var(--bdr)">
+      <span class="pnl-t">📋 سجل الأحداث</span>
+      <span style="font-size:9px;color:var(--mut);font-family:'JetBrains Mono',monospace" id="evCnt">0 حدث</span>
+    </div>
+    <div class="term" id="term"></div>
+  </div>
+
+  <!-- RIGHT: AI + Charts -->
+  <div class="pnl">
+    <div class="pnl-hdr">
+      <span class="pnl-t">🤖 AI محلل التهديدات</span>
+      <span class="badge ok">CLAUDE AI</span>
+    </div>
+    <div class="ai-scrl">
+
+      <div class="acard">
+        <div class="acard-t">🧠 تحليل ذكي</div>
+        <div class="ai-txt" id="aiTxt"><span style="color:var(--mut);font-size:10px;font-family:'JetBrains Mono',monospace">في انتظار بيانات الهجمات...</span></div>
+        <button class="ai-reqbtn" id="aiBtn" onclick="doAI()">🤖 طلب تحليل AI الآن</button>
+      </div>
+
+      <div class="acard">
+        <div class="acard-t">⚡ مستوى خطر الهجمات</div>
+        <div id="riskEl"></div>
+      </div>
+
+      <div class="acard">
+        <div class="acard-t">💻 صحة الأجهزة</div>
+        <div class="hgrid" id="hgrid"></div>
+      </div>
+
+      <div class="acard">
+        <div class="acard-t">📊 توزيع أنواع الهجمات</div>
+        <div class="cw"><canvas id="distCh"></canvas></div>
+      </div>
+
+      <div class="acard">
+        <div class="acard-t">📈 نشاط الهجمات (خط زمني)</div>
+        <div class="cw"><canvas id="tlCh"></canvas></div>
+      </div>
+
+      <div class="acard">
+        <div class="acard-t">🔢 تحليل رياضي للمخاطر</div>
+        <div id="mathEl" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--txt);line-height:2"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="sbar">
+    <div class="sg">
+      <div class="si"><span class="sl">ATTACKS:</span><span class="sv b" id="sbAtk">0</span></div>
+      <div class="si"><span class="sl">BLOCKED:</span><span class="sv g" id="sbBlk">0</span></div>
+      <div class="si"><span class="sl">BREACHED:</span><span class="sv r" id="sbBrc">0</span></div>
+    </div>
+    <div class="sg">
+      <div class="si"><span class="sl">DEFENSE RATE:</span><span class="sv y" id="sbDR">0%</span></div>
+      <div class="si"><span class="sl">NET HEALTH:</span><span class="sv g" id="sbNH">100%</span></div>
+      <div class="si"><span class="sl">THREAT:</span><span class="sv g" id="sbThr">LOW</span></div>
+    </div>
+    <div class="sg">
+      <div class="si"><span class="sl">LEVEL:</span><span class="sv b" id="sbLvl">TRAINEE</span></div>
+      <div class="si"><span class="sl">STATUS:</span><span class="sv g" id="sbSt">STANDBY</span></div>
+    </div>
+  </div>
+
+</div>
 
 <script>
-/* ================================================================
-   PUZZLE PLANET — PART 2
-   Core Engine: Stars, Planet Rendering, Game State, Navigation
-   ================================================================ */
-'use strict';
-
-// ---------------------------------------------------------------
-// GLOBAL GAME STATE
-// ---------------------------------------------------------------
-window.PP = window.PP || {};
-const PP = window.PP;
-
-PP.state = {
-  cores: [false, false, false, false, false],
-  currentZone: null,
-  started: false,
-  totalCores: 5,
+// ═══════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════
+const ATK_DEFS = {
+  sqli:{id:'sqli',name:'SQL Injection',nameAr:'حقن SQL',icon:'💉',color:'#ff3366',
+    targetTypes:['database','webserver'],power:.75,dur:9000,
+    desc:'يحقن أوامر SQL ضارة في قاعدة البيانات',
+    counters:['waf','patch'],opt:'waf'},
+  xss:{id:'xss',name:'XSS Attack',nameAr:'هجوم XSS',icon:'🕷',color:'#ff7849',
+    targetTypes:['webserver','pc'],power:.6,dur:8000,
+    desc:'يحقن سكريبتات خبيثة في صفحات الويب',
+    counters:['waf','csp'],opt:'csp'},
+  phishing:{id:'phishing',name:'Phishing',nameAr:'تصيد احتيالي',icon:'🎣',color:'#f59e0b',
+    targetTypes:['mailserver','pc'],power:.65,dur:10000,
+    desc:'رسائل مزيفة لسرقة بيانات المستخدمين',
+    counters:['emailfilter','training'],opt:'emailfilter'},
+  ddos:{id:'ddos',name:'DDoS Attack',nameAr:'هجوم DDoS',icon:'🌊',color:'#3b82f6',
+    targetTypes:['router','webserver','firewall'],power:.82,dur:7000,
+    desc:'إغراق الشبكة بطلبات لتعطيل الخدمة',
+    counters:['ratelimit','cdn'],opt:'ratelimit'},
+  bruteforce:{id:'bruteforce',name:'Brute Force',nameAr:'قوة غاشمة',icon:'🔨',color:'#8b5cf6',
+    targetTypes:['pc','database','mailserver'],power:.55,dur:11000,
+    desc:'محاولات متكررة لتخمين كلمات المرور',
+    counters:['lockout','twofa'],opt:'lockout'}
 };
 
-PP.zoneData = [
-  {
-    id: 1,
-    name: 'منطقة المنطق',
-    desc: 'حل الألغاز المنطقية لجمع نواة الطاقة الأولى',
-    icon: '🔷',
-    coreName: 'نواة المنطق الأزرق',
-    color: '#00c8ff',
-    colorRgb: '0,200,255',
-    type: 'logic',
-  },
-  {
-    id: 2,
-    name: 'منطقة المتاهة',
-    desc: 'شق طريقك عبر المتاهة المظلمة',
-    icon: '🔮',
-    coreName: 'نواة المتاهة البنفسجية',
-    color: '#9b30ff',
-    colorRgb: '155,48,255',
-    type: 'maze',
-  },
-  {
-    id: 3,
-    name: 'منطقة الآلات',
-    desc: 'فعّل الآلات القديمة بالترتيب الصحيح',
-    icon: '🔶',
-    coreName: 'نواة الآلات البرتقالية',
-    color: '#ff7b00',
-    colorRgb: '255,123,0',
-    type: 'machine',
-  },
-  {
-    id: 4,
-    name: 'منطقة الضوء',
-    desc: 'وجّه شعاع الضوء نحو الهدف',
-    icon: '💎',
-    coreName: 'نواة الضوء الزمردية',
-    color: '#00ff88',
-    colorRgb: '0,255,136',
-    type: 'light',
-  },
-  {
-    id: 5,
-    name: 'منطقة الزمن',
-    desc: 'اكتشف نمط التسلسل الزمني الغامض',
-    icon: '❤️‍🔥',
-    coreName: 'نواة الزمن القرمزية',
-    color: '#ff2d78',
-    colorRgb: '255,45,120',
-    type: 'time',
-  },
+const DEF_DEFS = {
+  waf:{id:'waf',name:'WAF',nameAr:'جدار التطبيقات',icon:'🛡',cd:13000,counters:['sqli','xss'],eff:.92},
+  csp:{id:'csp',name:'CSP',nameAr:'سياسة المحتوى',icon:'📋',cd:10000,counters:['xss'],eff:.9},
+  emailfilter:{id:'emailfilter',name:'Email Filter',nameAr:'فلتر البريد',icon:'📧',cd:9000,counters:['phishing'],eff:.88},
+  training:{id:'training',name:'Training',nameAr:'تدريب الفريق',icon:'👥',cd:16000,counters:['phishing','bruteforce'],eff:.7},
+  ratelimit:{id:'ratelimit',name:'Rate Limit',nameAr:'تحديد المعدل',icon:'⚡',cd:7000,counters:['ddos','bruteforce'],eff:.85},
+  cdn:{id:'cdn',name:'CDN Shield',nameAr:'درع CDN',icon:'🌐',cd:20000,counters:['ddos'],eff:.8},
+  lockout:{id:'lockout',name:'Lockout',nameAr:'قفل الحساب',icon:'🔒',cd:11000,counters:['bruteforce'],eff:.9},
+  twofa:{id:'twofa',name:'2FA',nameAr:'مصادقة ثنائية',icon:'🔑',cd:13000,counters:['bruteforce','phishing'],eff:.87},
+  patch:{id:'patch',name:'Patch',nameAr:'تحديث النظام',icon:'🔧',cd:19000,counters:['sqli','xss'],eff:.85}
+};
+
+const LVL_CFG = {
+  1:{name:'متدرب',nameEn:'TRAINEE',nodeCount:5,atkInterval:12000,maxCon:1,hints:true,mult:.7},
+  2:{name:'محلل',nameEn:'ANALYST',nodeCount:8,atkInterval:8000,maxCon:2,hints:false,mult:1.0},
+  3:{name:'خبير',nameEn:'EXPERT',nodeCount:11,atkInterval:5000,maxCon:3,hints:false,mult:1.35}
+};
+
+const NODE_DEFS = [
+  {id:'internet',label:'Internet',type:'internet',icon:'🌍',color:'#475569',depth:0,conns:['router']},
+  {id:'router',label:'Router',type:'router',icon:'⬡',color:'#00d4ff',depth:1,conns:['firewall']},
+  {id:'firewall',label:'Firewall',type:'firewall',icon:'🔥',color:'#ff6b35',depth:2,conns:['webserver','database','mailserver']},
+  {id:'webserver',label:'Web Server',type:'webserver',icon:'🌐',color:'#00ff88',depth:3,conns:['database','pc']},
+  {id:'database',label:'Database',type:'database',icon:'🗄',color:'#a78bfa',depth:4,conns:[]},
+  {id:'mailserver',label:'Mail Server',type:'mailserver',icon:'📧',color:'#f59e0b',depth:3,conns:['pc']},
+  {id:'pc',label:'Workstation',type:'pc',icon:'💻',color:'#06b6d4',depth:4,conns:[]},
+  {id:'iot1',label:'IoT Sensor',type:'iot',icon:'📡',color:'#ec4899',depth:1,conns:['router']},
+  {id:'iot2',label:'IoT Camera',type:'iot',icon:'📹',color:'#ec4899',depth:1,conns:['router']},
+  {id:'server2',label:'App Server',type:'webserver',icon:'⚙',color:'#00ff88',depth:3,conns:['database']},
+  {id:'backup',label:'Backup',type:'database',icon:'💾',color:'#a78bfa',depth:4,conns:['database']},
+  {id:'pc2',label:'Admin PC',type:'pc',icon:'🖥',color:'#06b6d4',depth:4,conns:['firewall']}
 ];
 
-// ---------------------------------------------------------------
-// UTILITY HELPERS
-// ---------------------------------------------------------------
-PP.utils = {
-  $(id) { return document.getElementById(id); },
-  rand(min, max) { return Math.random() * (max - min) + min; },
-  randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
-  shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  },
-  clamp(v, min, max) { return Math.min(max, Math.max(min, v)); },
-  lerp(a, b, t) { return a + (b - a) * t; },
-  delay(ms) { return new Promise(r => setTimeout(r, ms)); },
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+const S = {
+  lvl:1,running:false,
+  score:0,defended:0,breached:0,totalAtks:0,
+  activeAtks:[],history:[],
+  defCDs:{},evCnt:0,
+  gameTime:600,aiCnt:0,
+  atkIdCtr:0,
+  timerIv:null,atkTimeout:null,netActIv:null,
 };
-const { $, rand, randInt, shuffle } = PP.utils;
+let NET=null, CHARTS=null, selLvlVal=1;
 
-// ---------------------------------------------------------------
-// TOAST NOTIFICATIONS
-// ---------------------------------------------------------------
-PP.toast = function(msg, type = 'info', duration = 2500) {
-  const container = $('toastContainer');
-  if (!container) return;
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.textContent = msg;
-  container.appendChild(el);
-  setTimeout(() => {
-    el.style.animation = 'toastOut 0.3s ease forwards';
-    setTimeout(() => el.remove(), 300);
-  }, duration);
-};
-
-// ---------------------------------------------------------------
-// SCREEN ROUTER
-// ---------------------------------------------------------------
-PP.showScreen = function(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const screen = $(id);
-  if (screen) screen.classList.add('active');
-
-  // Show/hide HUD
-  const hud = $('gameHUD');
-  if (id === 'introScreen') {
-    hud.classList.remove('visible');
-  } else {
-    hud.classList.add('visible');
+// ═══════════════════════════════════════════════
+//  NETWORK CANVAS
+// ═══════════════════════════════════════════════
+class NetCanvas {
+  constructor(){
+    this.cvs=document.getElementById('cvs');
+    this.ctx=this.cvs.getContext('2d');
+    this.nodes=[];this.edges=[];
+    this.packets=[];this.beams=[];this.flashes=[];
+    this.animating=false;this.pkIv=null;this.raf=null;
+    this._resize();
+    window.addEventListener('resize',()=>this._resize());
   }
-};
-
-// ---------------------------------------------------------------
-// HUD UPDATE
-// ---------------------------------------------------------------
-PP.updateHUD = function() {
-  PP.state.cores.forEach((collected, i) => {
-    const el = document.querySelector(`.hud-core[data-z="${i + 1}"]`);
-    if (!el) return;
-    if (collected) {
-      el.textContent = PP.zoneData[i].icon;
-      el.classList.add('collected');
-    } else {
-      el.textContent = '⬡';
-      el.classList.remove('collected');
-    }
-  });
-};
-
-// ---------------------------------------------------------------
-// MAP STATUS UPDATE
-// ---------------------------------------------------------------
-PP.updateMapStatus = function() {
-  const collected = PP.state.cores.filter(Boolean).length;
-  const statusEl = $('mapStatusText');
-  if (!statusEl) return;
-  if (collected === 0) {
-    statusEl.textContent = 'اختر منطقة للاستكشاف — ابدأ بأي منطقة';
-  } else if (collected < 5) {
-    statusEl.textContent = `${collected} / 5 نوى مجمّعة — تابع الاستكشاف!`;
-  } else {
-    statusEl.textContent = 'جميع النوى مجمّعة! اذهب إلى مركز الكوكب';
+  _resize(){
+    const p=this.cvs.parentElement;
+    this.cvs.width=p.clientWidth;
+    this.cvs.height=Math.max(p.clientHeight-50,200);
+    if(this.nodes.length)this._layout();
   }
-
-  // Update zone buttons
-  PP.zoneData.forEach((zone, i) => {
-    const btn = $(`zoneBtn${zone.id}`);
-    if (!btn) return;
-    if (PP.state.cores[i]) {
-      btn.classList.add('completed');
-      btn.classList.remove('locked');
-      btn.querySelector('.zone-btn-circle').style.background =
-        `rgba(${zone.colorRgb},0.3)`;
-    }
-  });
-};
-
-// ---------------------------------------------------------------
-// STAR FIELD
-// ---------------------------------------------------------------
-PP.starField = {
-  canvas: null, ctx: null,
-  stars: [], nebulas: [],
-  animId: null,
-  init() {
-    this.canvas = $('starCanvas');
-    if (!this.canvas) return;
-    this.ctx = this.canvas.getContext('2d');
-    this.resize();
-    this.generate();
-    this.animate();
-    window.addEventListener('resize', () => { this.resize(); this.generate(); });
-  },
-  resize() {
-    this.canvas.width  = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-  },
-  generate() {
-    const W = this.canvas.width, H = this.canvas.height;
-    this.stars = [];
-    const count = Math.floor((W * H) / 3500);
-    for (let i = 0; i < count; i++) {
-      this.stars.push({
-        x: rand(0, W), y: rand(0, H),
-        r: rand(0.2, 1.6),
-        a: rand(0.2, 1),
-        speed: rand(0.05, 0.25),
-        twinkleSpeed: rand(0.008, 0.025),
-        twinklePhase: rand(0, Math.PI * 2),
-        color: ['#ffffff','#a0d0ff','#d0a0ff','#ffd0a0'][randInt(0,3)],
+  setup(defs){
+    if(this.pkIv)clearInterval(this.pkIv);
+    this.stop();
+    this.nodes=defs.map(d=>({...d,x:0,y:0,health:100,r:d.type==='internet'?16:20,attacking:false,pulse:0}));
+    this.edges=[];
+    this.nodes.forEach(n=>{
+      (n.conns||[]).forEach(cid=>{
+        const t=this.nodes.find(x=>x.id===cid);
+        if(t)this.edges.push({from:n,to:t});
       });
-    }
-    // Nebula patches
-    this.nebulas = [];
-    for (let i = 0; i < 5; i++) {
-      this.nebulas.push({
-        x: rand(0, W), y: rand(0, H),
-        rx: rand(80, 220), ry: rand(50, 140),
-        color: ['rgba(0,200,255,0.04)','rgba(155,48,255,0.04)','rgba(0,255,136,0.03)'][randInt(0,2)],
-        rotation: rand(0, Math.PI),
-      });
-    }
-  },
-  animate() {
-    const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
-    ctx.clearRect(0, 0, W, H);
-
-    // Draw nebulas
-    this.nebulas.forEach(n => {
-      ctx.save();
-      ctx.translate(n.x, n.y);
-      ctx.rotate(n.rotation);
-      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(n.rx, n.ry));
-      g.addColorStop(0, n.color);
-      g.addColorStop(1, 'transparent');
-      ctx.scale(n.rx / Math.max(n.rx, n.ry), n.ry / Math.max(n.rx, n.ry));
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(0, 0, Math.max(n.rx, n.ry), 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
     });
-
-    // Draw stars
-    const t = performance.now() / 1000;
-    this.stars.forEach(s => {
-      s.twinklePhase += s.twinkleSpeed;
-      const alpha = s.a * (0.5 + 0.5 * Math.sin(s.twinklePhase));
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = s.color;
-      ctx.shadowBlur = s.r > 1 ? 4 : 0;
-      ctx.shadowColor = s.color;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      // Slow drift
-      s.y -= s.speed * 0.02;
-      if (s.y < -2) { s.y = this.canvas.height + 2; s.x = rand(0, this.canvas.width); }
-    });
-
-    this.animId = requestAnimationFrame(() => this.animate());
-  },
-};
-
-// ---------------------------------------------------------------
-// PLANET CANVAS RENDERER (reusable)
-// ---------------------------------------------------------------
-PP.drawPlanet = function(canvas, time, opts = {}) {
-  if (!canvas) return;
-  const W = canvas.width, H = canvas.height;
-  const ctx = canvas.getContext('2d');
-  const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 2;
-  const t = time * 0.001;
-
-  ctx.clearRect(0, 0, W, H);
-
-  // Base sphere gradient
-  const baseG = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.05, cx, cy, R);
-  baseG.addColorStop(0,   opts.lightColor  || '#1a4060');
-  baseG.addColorStop(0.4, opts.midColor    || '#0a1a30');
-  baseG.addColorStop(1,   opts.darkColor   || '#020810');
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.clip();
-  ctx.fillStyle = baseG;
-  ctx.fill();
-
-  // Terrain / swirl layers
-  const layers = opts.layers || [
-    { color: 'rgba(0,200,255,0.12)', freq: 2.5, amp: 0.25, speed: 0.4 },
-    { color: 'rgba(155,48,255,0.10)', freq: 1.8, amp: 0.35, speed: 0.25 },
-    { color: 'rgba(0,80,160,0.15)',   freq: 3.2, amp: 0.2,  speed: 0.6 },
-    { color: 'rgba(0,255,136,0.06)',  freq: 4.0, amp: 0.15, speed: 0.8 },
-  ];
-
-  layers.forEach(layer => {
-    ctx.beginPath();
-    const points = 120;
-    for (let i = 0; i <= points; i++) {
-      const angle = (i / points) * Math.PI * 2;
-      const noise = Math.sin(angle * layer.freq + t * layer.speed) *
-                    Math.cos(angle * layer.freq * 0.7 + t * layer.speed * 1.3);
-      const rr = R * (0.7 + layer.amp * noise * 0.5);
-      const px = cx + Math.cos(angle) * rr;
-      const py = cy + Math.sin(angle) * rr;
-      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fillStyle = layer.color;
-    ctx.fill();
-  });
-
-  // Atmosphere glow (inner rim)
-  const atmosG = ctx.createRadialGradient(cx, cy, R * 0.75, cx, cy, R);
-  atmosG.addColorStop(0, 'transparent');
-  atmosG.addColorStop(1, opts.atmosColor || 'rgba(0,200,255,0.15)');
-  ctx.fillStyle = atmosG;
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Craters
-  const craters = opts.craters || [
-    { x: 0.3, y: 0.35, r: 0.08 },
-    { x: 0.62, y: 0.55, r: 0.05 },
-    { x: 0.45, y: 0.7,  r: 0.06 },
-    { x: 0.2,  y: 0.6,  r: 0.04 },
-    { x: 0.7,  y: 0.3,  r: 0.07 },
-  ];
-  craters.forEach(c => {
-    const px = cx + (c.x - 0.5) * R * 1.8;
-    const py = cy + (c.y - 0.5) * R * 1.8;
-    const cr = R * c.r;
-    const cg = ctx.createRadialGradient(px - cr*0.2, py - cr*0.2, 0, px, py, cr);
-    cg.addColorStop(0, 'rgba(0,0,0,0.4)');
-    cg.addColorStop(0.7, 'rgba(0,0,0,0.15)');
-    cg.addColorStop(1,  'transparent');
-    ctx.fillStyle = cg;
-    ctx.beginPath();
-    ctx.arc(px, py, cr, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Specular highlight
-  const specG = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.35, 0, cx - R * 0.2, cy - R * 0.2, R * 0.6);
-  specG.addColorStop(0, 'rgba(255,255,255,0.12)');
-  specG.addColorStop(1, 'transparent');
-  ctx.fillStyle = specG;
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Shadow / terminator
-  const shadowG = ctx.createRadialGradient(cx + R * 0.5, cy + R * 0.3, 0, cx + R * 0.5, cy + R * 0.3, R * 1.2);
-  shadowG.addColorStop(0, 'transparent');
-  shadowG.addColorStop(0.6, 'transparent');
-  shadowG.addColorStop(1, 'rgba(0,0,0,0.55)');
-  ctx.fillStyle = shadowG;
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
-};
-
-// ---------------------------------------------------------------
-// PLANET MAP CANVAS
-// ---------------------------------------------------------------
-PP.mapCanvas = {
-  canvas: null, ctx: null, animId: null,
-  init() {
-    this.canvas = $('planetMapCanvas');
-    if (!this.canvas) return;
-    this.ctx = this.canvas.getContext('2d');
-    this.animate();
-  },
-  animate() {
-    PP.drawPlanet(this.canvas, performance.now(), {
-      lightColor:  '#1e3a5a',
-      midColor:    '#0c1e38',
-      darkColor:   '#030812',
-      atmosColor:  'rgba(0,200,255,0.12)',
-      layers: [
-        { color: 'rgba(0,200,255,0.09)',  freq: 2.0, amp: 0.3,  speed: 0.3  },
-        { color: 'rgba(155,48,255,0.08)', freq: 1.5, amp: 0.4,  speed: 0.2  },
-        { color: 'rgba(255,123,0,0.05)',  freq: 3.0, amp: 0.2,  speed: 0.5  },
-        { color: 'rgba(0,255,136,0.05)',  freq: 4.5, amp: 0.15, speed: 0.7  },
-      ],
-    });
-
-    // Draw connection lines between zones
-    const z = this.canvas;
-    const W = z.width, H = z.height;
-    const ctx = this.ctx;
-    const positions = [
-      { x: 0.50, y: 0.22 }, // Zone 1
-      { x: 0.22, y: 0.42 }, // Zone 2
-      { x: 0.78, y: 0.42 }, // Zone 3
-      { x: 0.30, y: 0.68 }, // Zone 4
-      { x: 0.70, y: 0.68 }, // Zone 5
-    ];
-    const connections = [[0,1],[0,2],[1,3],[2,4],[3,4]];
-    ctx.save();
-    connections.forEach(([a, b]) => {
-      const p1 = positions[a], p2 = positions[b];
-      ctx.beginPath();
-      ctx.moveTo(p1.x * W, p1.y * H);
-      ctx.lineTo(p2.x * W, p2.y * H);
-      const alpha = PP.state.cores[a] && PP.state.cores[b] ? 0.5 : 0.15;
-      ctx.strokeStyle = `rgba(0,200,255,${alpha})`;
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 6]);
-      ctx.stroke();
-    });
-    ctx.restore();
-
-    this.animId = requestAnimationFrame(() => this.animate());
-  },
-};
-
-// ---------------------------------------------------------------
-// INTRO PLANET ANIMATION
-// ---------------------------------------------------------------
-PP.introPlanet = {
-  animId: null,
-  init() {
-    const canvas = $('introPlanetCanvas');
-    if (!canvas) return;
-    const anim = () => {
-      PP.drawPlanet(canvas, performance.now(), {
-        lightColor:  '#1a4060',
-        midColor:    '#0a1a30',
-        darkColor:   '#020810',
-        atmosColor:  'rgba(0,200,255,0.18)',
-      });
-      this.animId = requestAnimationFrame(anim);
-    };
-    anim();
-  },
-};
-
-// ---------------------------------------------------------------
-// PARTICLES
-// ---------------------------------------------------------------
-PP.particles = {
-  list: [],
-  container: null,
-  intervalId: null,
-  init() {
-    this.container = $('particleContainer');
-    if (!this.container) return;
-    this.intervalId = setInterval(() => this.spawn(), 800);
-  },
-  spawn() {
-    if (!this.container) return;
-    const colors = ['#00c8ff','#9b30ff','#00ff88','#ff7b00','#ff2d78'];
-    const el = document.createElement('div');
-    el.className = 'particle';
-    const size = PP.utils.rand(2, 6);
-    el.style.cssText = `
-      width:${size}px; height:${size}px;
-      left:${PP.utils.rand(0, 100)}%;
-      background:${colors[PP.utils.randInt(0, colors.length-1)]};
-      animation-duration:${PP.utils.rand(8, 18)}s;
-      animation-delay:${PP.utils.rand(0, 2)}s;
-      box-shadow:0 0 ${size*2}px currentColor;
-    `;
-    this.container.appendChild(el);
-    setTimeout(() => el.remove(), 20000);
-  },
-};
-
-// ---------------------------------------------------------------
-// NAVIGATION
-// ---------------------------------------------------------------
-PP.nav = {
-  goToMap() {
-    PP.showScreen('mapScreen');
-    $('hudZoneLabel').textContent = 'خريطة الكوكب';
-    PP.updateMapStatus();
-    PP.updateHUD();
-    // Stop any active puzzle anims
-    if (PP.zones && PP.zones.stopCurrent) PP.zones.stopCurrent();
-  },
-  goToZone(zoneId) {
-    const zone = PP.zoneData.find(z => z.id === zoneId);
-    if (!zone) return;
-    PP.state.currentZone = zoneId;
-    $('hudZoneLabel').textContent = zone.name;
-
-    // Set zone header UI
-    const iconEl    = $('zoneIconBig');
-    const titleEl   = $('zoneTitleText');
-    const descEl    = $('zoneDescText');
-    if (iconEl)  iconEl.textContent  = zone.icon;
-    if (titleEl) titleEl.textContent = zone.name;
-    if (descEl)  descEl.textContent  = zone.desc;
-    if (iconEl) {
-      iconEl.style.borderColor = zone.color;
-      iconEl.style.boxShadow   = `0 0 20px rgba(${zone.colorRgb},0.4)`;
-      iconEl.style.color       = zone.color;
-    }
-
-    PP.showScreen('zoneScreen');
-
-    // Build puzzle
-    if (PP.zones && PP.zones.load) PP.zones.load(zone);
-  },
-  goToFinal() {
-    // Stop animations
-    if (PP.zones && PP.zones.stopCurrent) PP.zones.stopCurrent();
-    PP.showScreen('finalScreen');
-    $('hudZoneLabel').textContent = 'مركز الكوكب';
-    PP.finalScreen.init();
-  },
-};
-
-// ---------------------------------------------------------------
-// SUCCESS OVERLAY
-// ---------------------------------------------------------------
-PP.showSuccess = function(zoneId) {
-  const zone = PP.zoneData[zoneId - 1];
-  if (!zone) return;
-
-  const overlay = $('successOverlay');
-  const coreEl  = $('successCoreDisplay');
-  const msgEl   = $('successMsg');
-  const nameEl  = $('successCoreName');
-
-  if (coreEl) {
-    coreEl.textContent = zone.icon;
-    coreEl.style.borderColor = zone.color;
-    coreEl.style.color       = zone.color;
-    coreEl.style.boxShadow   = `0 0 40px rgba(${zone.colorRgb},0.5)`;
-    coreEl.style.setProperty('--before-color', zone.color);
+    this.packets=[];this.beams=[];this.flashes=[];
+    this._layout();
+    this._startPkts();
+    this.animating=true;
+    this._frame();
   }
-  if (msgEl)  msgEl.textContent  = `لقد أكملت ${zone.name} بنجاح!`;
-  if (nameEl) nameEl.textContent = zone.coreName;
-  if (nameEl) nameEl.style.color = zone.color;
-
-  overlay.classList.add('visible');
-
-  PP.spawnSuccessParticles(zone.color);
-};
-
-PP.spawnSuccessParticles = function(color) {
-  const container = $('particleContainer');
-  if (!container) return;
-  for (let i = 0; i < 30; i++) {
-    setTimeout(() => {
-      const el = document.createElement('div');
-      el.className = 'particle';
-      const size = PP.utils.rand(4, 10);
-      el.style.cssText = `
-        width:${size}px; height:${size}px;
-        left:${PP.utils.rand(20, 80)}%;
-        background:${color};
-        animation-duration:${PP.utils.rand(1.5, 3)}s;
-        animation-delay:0s;
-        box-shadow:0 0 10px ${color};
-      `;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 3500);
-    }, i * 60);
-  }
-};
-
-// ---------------------------------------------------------------
-// FINAL SCREEN
-// ---------------------------------------------------------------
-PP.finalScreen = {
-  animId: null,
-  init() {
-    const canvas = $('finalCanvas');
-    if (!canvas) return;
-    if (this.animId) cancelAnimationFrame(this.animId);
-    const anim = () => {
-      PP.drawPlanet(canvas, performance.now(), {
-        lightColor:  '#2a4a1a',
-        midColor:    '#0a2010',
-        darkColor:   '#020805',
-        atmosColor:  'rgba(255,215,0,0.25)',
-        layers: [
-          { color: 'rgba(255,215,0,0.1)',   freq: 2.0, amp: 0.3,  speed: 0.4 },
-          { color: 'rgba(0,255,136,0.08)',   freq: 1.5, amp: 0.35, speed: 0.2 },
-          { color: 'rgba(0,200,255,0.08)',   freq: 3.0, amp: 0.2,  speed: 0.6 },
-          { color: 'rgba(155,48,255,0.06)',  freq: 4.0, amp: 0.15, speed: 0.8 },
-        ],
+  _layout(){
+    const W=this.cvs.width,H=this.cvs.height;
+    const byDepth={};
+    this.nodes.forEach(n=>{
+      const d=n.depth??3;
+      (byDepth[d]=byDepth[d]||[]).push(n);
+    });
+    const depths=Object.keys(byDepth).map(Number).sort((a,b)=>a-b);
+    const maxD=Math.max(...depths);
+    depths.forEach(dep=>{
+      const ns=byDepth[dep];
+      const y=H*(0.08+(dep/(maxD+.5))*.84);
+      ns.forEach((n,i)=>{
+        n.x=(W/(ns.length+1))*(i+1);
+        n.y=y;
       });
-      this.animId = requestAnimationFrame(anim);
-    };
-    anim();
-  },
-};
-
-// ---------------------------------------------------------------
-// LOADING SEQUENCE
-// ---------------------------------------------------------------
-PP.boot = function() {
-  // Init visual systems
-  PP.starField.init();
-  PP.particles.init();
-  PP.introPlanet.init();
-
-  // Button listeners
-  const btnStart = $('btnStart');
-  if (btnStart) btnStart.addEventListener('click', () => {
-    PP.state.started = true;
-    PP.nav.goToMap();
-  });
-
-  const btnMapFromHUD = $('btnMapFromHUD');
-  if (btnMapFromHUD) btnMapFromHUD.addEventListener('click', () => PP.nav.goToMap());
-
-  const btnBackToMap = $('btnBackToMap');
-  if (btnBackToMap) btnBackToMap.addEventListener('click', () => PP.nav.goToMap());
-
-  const btnContinue = $('btnContinue');
-  if (btnContinue) btnContinue.addEventListener('click', () => {
-    $('successOverlay').classList.remove('visible');
-    // Check if all cores collected
-    const allDone = PP.state.cores.every(Boolean);
-    if (allDone) {
-      setTimeout(() => PP.nav.goToFinal(), 400);
-    } else {
-      PP.nav.goToMap();
-    }
-  });
-
-  const btnRestart = $('btnRestart');
-  if (btnRestart) btnRestart.addEventListener('click', () => {
-    PP.state.cores = [false, false, false, false, false];
-    PP.state.currentZone = null;
-    PP.updateHUD();
-    PP.showScreen('introScreen');
-    $('gameHUD').classList.remove('visible');
-    if (PP.finalScreen.animId) cancelAnimationFrame(PP.finalScreen.animId);
-  });
-
-  // Zone buttons on map
-  PP.zoneData.forEach(zone => {
-    const btn = $(`zoneBtn${zone.id}`);
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      if (btn.classList.contains('locked')) {
-        PP.toast('هذه المنطقة مقفلة!', 'error');
-        return;
-      }
-      PP.nav.goToZone(zone.id);
     });
-  });
-
-  // Hide loader
-  setTimeout(() => {
-    const loader = $('loadingScreen');
-    if (loader) {
-      loader.style.transition = 'opacity 0.6s ease';
-      loader.style.opacity = '0';
-      setTimeout(() => loader.remove(), 600);
-    }
-    PP.mapCanvas.init();
-    PP.updateHUD();
-  }, 1200);
-};
-
-// Signal part 2 done
-window.__PP_part2_ready = true;
-console.log('[PP] Part 2 loaded ✓');
-
-/* ================================================================
-   PUZZLE PLANET — PART 3
-   Zone Puzzles: Logic (Z1), Maze (Z2), Machine (Z3)
-   ================================================================ */
-'use strict';
-
-const PP3 = window.PP;
-
-// ---------------------------------------------------------------
-// ZONE PUZZLE MANAGER
-// ---------------------------------------------------------------
-PP3.zones = {
-  currentAnimId: null,
-  stopCurrent() {
-    if (this.currentAnimId) {
-      cancelAnimationFrame(this.currentAnimId);
-      this.currentAnimId = null;
-    }
-    if (PP3.mazePuzzle && PP3.mazePuzzle.stopAnim) PP3.mazePuzzle.stopAnim();
-    if (PP3.lightPuzzle && PP3.lightPuzzle.stopAnim) PP3.lightPuzzle.stopAnim();
-  },
-  load(zone) {
-    this.stopCurrent();
-    const area = PP3.utils.$('puzzleArea');
-    if (!area) return;
-    area.innerHTML = '';
-
-    switch (zone.type) {
-      case 'logic':   PP3.logicPuzzle.build(area, zone);   break;
-      case 'maze':    PP3.mazePuzzle.build(area, zone);    break;
-      case 'machine': PP3.machinePuzzle.build(area, zone); break;
-      case 'light':   PP3.lightPuzzle.build(area, zone);   break;
-      case 'time':    PP3.timePuzzle.build(area, zone);    break;
-      default: area.innerHTML = '<p>منطقة غير معروفة</p>';
-    }
-  },
-};
-
-// ================================================================
-// ZONE 1 — LOGIC PUZZLE
-// ================================================================
-PP3.logicPuzzle = {
-  questions: [
-    {
-      q: 'في مجرة ZORAX، كل نجم أزرق أكبر من أي نجم أحمر. نجم ARIA أزرق. ما يمكن استنتاجه؟',
-      choices: ['ARIA أصغر من جميع النجوم الحمراء', 'ARIA أكبر من جميع النجوم الحمراء', 'ARIA متوسط الحجم', 'لا يمكن تحديد ذلك'],
-      answer: 1,
-      explanation: 'بما أن كل نجم أزرق أكبر من أي نجم أحمر، وARIA أزرق، فهو أكبر من جميع النجوم الحمراء.',
-    },
-    {
-      q: 'لديك 5 بوابات مرقمة 1-5. البوابة الزوجية تفتح الباب الذي يسبقها. أي بوابة تفتح الباب 3؟',
-      choices: ['البوابة 2', 'البوابة 4', 'البوابة 6', 'لا توجد بوابة'],
-      answer: 1,
-      explanation: 'البوابة 4 (زوجية) تفتح الباب الذي يسبقها وهو الباب 3.',
-    },
-    {
-      q: 'كود الكوكب يتبع نمط: 2, 6, 18, 54, ___. ما الرقم التالي؟',
-      choices: ['108', '162', '108', '216'],
-      answer: 1,
-      explanation: 'كل رقم يُضرب في 3: 2×3=6, 6×3=18, 18×3=54, 54×3=162.',
-    },
-    {
-      q: 'ثلاثة مستكشفين: AXE يكذب دائماً، BOX يصدق دائماً، COX يتناوب. قال AXE: "BOX كذاب". قال BOX: "COX كذاب الآن". هل COX صادق الآن؟',
-      choices: ['نعم، صادق', 'لا، كاذب', 'مستحيل تحديده', 'كلاهما'],
-      answer: 1,
-      explanation: 'AXE يكذب دائماً → BOX ليس كذاباً (صادق دائماً ✓). BOX صادق قال COX كاذب الآن → COX كاذب.',
-    },
-    {
-      q: 'سفينة تسافر 60 كم/ساعة شمالاً لمدة ساعتين، ثم 80 كم/ساعة شرقاً لمدة ساعة. ما المسافة الإجمالية المقطوعة؟',
-      choices: ['200 كم', '220 كم', '180 كم', '240 كم'],
-      answer: 1,
-      explanation: '60×2=120كم + 80×1=80كم. المجموع: 120+80=200كم.',
-    },
-  ],
-
-  currentQ: 0,
-  score: 0,
-  answered: false,
-
-  build(area, zone) {
-    this.currentQ = 0;
-    this.score    = 0;
-    this.answered = false;
-
-    area.innerHTML = `
-      <div class="zone-intro-card">
-        <h3 style="color:${zone.color}">⚡ اختبار المنطق</h3>
-        <p>أجب على 5 أسئلة منطقية بشكل صحيح لجمع نواة الطاقة الأولى.</p>
-      </div>
-      <div class="logic-puzzle" id="logicPuzzleRoot" style="width:100%;max-width:520px">
-        <div class="puzzle-progress">
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="logicProgress" style="width:0%"></div>
-          </div>
-          <div class="progress-text" id="logicProgressText">0 / 5</div>
-        </div>
-        <div id="logicQuestionArea"></div>
-      </div>
-    `;
-    this.renderQuestion();
-  },
-
-  renderQuestion() {
-    const area = PP3.utils.$('logicQuestionArea');
-    if (!area) return;
-    if (this.currentQ >= this.questions.length) {
-      this.onComplete();
-      return;
-    }
-
-    const q = this.questions[this.currentQ];
-    this.answered = false;
-    const shuffled = PP3.utils.shuffle(q.choices.map((c, i) => ({ text: c, idx: i })));
-
-    area.innerHTML = `
-      <div class="logic-question">
-        <div class="logic-question-text" style="direction:rtl">${q.q}</div>
-        <div class="logic-choices" id="choicesContainer">
-          ${shuffled.map(c => '<button class="logic-choice" data-original="' + c.idx + '">' + c.text + '</button>').join('')}
-        </div>
-        <div id="logicFeedback" style="margin-top:0.8rem;font-size:0.82rem;color:var(--text-secondary);line-height:1.6;min-height:1.5rem;text-align:center"></div>
-      </div>
-    `;
-
-    area.querySelectorAll('.logic-choice').forEach(btn => {
-      btn.addEventListener('click', (e) => this.onAnswer(e, q));
+  }
+  _startPkts(){
+    this.pkIv=setInterval(()=>{
+      if(!this.edges.length)return;
+      const e=this.edges[Math.floor(Math.random()*this.edges.length)];
+      this.packets.push({
+        x:e.from.x,y:e.from.y,tx:e.to.x,ty:e.to.y,
+        p:0,spd:.012+Math.random()*.01,
+        color:e.from.color||'#00d4ff',sz:2.5
+      });
+    },700);
+  }
+  stop(){
+    this.animating=false;
+    if(this.raf)cancelAnimationFrame(this.raf);
+    if(this.pkIv)clearInterval(this.pkIv);
+  }
+  _frame(){
+    if(!this.animating)return;
+    this._draw();
+    this.raf=requestAnimationFrame(()=>this._frame());
+  }
+  triggerAtk(nid){
+    const n=this.nodes.find(x=>x.id===nid);
+    if(!n)return;
+    n.attacking=true;n.pulse=0;
+    this.beams.push({x:n.x,y:n.y,p:0,color:'#ff3366'});
+  }
+  triggerDef(nid){
+    const n=this.nodes.find(x=>x.id===nid);
+    if(!n)return;
+    n.attacking=false;
+    this.flashes.push({x:n.x,y:n.y,r:0,maxR:42,op:1,color:'#00ff88'});
+    setTimeout(()=>{},1500);
+  }
+  triggerBreach(nid){
+    const n=this.nodes.find(x=>x.id===nid);
+    if(!n)return;
+    n.attacking=false;
+    n.health=Math.max(0,n.health-28);
+    this.flashes.push({x:n.x,y:n.y,r:0,maxR:42,op:1,color:'#ff3366'});
+  }
+  _draw(){
+    const ctx=this.ctx,W=this.cvs.width,H=this.cvs.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(2,12,24,.25)';ctx.fillRect(0,0,W,H);
+    // edges
+    this.edges.forEach(e=>{
+      const g=ctx.createLinearGradient(e.from.x,e.from.y,e.to.x,e.to.y);
+      g.addColorStop(0,'rgba(0,212,255,.1)');g.addColorStop(.5,'rgba(0,212,255,.22)');g.addColorStop(1,'rgba(0,212,255,.1)');
+      ctx.beginPath();ctx.moveTo(e.from.x,e.from.y);ctx.lineTo(e.to.x,e.to.y);
+      ctx.strokeStyle=g;ctx.lineWidth=1;ctx.setLineDash([4,5]);ctx.stroke();ctx.setLineDash([]);
     });
-
-    // Update progress
-    const prog = PP3.utils.$('logicProgress');
-    const progText = PP3.utils.$('logicProgressText');
-    if (prog) prog.style.width = `${(this.currentQ / this.questions.length) * 100}%`;
-    if (progText) progText.textContent = `${this.currentQ} / ${this.questions.length}`;
-  },
-
-  onAnswer(e, q) {
-    if (this.answered) return;
-    this.answered = true;
-    const btn    = e.currentTarget;
-    const chosen = parseInt(btn.dataset.original);
-    const isCorrect = chosen === q.answer;
-    const feedbackEl = PP3.utils.$('logicFeedback');
-
-    // Disable all
-    document.querySelectorAll('.logic-choice').forEach(b => {
-      b.style.pointerEvents = 'none';
-      if (parseInt(b.dataset.original) === q.answer) b.classList.add('correct');
+    // packets
+    this.packets=this.packets.filter(p=>p.p<=1);
+    this.packets.forEach(p=>{
+      p.p+=p.spd;
+      const x=p.x+(p.tx-p.x)*p.p,y=p.y+(p.ty-p.y)*p.p;
+      ctx.beginPath();ctx.arc(x,y,p.sz,0,Math.PI*2);
+      ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=7;ctx.fill();ctx.shadowBlur=0;
     });
-
-    if (isCorrect) {
-      btn.classList.add('correct');
-      this.score++;
-      if (feedbackEl) {
-        feedbackEl.textContent = '✓ إجابة صحيحة! ' + q.explanation;
-        feedbackEl.style.color = 'var(--glow-green)';
-      }
-      PP3.toast('إجابة صحيحة! ✓', 'success', 1500);
-    } else {
-      btn.classList.add('wrong');
-      if (feedbackEl) {
-        feedbackEl.textContent = '✗ إجابة خاطئة. ' + q.explanation;
-        feedbackEl.style.color = 'var(--glow-pink)';
-      }
-      PP3.toast('إجابة خاطئة ✗', 'error', 1500);
-    }
-
-    setTimeout(() => {
-      this.currentQ++;
-      this.renderQuestion();
-    }, 1800);
-  },
-
-  onComplete() {
-    const area = PP3.utils.$('logicQuestionArea');
-    if (!area) return;
-    const passed = this.score >= 3;
-
-    area.innerHTML = `
-      <div class="logic-question" style="text-align:center">
-        <div style="font-size:3rem;margin-bottom:1rem">${passed ? '🏆' : '💔'}</div>
-        <div class="logic-question-text">
-          ${passed
-            ? 'أحسنت! حصلت على <strong style="color:var(--glow-green)">' + this.score + '/5</strong> إجابات صحيحة.'
-            : 'حصلت على <strong style="color:var(--glow-pink)">' + this.score + '/5</strong>. تحتاج 3 إجابات صحيحة على الأقل.'
-          }
-        </div>
-        <button class="machine-check-btn" id="logicRetryOrClaim" style="background:linear-gradient(135deg,#00c8ff,#0060ff)">
-          ${passed ? '🔷 جمع نواة المنطق' : '🔄 حاول مجدداً'}
-        </button>
-      </div>
-    `;
-
-    const btn = PP3.utils.$('logicRetryOrClaim');
-    if (btn) btn.addEventListener('click', () => {
-      if (passed) {
-        PP3.state.cores[0] = true;
-        PP3.updateHUD();
-        PP3.showSuccess(1);
-      } else {
-        this.currentQ = 0;
-        this.score    = 0;
-        this.renderQuestion();
-      }
+    // beams
+    this.beams=this.beams.filter(b=>b.p<1);
+    this.beams.forEach(b=>{
+      b.p+=.022;
+      const cy=(-20)+(b.y+20)*b.p;
+      ctx.beginPath();ctx.moveTo(b.x,-20);ctx.lineTo(b.x,cy);
+      const gr=ctx.createLinearGradient(b.x,-20,b.x,cy);
+      gr.addColorStop(0,'transparent');gr.addColorStop(1,'#ff3366');
+      ctx.strokeStyle=gr;ctx.lineWidth=2.5;ctx.shadowColor='#ff3366';ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;
     });
-  },
-};
-
-// ================================================================
-// ZONE 2 — MAZE PUZZLE
-// ================================================================
-PP3.mazePuzzle = {
-  CELL: 20,
-  COLS: 15, ROWS: 15,
-  grid: [], visited: [],
-  player: { col: 0, row: 0 },
-  exit:   { col: 14, row: 14 },
-  canvas: null, ctx: null,
-  animId: null,
-  fogMap: [],
-  moveCount: 0,
-
-  stopAnim() {
-    if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
-  },
-
-  build(area, zone) {
-    const fogRadius = 4;
-    this.COLS = 15; this.ROWS = 15;
-    this.player = { col: 0, row: 0 };
-    this.exit   = { col: this.COLS - 1, row: this.ROWS - 1 };
-    this.moveCount = 0;
-    this.generate();
-
-    const canvasSize = Math.min(420, window.innerWidth - 40);
-    this.CELL = Math.floor(canvasSize / this.COLS);
-
-    area.innerHTML = `
-      <div class="zone-intro-card" style="border-color:rgba(155,48,255,0.3)">
-        <h3 style="color:${zone.color}">🔮 المتاهة المظلمة</h3>
-        <p>تنقّل عبر المتاهة من الزاوية العلوية اليسارية (🟣) إلى الزاوية السفلية اليمينية (🎯). الرؤية محدودة!</p>
-      </div>
-      <div class="maze-container">
-        <canvas id="mazeCanvas" width="${this.COLS * this.CELL}" height="${this.ROWS * this.CELL}"></canvas>
-        <div class="maze-controls">
-          <div class="maze-btn empty"></div>
-          <button class="maze-btn" id="mzUp">▲</button>
-          <div class="maze-btn empty"></div>
-          <button class="maze-btn" id="mzLeft">◀</button>
-          <div class="maze-btn empty" style="background:rgba(155,48,255,0.05);border:1px solid rgba(155,48,255,0.2);border-radius:8px">
-            <span style="font-size:0.65rem;color:var(--text-dim)" id="mazeMoveCount">0</span>
-          </div>
-          <button class="maze-btn" id="mzRight">▶</button>
-          <div class="maze-btn empty"></div>
-          <button class="maze-btn" id="mzDown">▼</button>
-          <div class="maze-btn empty"></div>
-        </div>
-      </div>
-    `;
-
-    this.canvas = PP3.utils.$('mazeCanvas');
-    this.ctx    = this.canvas ? this.canvas.getContext('2d') : null;
-
-    // Controls
-    const dirs = {
-      mzUp:    { dc:  0, dr: -1 },
-      mzDown:  { dc:  0, dr:  1 },
-      mzLeft:  { dc: -1, dr:  0 },
-      mzRight: { dc:  1, dr:  0 },
-    };
-    Object.entries(dirs).forEach(([id, d]) => {
-      const btn = PP3.utils.$(id);
-      if (btn) btn.addEventListener('click', () => this.move(d.dc, d.dr));
+    // flashes
+    this.flashes=this.flashes.filter(f=>f.op>0);
+    this.flashes.forEach(f=>{
+      f.r+=2.2;f.op=Math.max(0,1-f.r/f.maxR);
+      ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+      ctx.strokeStyle=f.color.replace('rgb','rgba').replace(')',`,${f.op})`)||`rgba(0,255,136,${f.op})`;
+      ctx.lineWidth=2;ctx.shadowColor=f.color;ctx.shadowBlur=14;ctx.stroke();ctx.shadowBlur=0;
     });
-
-    // Keyboard
-    this._keyHandler = (e) => {
-      const map = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
-                    w:[0,-1], s:[0,1], a:[-1,0], d:[1,0] };
-      const d = map[e.key];
-      if (d) { e.preventDefault(); this.move(d[0], d[1]); }
-    };
-    window.addEventListener('keydown', this._keyHandler);
-
-    this.drawLoop();
-  },
-
-  generate() {
-    const { COLS, ROWS } = this;
-    // Each cell: { top, right, bottom, left } = wall flags
-    this.grid = Array.from({ length: ROWS }, () =>
-      Array.from({ length: COLS }, () => ({ top:1, right:1, bottom:1, left:1 }))
-    );
-    this.visited = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
-
-    // DFS maze generation
-    const stack = [{ col:0, row:0 }];
-    this.visited[0][0] = true;
-    let visitCount = 1;
-    const total = COLS * ROWS;
-
-    while (visitCount < total) {
-      const curr = stack[stack.length - 1];
-      const neighbors = this.getUnvisitedNeighbors(curr.col, curr.row);
-      if (neighbors.length > 0) {
-        const next = neighbors[PP3.utils.randInt(0, neighbors.length - 1)];
-        this.removeWall(curr, next);
-        this.visited[next.row][next.col] = true;
-        stack.push(next);
-        visitCount++;
-      } else {
-        stack.pop();
-      }
-    }
-
-    // Build fog map
-    this.fogMap = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
-    this.updateFog();
-  },
-
-  getUnvisitedNeighbors(col, row) {
-    const result = [];
-    const { COLS, ROWS } = this;
-    if (row > 0      && !this.visited[row-1][col])   result.push({ col, row:row-1, dir:'top' });
-    if (row < ROWS-1 && !this.visited[row+1][col])   result.push({ col, row:row+1, dir:'bottom' });
-    if (col > 0      && !this.visited[row][col-1])   result.push({ col:col-1, row, dir:'left' });
-    if (col < COLS-1 && !this.visited[row][col+1])   result.push({ col:col+1, row, dir:'right' });
-    return result;
-  },
-
-  removeWall(a, b) {
-    const dc = b.col - a.col, dr = b.row - a.row;
-    if (dc === 1)  { this.grid[a.row][a.col].right  = 0; this.grid[b.row][b.col].left   = 0; }
-    if (dc === -1) { this.grid[a.row][a.col].left   = 0; this.grid[b.row][b.col].right  = 0; }
-    if (dr === 1)  { this.grid[a.row][a.col].bottom = 0; this.grid[b.row][b.col].top    = 0; }
-    if (dr === -1) { this.grid[a.row][a.col].top    = 0; this.grid[b.row][b.col].bottom = 0; }
-  },
-
-  updateFog() {
-    const { player, COLS, ROWS } = this;
-    const RADIUS = 3;
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const dist = Math.abs(c - player.col) + Math.abs(r - player.row);
-        if (dist <= RADIUS) this.fogMap[r][c] = true;
-      }
-    }
-  },
-
-  move(dc, dr) {
-    const { player, grid, COLS, ROWS } = this;
-    const nc = player.col + dc, nr = player.row + dr;
-    if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) return;
-
-    // Check wall
-    let canMove = false;
-    if (dc === 1  && !grid[player.row][player.col].right)  canMove = true;
-    if (dc === -1 && !grid[player.row][player.col].left)   canMove = true;
-    if (dr === 1  && !grid[player.row][player.col].bottom) canMove = true;
-    if (dr === -1 && !grid[player.row][player.col].top)    canMove = true;
-
-    if (!canMove) { PP3.toast('جدار! ⛔', 'error', 800); return; }
-
-    player.col = nc; player.row = nr;
-    this.moveCount++;
-    const mc = PP3.utils.$('mazeMoveCount');
-    if (mc) mc.textContent = this.moveCount;
-    this.updateFog();
-
-    if (player.col === this.exit.col && player.row === this.exit.row) {
-      this.onWin();
-    }
-  },
-
-  drawLoop() {
-    if (!this.canvas || !this.ctx) return;
-    this.draw();
-    this.animId = requestAnimationFrame(() => this.drawLoop());
-  },
-
-  draw() {
-    const { ctx, canvas, grid, player, exit, CELL, COLS, ROWS, fogMap } = this;
-    if (!ctx) return;
-    const W = COLS * CELL, H = ROWS * CELL;
-    ctx.clearRect(0, 0, W, H);
-
-    // Background
-    ctx.fillStyle = '#040c18';
-    ctx.fillRect(0, 0, W, H);
-
-    // Cells & walls
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const x = c * CELL, y = r * CELL;
-        const visible = fogMap[r][c];
-
-        // Fog
-        if (!visible) {
-          ctx.fillStyle = '#020810';
-          ctx.fillRect(x, y, CELL, CELL);
-          continue;
-        }
-
-        // Floor
-        ctx.fillStyle = 'rgba(30,10,60,0.9)';
-        ctx.fillRect(x, y, CELL, CELL);
-
-        // Subtle grid pattern
-        ctx.strokeStyle = 'rgba(155,48,255,0.08)';
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(x+1, y+1, CELL-2, CELL-2);
-
-        const cell = grid[r][c];
-        ctx.strokeStyle = 'rgba(155,48,255,0.7)';
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = 'square';
-
+    // nodes
+    this.nodes.forEach(n=>{
+      if(n.attacking)n.pulse=(n.pulse||0)+.07;
+      const hc=n.health>70?'#00ff88':n.health>40?'#ffaa00':'#ff3366';
+      if(n.type!=='internet'){
         ctx.beginPath();
-        if (cell.top)    { ctx.moveTo(x, y);        ctx.lineTo(x+CELL, y); }
-        if (cell.right)  { ctx.moveTo(x+CELL, y);   ctx.lineTo(x+CELL, y+CELL); }
-        if (cell.bottom) { ctx.moveTo(x, y+CELL);   ctx.lineTo(x+CELL, y+CELL); }
-        if (cell.left)   { ctx.moveTo(x, y);        ctx.lineTo(x, y+CELL); }
-        ctx.stroke();
+        ctx.arc(n.x,n.y,n.r+5,-Math.PI/2,-Math.PI/2+(n.health/100)*Math.PI*2);
+        ctx.strokeStyle=hc;ctx.lineWidth=2;ctx.shadowColor=hc;ctx.shadowBlur=n.attacking?18:4;ctx.stroke();ctx.shadowBlur=0;
       }
-    }
-
-    // Exit marker
-    if (fogMap[exit.row]?.[exit.col]) {
-      ctx.fillStyle = 'rgba(255,215,0,0.2)';
-      ctx.fillRect(exit.col * CELL + 2, exit.row * CELL + 2, CELL - 4, CELL - 4);
-      ctx.fillStyle = '#ffd700';
-      ctx.font = `${CELL * 0.7}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🎯', exit.col * CELL + CELL / 2, exit.row * CELL + CELL / 2);
-    }
-
-    // Player
-    const t = performance.now() / 500;
-    const pulse = 0.8 + 0.2 * Math.sin(t);
-    ctx.save();
-    ctx.shadowColor = '#9b30ff';
-    ctx.shadowBlur  = 12 * pulse;
-    ctx.fillStyle   = '#9b30ff';
-    ctx.beginPath();
-    ctx.arc(
-      player.col * CELL + CELL / 2,
-      player.row * CELL + CELL / 2,
-      CELL * 0.32 * pulse, 0, Math.PI * 2
-    );
-    ctx.fill();
-    ctx.restore();
-
-    // Fog gradient overlay at visible boundary
-    const px = player.col * CELL + CELL / 2;
-    const py = player.row * CELL + CELL / 2;
-    const fogGrad = ctx.createRadialGradient(px, py, CELL * 2, px, py, CELL * 4.5);
-    fogGrad.addColorStop(0, 'transparent');
-    fogGrad.addColorStop(1, 'rgba(2,4,8,0.92)');
-    ctx.fillStyle = fogGrad;
-    ctx.fillRect(0, 0, W, H);
-  },
-
-  onWin() {
-    this.stopAnim();
-    window.removeEventListener('keydown', this._keyHandler);
-
-    const area = PP3.utils.$('puzzleArea');
-    if (!area) return;
-    area.innerHTML += `<div style="text-align:center;margin-top:1rem;animation:fadeSlideIn 0.4s ease">
-      <div style="font-size:2rem;margin-bottom:0.5rem">🏆</div>
-      <div style="color:var(--glow-green);font-weight:600;margin-bottom:1rem">وصلت! خطوات: ${this.moveCount}</div>
-      <button class="machine-check-btn" id="mazeClaim" style="background:linear-gradient(135deg,#9b30ff,#6010cc)">
-        🔮 جمع نواة المتاهة
-      </button>
-    </div>`;
-    PP3.utils.$('mazeClaim')?.addEventListener('click', () => {
-      PP3.state.cores[1] = true;
-      PP3.updateHUD();
-      PP3.showSuccess(2);
+      if(n.attacking){
+        const pr=n.r+7+Math.sin(n.pulse)*5;
+        ctx.beginPath();ctx.arc(n.x,n.y,pr,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(255,51,102,${.35+.35*Math.sin(n.pulse)})`;ctx.lineWidth=1.5;ctx.stroke();
+      }
+      const bg=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+      bg.addColorStop(0,n.attacking?'rgba(255,51,102,.28)':'rgba(10,30,53,.95)');
+      bg.addColorStop(1,'rgba(2,12,24,.9)');
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.strokeStyle=n.attacking?'#ff3366':n.color+'88';ctx.lineWidth=1.5;
+      ctx.shadowColor=n.attacking?'#ff3366':n.color;ctx.shadowBlur=n.attacking?14:6;ctx.stroke();ctx.shadowBlur=0;
+      ctx.font=`${n.type==='internet'?12:15}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(n.icon,n.x,n.y);
+      ctx.font='8px JetBrains Mono,monospace';ctx.fillStyle=n.color;
+      ctx.fillText(n.label,n.x,n.y+n.r+11);
     });
-  },
-};
-
-// ================================================================
-// ZONE 3 — MACHINE PUZZLE
-// ================================================================
-PP3.machinePuzzle = {
-  machines: [
-    { id: 0, icon: '⚙️',  name: 'محرك التوربين',  active: false },
-    { id: 1, icon: '🔋',  name: 'بطارية الطاقة',  active: false },
-    { id: 2, icon: '💡',  name: 'مولّد الضوء',    active: false },
-    { id: 3, icon: '🌀',  name: 'ضاغط البلازما',  active: false },
-    { id: 4, icon: '📡',  name: 'هوائي الإشارة',  active: false },
-    { id: 5, icon: '🔌',  name: 'موزع الطاقة',    active: false },
-    { id: 6, icon: '🧲',  name: 'المغناطيس الأيوني', active: false },
-    { id: 7, icon: '⚡',  name: 'مُفجّر الكهرباء', active: false },
-    { id: 8, icon: '🔧',  name: 'أداة الإصلاح',   active: false },
-    { id: 9, icon: '🛸',  name: 'محرك الكوكب',    active: false },
-    { id: 10, icon: '🌡️', name: 'جهاز الحرارة',   active: false },
-    { id: 11, icon: '💎', name: 'بلورة الطاقة',   active: false },
-  ],
-  correctSequence: [],
-  playerSequence: [],
-  revealed: false,
-  revealTimer: null,
-  attempts: 0,
-
-  build(area, zone) {
-    this.machines.forEach(m => m.active = false);
-    this.playerSequence = [];
-    this.attempts = 0;
-    this.revealed  = false;
-
-    // Pick 4 random machines as correct sequence
-    const shuffled = PP3.utils.shuffle([...Array(12).keys()]);
-    this.correctSequence = shuffled.slice(0, 4);
-
-    area.innerHTML = `
-      <div class="zone-intro-card" style="border-color:rgba(255,123,0,0.3)">
-        <h3 style="color:${zone.color}">⚙️ تفعيل الآلات</h3>
-        <p id="machineInstructions">احفظ تسلسل الآلات الوامضة، ثم اضغط عليها بنفس الترتيب!</p>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%">
-        <div class="machine-grid" id="machineGrid">
-          ${this.machines.map(m => '<div class="machine-cell" id="mach_' + m.id + '" data-id="' + m.id + '" title="' + m.name + '">' + m.icon + '</div>').join('')}
-        </div>
-        <div class="machine-hint" id="machineHint">
-          الصواب: ${this.correctSequence.length} آلات. انتظر التسلسل...
-        </div>
-        <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:center">
-          <button class="machine-check-btn" id="btnShowSeq" style="background:linear-gradient(135deg,#ff7b00,#cc4400)">
-            👁 أظهر التسلسل
-          </button>
-          <button class="machine-check-btn" id="btnCheckSeq" style="background:linear-gradient(135deg,#444,#222);opacity:0.5" disabled>
-            ✅ تحقق من الإجابة
-          </button>
-        </div>
-      </div>
-    `;
-
-    // Grid click
-    document.querySelectorAll('.machine-cell').forEach(cell => {
-      cell.addEventListener('click', (e) => {
-        if (!this.revealed) { PP3.toast('أظهر التسلسل أولاً!', 'info', 1500); return; }
-        this.onCellClick(parseInt(cell.dataset.id));
-      });
-    });
-
-    PP3.utils.$('btnShowSeq')?.addEventListener('click', () => this.playSequence());
-    PP3.utils.$('btnCheckSeq')?.addEventListener('click', () => this.checkAnswer());
-  },
-
-  async playSequence() {
-    this.playerSequence = [];
-    this.revealed = false;
-    const btn = PP3.utils.$('btnShowSeq');
-    const checkBtn = PP3.utils.$('btnCheckSeq');
-    const hintEl  = PP3.utils.$('machineHint');
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ العرض...'; }
-    if (checkBtn) { checkBtn.disabled = true; checkBtn.style.opacity = '0.5'; }
-    if (hintEl) hintEl.textContent = 'احفظ الترتيب جيداً!';
-
-    // Reset all
-    this.machines.forEach(m => {
-      m.active = false;
-      const el = PP3.utils.$(`mach_${m.id}`);
-      if (el) el.classList.remove('active');
-    });
-
-    await PP3.utils.delay(500);
-
-    for (let i = 0; i < this.correctSequence.length; i++) {
-      const id  = this.correctSequence[i];
-      const el  = PP3.utils.$(`mach_${id}`);
-      if (el) {
-        el.classList.add('active');
-        // Pulse effect
-        el.style.transform = 'scale(1.2)';
-      }
-      await PP3.utils.delay(700);
-      if (el) {
-        el.classList.remove('active');
-        el.style.transform = '';
-      }
-      await PP3.utils.delay(300);
-    }
-
-    this.revealed = true;
-    if (btn) { btn.disabled = false; btn.textContent = '👁 أعد العرض'; }
-    if (checkBtn) { checkBtn.disabled = false; checkBtn.style.opacity = '1'; }
-    if (hintEl) hintEl.textContent = `الآن اضغط على الآلات بنفس الترتيب (0/${this.correctSequence.length})`;
-  },
-
-  onCellClick(id) {
-    this.playerSequence.push(id);
-    const el = PP3.utils.$(`mach_${id}`);
-    if (el) {
-      el.classList.add('active');
-      el.style.transform = 'scale(1.15)';
-      setTimeout(() => {
-        el.classList.remove('active');
-        el.style.transform = '';
-      }, 300);
-    }
-
-    const hintEl = PP3.utils.$('machineHint');
-    if (hintEl) hintEl.textContent = `اختيارك: ${this.playerSequence.length} / ${this.correctSequence.length}`;
-
-    // Auto check if enough selected
-    if (this.playerSequence.length >= this.correctSequence.length) {
-      setTimeout(() => this.checkAnswer(), 300);
-    }
-  },
-
-  checkAnswer() {
-    this.attempts++;
-    const correct = this.correctSequence.every((v, i) => v === this.playerSequence[i]);
-    const hintEl  = PP3.utils.$('machineHint');
-    const area    = PP3.utils.$('puzzleArea');
-
-    if (correct) {
-      if (hintEl) {
-        hintEl.innerHTML = `<span style="color:var(--glow-green)">✓ ممتاز! التسلسل صحيح!</span>`;
-      }
-      // Flash all
-      this.correctSequence.forEach(id => {
-        const el = PP3.utils.$(`mach_${id}`);
-        if (el) {
-          el.classList.add('active');
-          el.style.boxShadow = '0 0 30px rgba(255,123,0,0.8)';
-        }
-      });
-      setTimeout(() => {
-        const claimDiv = document.createElement('div');
-        claimDiv.style.cssText = 'text-align:center;margin-top:1rem';
-        claimDiv.innerHTML = `
-          <button class="machine-check-btn" id="machineClaim" style="background:linear-gradient(135deg,#ff7b00,#cc5500)">
-            🔶 جمع نواة الآلات
-          </button>
-        `;
-        area?.appendChild(claimDiv);
-        PP3.utils.$('machineClaim')?.addEventListener('click', () => {
-          PP3.state.cores[2] = true;
-          PP3.updateHUD();
-          PP3.showSuccess(3);
-        });
-      }, 800);
-    } else {
-      if (hintEl) {
-        hintEl.innerHTML = `<span style="color:var(--glow-pink)">✗ خطأ في الترتيب. المحاولة: ${this.attempts}</span>`;
-      }
-      PP3.toast('ترتيب خاطئ! أعد المحاولة ✗', 'error', 1500);
-      this.playerSequence = [];
-      // Reset
-      this.machines.forEach(m => {
-        const el = PP3.utils.$(`mach_${m.id}`);
-        if (el) { el.classList.remove('active'); el.style.transform = ''; el.style.boxShadow = ''; }
-      });
-      setTimeout(() => {
-        if (hintEl) hintEl.textContent = `حاول مجدداً! يمكنك إعادة العرض.`;
-      }, 1500);
-    }
-  },
-};
-
-window.__PP_part3_ready = true;
-console.log('[PP] Part 3 loaded ✓');
-
-/* ================================================================
-   PUZZLE PLANET — PART 4
-   Zone Puzzles: Light (Z4), Time (Z5) + Final Boot
-   ================================================================ */
-'use strict';
-
-const PP4 = window.PP;
-
-// ================================================================
-// ZONE 4 — LIGHT PUZZLE (Mirror/Beam routing)
-// ================================================================
-PP4.lightPuzzle = {
-  GRID: 7,
-  CELL: 56,
-  canvas: null, ctx: null,
-  animId: null,
-  tiles: [],
-  beamReachesGoal: false,
-  goalPos: { col: 6, row: 3 },
-  sourcePos: { col: 0, row: 3 },
-
-  stopAnim() {
-    if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
-  },
-
-  build(area, zone) {
-    this.beamReachesGoal = false;
-    this.initGrid();
-
-    const size = this.GRID * this.CELL;
-    area.innerHTML = `
-      <div class="zone-intro-card" style="border-color:rgba(0,255,136,0.3)">
-        <h3 style="color:${zone.color}">💎 توجيه الضوء</h3>
-        <p>اضغط على المرايا لتدويرها وتوجيه شعاع الضوء من المصدر (🔦) إلى الهدف (🎯).</p>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:0.8rem">
-        <canvas id="lightCanvas" width="${size}" height="${size}"></canvas>
-        <div class="light-info" id="lightInfo">
-          وجّه الشعاع نحو الهدف!
-        </div>
-        <button class="machine-check-btn" id="lightReset" style="background:linear-gradient(135deg,#00ff88,#008844);color:#000">
-          🔄 إعادة تعيين المرايا
-        </button>
-      </div>
-    `;
-
-    this.canvas = PP4.utils.$('lightCanvas');
-    this.ctx    = this.canvas ? this.canvas.getContext('2d') : null;
-
-    this.canvas?.addEventListener('click', (e) => {
-      const rect = this.canvas.getBoundingClientRect();
-      const scaleX = this.canvas.width / rect.width;
-      const scaleY = this.canvas.height / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top)  * scaleY;
-      const col = Math.floor(x / this.CELL);
-      const row = Math.floor(y / this.CELL);
-      this.rotateTile(col, row);
-    });
-
-    PP4.utils.$('lightReset')?.addEventListener('click', () => {
-      this.initGrid();
-      const info = PP4.utils.$('lightInfo');
-      if (info) info.textContent = 'وجّه الشعاع نحو الهدف!';
-    });
-
-    this.drawLoop();
-  },
-
-  initGrid() {
-    const G = this.GRID;
-    this.tiles = Array.from({ length: G }, () =>
-      Array.from({ length: G }, () => ({ type: 'empty', angle: 0 }))
-    );
-
-    // Source & goal fixed
-    this.tiles[this.sourcePos.row][this.sourcePos.col] = { type: 'source', angle: 0 };
-    this.tiles[this.goalPos.row][this.goalPos.col]     = { type: 'goal',   angle: 0 };
-
-    // Place mirrors
-    const mirrorPositions = [
-      { col:2, row:3, angle:45 },
-      { col:2, row:1, angle:135},
-      { col:4, row:1, angle:135},
-      { col:4, row:3, angle:45 },
-      { col:5, row:3, angle:135},
-      { col:1, row:3, angle:45 },
-    ];
-    mirrorPositions.forEach(mp => {
-      if (mp.col >= 0 && mp.col < G && mp.row >= 0 && mp.row < G) {
-        this.tiles[mp.row][mp.col] = { type: 'mirror', angle: mp.angle };
-      }
-    });
-
-    // Walls (blockers)
-    [[1,2],[3,2],[5,1],[6,2]].forEach(([col,row]) => {
-      if (col < G && row < G) this.tiles[row][col] = { type: 'wall', angle: 0 };
-    });
-  },
-
-  rotateTile(col, row) {
-    if (col < 0 || col >= this.GRID || row < 0 || row >= this.GRID) return;
-    const tile = this.tiles[row][col];
-    if (tile.type === 'source' || tile.type === 'goal' || tile.type === 'empty') return;
-    if (tile.type === 'wall') return;
-    tile.angle = (tile.angle + 45) % 180;
-    this.checkWin();
-  },
-
-  traceBeam() {
-    // Trace light ray from source rightward
-    const beamSegments = [];
-    let col = this.sourcePos.col + 1;
-    let row = this.sourcePos.row;
-    let dir = { dc: 1, dr: 0 }; // starts going right
-    const MAX_STEPS = 100;
-    let steps = 0;
-
-    beamSegments.push({ x1: this.sourcePos.col, y1: row, x2: col, y2: row });
-
-    while (steps++ < MAX_STEPS) {
-      if (col < 0 || col >= this.GRID || row < 0 || row >= this.GRID) break;
-      const tile = this.tiles[row][col];
-
-      if (tile.type === 'goal') {
-        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col, y2: row });
-        this.beamReachesGoal = true;
-        break;
-      }
-      if (tile.type === 'wall') {
-        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col - dir.dc, y2: row - dir.dr });
-        break;
-      }
-      if (tile.type === 'mirror') {
-        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col, y2: row });
-        // Reflect based on angle
-        const angle = tile.angle;
-        if (angle === 45) {
-          // '/' mirror
-          if (dir.dc === 1 && dir.dr === 0)  dir = { dc:  0, dr: -1 };
-          else if (dir.dc === -1 && dir.dr === 0) dir = { dc: 0, dr:  1 };
-          else if (dir.dc === 0 && dir.dr === 1)  dir = { dc: -1, dr: 0 };
-          else if (dir.dc === 0 && dir.dr === -1) dir = { dc:  1, dr: 0 };
-        } else {
-          // '\' mirror (135 deg)
-          if (dir.dc === 1 && dir.dr === 0)  dir = { dc:  0, dr:  1 };
-          else if (dir.dc === -1 && dir.dr === 0) dir = { dc: 0, dr: -1 };
-          else if (dir.dc === 0 && dir.dr === 1)  dir = { dc:  1, dr: 0 };
-          else if (dir.dc === 0 && dir.dr === -1) dir = { dc: -1, dr: 0 };
-        }
-      } else {
-        // Empty — continue
-        beamSegments.push({ x1: col - dir.dc, y1: row - dir.dr, x2: col, y2: row });
-      }
-      col += dir.dc;
-      row += dir.dr;
-    }
-    return beamSegments;
-  },
-
-  checkWin() {
-    this.beamReachesGoal = false;
-    this.traceBeam();
-    if (this.beamReachesGoal) {
-      const info = PP4.utils.$('lightInfo');
-      if (info) info.innerHTML = '<span style="color:var(--glow-green)">✓ الضوء وصل للهدف!</span>';
-      setTimeout(() => {
-        const area = PP4.utils.$('puzzleArea');
-        const claimDiv = document.createElement('div');
-        claimDiv.style.cssText = 'text-align:center;margin-top:1rem';
-        claimDiv.innerHTML = `
-          <button class="machine-check-btn" id="lightClaim" style="background:linear-gradient(135deg,#00ff88,#008855);color:#000">
-            💎 جمع نواة الضوء
-          </button>
-        `;
-        area?.appendChild(claimDiv);
-        PP4.utils.$('lightClaim')?.addEventListener('click', () => {
-          PP4.state.cores[3] = true;
-          PP4.updateHUD();
-          PP4.showSuccess(4);
-        });
-        this.stopAnim();
-      }, 600);
-    }
-  },
-
-  drawLoop() {
-    if (!this.canvas || !this.ctx) return;
-    this.beamReachesGoal = false;
-    this.draw();
-    if (!this.beamReachesGoal) {
-      this.animId = requestAnimationFrame(() => this.drawLoop());
-    }
-  },
-
-  draw() {
-    const { ctx, GRID, CELL, tiles } = this;
-    if (!ctx) return;
-    const W = GRID * CELL, H = GRID * CELL;
-    ctx.clearRect(0, 0, W, H);
-
-    // Background
-    ctx.fillStyle = '#030f0a';
-    ctx.fillRect(0, 0, W, H);
-
-    // Grid lines
-    ctx.strokeStyle = 'rgba(0,255,136,0.08)';
-    ctx.lineWidth = 0.5;
-    for (let i = 0; i <= GRID; i++) {
-      ctx.beginPath(); ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, H); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, i * CELL); ctx.lineTo(W, i * CELL); ctx.stroke();
-    }
-
-    // Draw tiles
-    for (let r = 0; r < GRID; r++) {
-      for (let c = 0; c < GRID; c++) {
-        const tile = tiles[r][c];
-        const cx = c * CELL + CELL / 2;
-        const cy = r * CELL + CELL / 2;
-
-        if (tile.type === 'wall') {
-          ctx.fillStyle = 'rgba(255,255,255,0.06)';
-          ctx.fillRect(c * CELL + 3, r * CELL + 3, CELL - 6, CELL - 6);
-          ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(c * CELL + 3, r * CELL + 3, CELL - 6, CELL - 6);
-          ctx.fillStyle = 'rgba(255,255,255,0.4)';
-          ctx.font = `${CELL * 0.5}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('🧱', cx, cy);
-        } else if (tile.type === 'source') {
-          ctx.fillStyle = 'rgba(255,200,0,0.15)';
-          ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.38, 0, Math.PI * 2); ctx.fill();
-          ctx.strokeStyle = '#ffd700';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          ctx.fillStyle = '#ffd700';
-          ctx.font = `${CELL * 0.55}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('🔦', cx, cy);
-        } else if (tile.type === 'goal') {
-          const t = performance.now() / 500;
-          const pulse = 0.8 + 0.2 * Math.sin(t);
-          ctx.fillStyle = `rgba(0,255,136,${0.15 * pulse})`;
-          ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.38 * pulse, 0, Math.PI * 2); ctx.fill();
-          ctx.strokeStyle = '#00ff88';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          ctx.fillStyle = '#00ff88';
-          ctx.font = `${CELL * 0.55}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('🎯', cx, cy);
-        } else if (tile.type === 'mirror') {
-          ctx.fillStyle = 'rgba(0,200,255,0.08)';
-          ctx.fillRect(c * CELL + 4, r * CELL + 4, CELL - 8, CELL - 8);
-          ctx.save();
-          ctx.translate(cx, cy);
-          const lineAngle = tile.angle === 45 ? -Math.PI / 4 : Math.PI / 4;
-          ctx.rotate(lineAngle);
-          ctx.strokeStyle = '#00c8ff';
-          ctx.lineWidth = 3;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = '#00c8ff';
-          ctx.beginPath();
-          ctx.moveTo(-CELL * 0.32, 0);
-          ctx.lineTo( CELL * 0.32, 0);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-    }
-
-    // Trace and draw beam
-    this.beamReachesGoal = false;
-    const segments = this.traceBeam();
-    const t = performance.now() / 1000;
-    const beamAlpha = 0.7 + 0.3 * Math.sin(t * 4);
-
-    ctx.save();
-    ctx.strokeStyle = `rgba(255,220,0,${beamAlpha})`;
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 16;
-    ctx.shadowColor = '#ffee00';
-    ctx.lineCap = 'round';
-    segments.forEach(seg => {
-      if (seg.x1 === seg.x2 && seg.y1 === seg.y2) return;
-      ctx.beginPath();
-      ctx.moveTo(seg.x1 * CELL + CELL / 2, seg.y1 * CELL + CELL / 2);
-      ctx.lineTo(seg.x2 * CELL + CELL / 2, seg.y2 * CELL + CELL / 2);
-      ctx.stroke();
-    });
-    ctx.restore();
-
-    // Outer border
-    ctx.strokeStyle = 'rgba(0,255,136,0.3)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(1, 1, W - 2, H - 2);
-  },
-};
-
-// ================================================================
-// ZONE 5 — TIME PUZZLE (Sequence pattern)
-// ================================================================
-PP4.timePuzzle = {
-  sequences: [
-    {
-      title: 'تسلسل الأرقام',
-      visible: ['2️⃣','4️⃣','8️⃣','🔲','3️⃣','2️⃣'],
-      hiddenIndex: 3,
-      answer: '1️⃣',
-      choices: ['1️⃣','6️⃣','5️⃣','3️⃣'],
-      hint: 'كل رقم ضعف السابق: 2→4→8→?',
-    },
-    {
-      title: 'تسلسل الكواكب',
-      visible: ['🌍','🌕','⭐','🌌','🔲'],
-      hiddenIndex: 4,
-      answer: '🌠',
-      choices: ['🌠','☀️','🪐','💫'],
-      hint: 'تسلسل الابتعاد من الأرض...',
-    },
-    {
-      title: 'تسلسل الألوان',
-      visible: ['🔴','🟡','🟢','🔵','🟣','🔲'],
-      hiddenIndex: 5,
-      answer: '⚫',
-      choices: ['⚫','🟤','⬜','🔶'],
-      hint: 'نهاية قوس قزح الكوكبي...',
-    },
-    {
-      title: 'تسلسل الوقت',
-      visible: ['🌅','☀️','🌤️','🔲','🌙'],
-      hiddenIndex: 3,
-      answer: '🌆',
-      choices: ['🌆','🌃','🌄','⛅'],
-      hint: 'أحداث اليوم من الفجر حتى الليل...',
-    },
-    {
-      title: 'تسلسل الطاقة',
-      visible: ['🔲','⚡','💥','🌟','✨'],
-      hiddenIndex: 0,
-      answer: '🔋',
-      choices: ['🔋','💡','🔌','🕯️'],
-      hint: 'من المصدر... إلى الانبثاق...',
-    },
-  ],
-  currentRound: 0,
-  score: 0,
-  selectedAnswer: null,
-  completed: false,
-
-  build(area, zone) {
-    this.currentRound = 0;
-    this.score = 0;
-    this.selectedAnswer = null;
-    this.completed = false;
-
-    area.innerHTML = `
-      <div class="zone-intro-card" style="border-color:rgba(255,45,120,0.3)">
-        <h3 style="color:${zone.color}">⏳ ألغاز الزمن</h3>
-        <p>اكتشف النمط الخفي في كل تسلسل واختر الرمز المفقود.</p>
-      </div>
-      <div class="time-puzzle" id="timePuzzleRoot">
-        <div class="puzzle-progress">
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="timeProgress" style="width:0%;background:linear-gradient(90deg,#ff2d78,#9b30ff)"></div>
-          </div>
-          <div class="progress-text" id="timeProgressText">0 / ${this.sequences.length}</div>
-        </div>
-        <div id="timeRoundArea"></div>
-      </div>
-    `;
-    this.renderRound();
-  },
-
-  renderRound() {
-    const area = PP4.utils.$('timeRoundArea');
-    if (!area) return;
-    if (this.currentRound >= this.sequences.length) {
-      this.onComplete();
-      return;
-    }
-
-    const seq  = this.sequences[this.currentRound];
-    const shuffledChoices = PP4.utils.shuffle([...seq.choices]);
-    this.selectedAnswer = null;
-
-    area.innerHTML = `
-      <div class="logic-question" style="border-color:rgba(255,45,120,0.2)">
-        <div style="text-align:center;margin-bottom:0.5rem;font-size:0.8rem;color:var(--glow-pink);font-weight:600;letter-spacing:0.1em">
-          ${seq.title}
-        </div>
-        <div class="time-sequence-display" id="seqDisplay">
-          ${seq.visible.map((sym, i) => '<div class="seq-symbol ' + (i === seq.hiddenIndex ? 'hidden' : 'revealed') + '" id="seq_' + i + '">' + (i === seq.hiddenIndex ? '❓' : sym) + '</div>').join('')}
-        </div>
-        <div style="text-align:center;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.8rem">
-          💡 ${seq.hint}
-        </div>
-        <div class="time-input-row">
-          ${shuffledChoices.map(c => '<button class="time-choice-btn" data-value="' + c + '">' + c + '</button>').join('')}
-        </div>
-        <div style="text-align:center;margin-top:0.5rem">
-          <button class="machine-check-btn" id="timeConfirmBtn"
-            style="background:linear-gradient(135deg,#ff2d78,#8b0040);opacity:0.5"
-            disabled>
-            ✓ تأكيد الإجابة
-          </button>
-        </div>
-        <div id="timeFeedback" style="text-align:center;font-size:0.82rem;margin-top:0.7rem;min-height:1.2rem;color:var(--text-secondary)"></div>
-      </div>
-    `;
-
-    // Animate sequence in
-    seq.visible.forEach((_, i) => {
-      setTimeout(() => {
-        const el = PP4.utils.$(`seq_${i}`);
-        if (el) el.style.opacity = '1';
-      }, i * 100);
-    });
-
-    // Choice buttons
-    area.querySelectorAll('.time-choice-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        area.querySelectorAll('.time-choice-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        this.selectedAnswer = btn.dataset.value;
-        const confirmBtn = PP4.utils.$('timeConfirmBtn');
-        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.style.opacity = '1'; }
-      });
-    });
-
-    PP4.utils.$('timeConfirmBtn')?.addEventListener('click', () => this.checkAnswer(seq));
-
-    // Progress
-    const prog = PP4.utils.$('timeProgress');
-    const progText = PP4.utils.$('timeProgressText');
-    if (prog) prog.style.width = `${(this.currentRound / this.sequences.length) * 100}%`;
-    if (progText) progText.textContent = `${this.currentRound} / ${this.sequences.length}`;
-  },
-
-  checkAnswer(seq) {
-    const feedbackEl = PP4.utils.$('timeFeedback');
-    const seqEl      = PP4.utils.$(`seq_${seq.hiddenIndex}`);
-    const isCorrect  = this.selectedAnswer === seq.answer;
-
-    // Reveal
-    if (seqEl) {
-      seqEl.textContent = seq.answer;
-      seqEl.classList.add('revealed');
-      seqEl.classList.remove('hidden');
-      seqEl.style.borderColor = isCorrect ? 'var(--glow-green)' : 'var(--glow-pink)';
-      seqEl.style.background  = isCorrect ? 'rgba(0,255,136,0.15)' : 'rgba(255,45,120,0.15)';
-    }
-
-    // Disable confirm
-    const confirmBtn = PP4.utils.$('timeConfirmBtn');
-    if (confirmBtn) confirmBtn.disabled = true;
-
-    if (isCorrect) {
-      this.score++;
-      if (feedbackEl) {
-        feedbackEl.innerHTML = '<span style="color:var(--glow-green)">✓ إجابة صحيحة!</span>';
-      }
-      PP4.toast('ممتاز! ✓', 'success', 1200);
-    } else {
-      if (feedbackEl) {
-        feedbackEl.innerHTML = `<span style="color:var(--glow-pink)">✗ الإجابة الصحيحة: ${seq.answer}</span>`;
-      }
-      PP4.toast('إجابة خاطئة ✗', 'error', 1200);
-    }
-
-    setTimeout(() => {
-      this.currentRound++;
-      this.renderRound();
-    }, 1800);
-  },
-
-  onComplete() {
-    const area = PP4.utils.$('timeRoundArea');
-    if (!area) return;
-    const passed = this.score >= 3;
-
-    const prog = PP4.utils.$('timeProgress');
-    const progText = PP4.utils.$('timeProgressText');
-    if (prog) prog.style.width = '100%';
-    if (progText) progText.textContent = `${this.sequences.length} / ${this.sequences.length}`;
-
-    area.innerHTML = `
-      <div class="logic-question" style="text-align:center">
-        <div style="font-size:3rem;margin-bottom:1rem">${passed ? '⏳✨' : '⌛'}</div>
-        <div class="logic-question-text">
-          ${passed
-            ? 'رائع! حللت <strong style="color:var(--glow-green)">' + this.score + '/' + this.sequences.length + '</strong> تسلسلات.'
-            : 'حللت <strong style="color:var(--glow-pink)">' + this.score + '/' + this.sequences.length + '</strong>. تحتاج 3 على الأقل.'
-          }
-        </div>
-        <button class="machine-check-btn" id="timeRetryOrClaim"
-          style="background:linear-gradient(135deg,#ff2d78,#8b0040)">
-          ${passed ? '❤️‍🔥 جمع نواة الزمن' : '🔄 حاول مجدداً'}
-        </button>
-      </div>
-    `;
-
-    PP4.utils.$('timeRetryOrClaim')?.addEventListener('click', () => {
-      if (passed) {
-        PP4.state.cores[4] = true;
-        PP4.updateHUD();
-        PP4.showSuccess(5);
-      } else {
-        this.currentRound = 0;
-        this.score = 0;
-        this.renderRound();
-      }
-    });
-  },
-};
-
-// ================================================================
-// BOOT — FINAL INITIALIZATION
-// ================================================================
-window.__puzzlePlanetReady = function() {
-  try {
-    PP4.boot();
-    console.log('[PP] 🚀 Puzzle Planet is running!');
-  } catch (err) {
-    console.error('[PP] Boot error:', err);
-    // Graceful fallback: hide loader and show intro anyway
-    const loader = document.getElementById('loadingScreen');
-    if (loader) loader.remove();
-    const intro = document.getElementById('introScreen');
-    if (intro) intro.classList.add('active');
-    const hud = document.getElementById('gameHUD');
-    if (hud) hud.classList.remove('visible');
   }
-};
-
-// If parts loaded out of order, try booting now
-if (window.__PP_part2_ready && window.__PP_part3_ready) {
-  window.__puzzlePlanetReady();
 }
 
-window.__PP_part4_ready = true;
-console.log('[PP] Part 4 loaded ✓');
+// ═══════════════════════════════════════════════
+//  CHARTS
+// ═══════════════════════════════════════════════
+class Charts {
+  constructor(){
+    this.dCh=null;this.tCh=null;
+    this.cnts={sqli:0,xss:0,phishing:0,ddos:0,bruteforce:0};
+    this.tl={lbs:[],atks:[],defs:[]};
+  }
+  init(){
+    Chart.defaults.color='#4a6a89';
+    if(this.dCh)this.dCh.destroy();
+    if(this.tCh)this.tCh.destroy();
+    this.cnts={sqli:0,xss:0,phishing:0,ddos:0,bruteforce:0};
+    this.tl={lbs:[],atks:[],defs:[]};
+    this.dCh=new Chart(document.getElementById('distCh').getContext('2d'),{
+      type:'doughnut',
+      data:{
+        labels:['SQL Inj','XSS','Phishing','DDoS','Brute Force'],
+        datasets:[{data:[0,0,0,0,0],
+          backgroundColor:['#ff3366','#ff7849','#f59e0b','#3b82f6','#8b5cf6'],
+          borderColor:'#0a1e35',borderWidth:2}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,position:'bottom',
+          labels:{font:{size:8,family:'JetBrains Mono'},boxWidth:8,padding:6}}}}
+    });
+    this.tCh=new Chart(document.getElementById('tlCh').getContext('2d'),{
+      type:'line',
+      data:{labels:[],datasets:[
+        {label:'هجمات',data:[],borderColor:'#ff3366',backgroundColor:'rgba(255,51,102,.1)',tension:.4,fill:true,borderWidth:2,pointRadius:2},
+        {label:'دفاعات',data:[],borderColor:'#00ff88',backgroundColor:'rgba(0,255,136,.1)',tension:.4,fill:true,borderWidth:2,pointRadius:2}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,position:'top',labels:{font:{size:8,family:'JetBrains Mono'},boxWidth:8,padding:6}}},
+        scales:{
+          x:{grid:{color:'rgba(26,58,92,.4)'},ticks:{font:{size:7},maxTicksLimit:5}},
+          y:{grid:{color:'rgba(26,58,92,.4)'},ticks:{font:{size:7},stepSize:1},beginAtZero:true}
+        }}
+    });
+  }
+  recAtk(type){
+    this.cnts[type]=(this.cnts[type]||0)+1;
+    this.dCh.data.datasets[0].data=[this.cnts.sqli,this.cnts.xss,this.cnts.phishing,this.cnts.ddos,this.cnts.bruteforce];
+    this.dCh.update('none');
+    const now=new Date();
+    const lb=`${now.getMinutes()}:${String(now.getSeconds()).padStart(2,'0')}`;
+    if(!this.tl.lbs.length||this.tl.lbs[this.tl.lbs.length-1]!==lb){
+      this.tl.lbs.push(lb);this.tl.atks.push(1);this.tl.defs.push(0);
+    } else this.tl.atks[this.tl.atks.length-1]++;
+    if(this.tl.lbs.length>12){this.tl.lbs.shift();this.tl.atks.shift();this.tl.defs.shift();}
+    this.tCh.data.labels=this.tl.lbs;
+    this.tCh.data.datasets[0].data=this.tl.atks;
+    this.tCh.update('none');
+  }
+  recDef(){
+    if(this.tl.defs.length){
+      this.tl.defs[this.tl.defs.length-1]++;
+      this.tCh.data.datasets[1].data=this.tl.defs;
+      this.tCh.update('none');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  AI ADVISOR
+// ═══════════════════════════════════════════════
+async function doAI(forEnd=false){
+  const btn=document.getElementById('aiBtn');
+  if(btn)btn.disabled=true;
+  const aiEl=document.getElementById('aiTxt');
+  aiEl.innerHTML=`<div class="ai-spin"><span>AI يحلل التهديدات</span><div class="dots"><span></span><span></span><span></span></div></div>`;
+
+  const hist=S.history.slice(-12).map(a=>`${a.type}→${a.target}→${a.result}`).join('\n');
+  const nodeH=NET?NET.nodes.filter(n=>n.type!=='internet').map(n=>`${n.label}:${n.health}%`).join(', '):'غير متاح';
+  const totAtk=S.totalAtks,blk=S.defended,brc=S.breached;
+  const dr=totAtk>0?Math.round(blk/totAtk*100):0;
+
+  const prompt=forEnd
+    ?`أنت خبير أمن سيبراني. قدّم تقرير نهائي موجز للغاية (3 جمل) بالعربية عن أداء هذا المحلل الأمني:
+الهجمات: ${totAtk} | محمية: ${blk} | مخترقة: ${brc} | معدل الدفاع: ${dr}%
+آخر الهجمات: ${hist}
+صحة الأجهزة: ${nodeH}
+كن محدداً ومهنياً. لا تستخدم markdown.`
+    :`أنت خبير أمن سيبراني. حلّل هذه البيانات بالعربية في 4 جمل فقط:
+إحصائيات: ${totAtk} هجوم، ${dr}% معدل دفاع
+آخر الهجمات:
+${hist}
+صحة الأجهزة: ${nodeH}
+ركّز على: الأنماط، أخطر الأجهزة، أهم توصيتين للدفاع. لا markdown.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:400,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d=await res.json();
+    const txt=d.content?.[0]?.text||'تعذر التحليل.';
+    if(forEnd){
+      document.getElementById('endAIReport').innerHTML=txt.replace(/\n/g,'<br>');
+      return txt;
+    }
+    aiEl.innerHTML=`
+      <div style="font-size:11px;line-height:1.9;color:var(--txt);border-right:2px solid var(--pur);padding-right:10px;direction:rtl">
+        ${txt.replace(/\n/g,'<br>')}
+      </div>
+      <div style="margin-top:7px;font-size:9px;color:var(--pur);font-family:'JetBrains Mono',monospace">
+        — تحليل #${++S.aiCnt} • ${new Date().toLocaleTimeString('ar')}
+      </div>`;
+    log('ai','CLAUDE_AI',`تم إكمال التحليل الأمني رقم ${S.aiCnt}`);
+  }catch(e){
+    aiEl.innerHTML=`<span style="color:var(--dan);font-size:10px">⚠ خطأ AI: ${e.message}</span>`;
+    if(forEnd)document.getElementById('endAIReport').textContent='تعذر توليد التقرير.';
+  }
+  if(btn)btn.disabled=false;
+}
+
+// ═══════════════════════════════════════════════
+//  GAME LOGIC
+// ═══════════════════════════════════════════════
+function selLvl(l){
+  selLvlVal=l;
+  document.querySelectorAll('.slvl').forEach(c=>c.classList.toggle('sel',+c.dataset.l===l));
+}
+
+function startGame(){
+  document.getElementById('startOv').style.display='none';
+  initGame(selLvlVal);
+}
+
+function changeLvl(l){
+  if(!S.running)return;
+  clearTimeouts();
+  initGame(l);
+}
+
+function clearTimeouts(){
+  clearInterval(S.timerIv);
+  clearTimeout(S.atkTimeout);
+  clearInterval(S.netActIv);
+}
+
+function initGame(lvl){
+  S.lvl=lvl;S.running=true;
+  S.score=0;S.defended=0;S.breached=0;S.totalAtks=0;
+  S.activeAtks=[];S.history=[];S.defCDs={};S.evCnt=0;
+  S.gameTime=600;S.aiCnt=0;S.atkIdCtr=0;
+  clearTimeouts();
+
+  const cfg=LVL_CFG[lvl];
+  [1,2,3].forEach(l=>document.getElementById(`lb${l}`).classList.toggle('act',l===lvl));
+  document.getElementById('sbLvl').textContent=cfg.nameEn;
+  document.getElementById('hTimer').style.color='var(--war)';
+
+  // Network
+  const defs=NODE_DEFS.slice(0,cfg.nodeCount+1);
+  if(!NET)NET=new NetCanvas();else{NET.stop();NET.nodes=[];NET.edges=[];NET.packets=[];NET.beams=[];NET.flashes=[];}
+  NET.setup(defs);
+
+  // Charts
+  if(!CHARTS)CHARTS=new Charts();
+  CHARTS.init();
+
+  // UI reset
+  document.getElementById('term').innerHTML='';
+  document.getElementById('atksEl').innerHTML='<div class="no-atk"><div style="font-size:22px;margin-bottom:6px">🛡️</div>الشبكة في وضع المراقبة</div>';
+  document.getElementById('atkBadge').textContent='جاهز';
+  document.getElementById('atkBadge').className='badge ok';
+
+  buildHGrid();buildRisk();updateMath();updateAll();
+
+  log('inf','SYSTEM',`تشغيل المحاكاة — المستوى: ${cfg.name}`);
+  log('inf','NETWORK',`رُصد ${defs.length-1} جهاز على الشبكة`);
+  log('inf','AI_READY','نظام الذكاء الاصطناعي جاهز للتحليل');
+
+  // Timer
+  S.timerIv=setInterval(()=>{
+    S.gameTime--;updateTimer();
+    if(S.gameTime<=0)endGame(true);
+  },1000);
+
+  // Network activity log
+  const netLines=['اتصال SSH: 192.168.1.12','HTTP GET /api/data 200 OK','DNS query: cdn.cloudflare.com','TLS 1.3 handshake OK','Firewall ALLOW 443/tcp','ICMP ping: 8ms','Backup sync: 128MB'];
+  S.netActIv=setInterval(()=>{
+    if(S.running)log('inf','NETWORK',netLines[Math.floor(Math.random()*netLines.length)]);
+  },7000);
+
+  schedAtk();
+  document.getElementById('sbSt').textContent='ACTIVE';
+  document.getElementById('sbSt').style.color='var(--pri)';
+}
+
+function schedAtk(){
+  const cfg=LVL_CFG[S.lvl];
+  const iv=cfg.atkInterval*(0.75+Math.random()*.5);
+  S.atkTimeout=setTimeout(()=>{
+    if(!S.running)return;
+    if(S.activeAtks.length<cfg.maxCon)launch();
+    schedAtk();
+  },iv);
+}
+
+function launch(){
+  const cfg=LVL_CFG[S.lvl];
+  const types=Object.values(ATK_DEFS);
+  const ad=types[Math.floor(Math.random()*types.length)];
+  const valid=NET.nodes.filter(n=>n.type!=='internet'&&ad.targetTypes.includes(n.type)&&n.health>0);
+  if(!valid.length)return;
+  const tgt=valid[Math.floor(Math.random()*valid.length)];
+  const prob=Math.min(.94,ad.power*cfg.mult*(1-(S.defCDs[ad.opt]?.active?.2:0)));
+  const id=`a${++S.atkIdCtr}`;
+
+  const atk={id,ad,target:tgt.id,tgtLbl:tgt.label,prob,dur:ad.dur,
+    timeLeft:Math.ceil(ad.dur/1000),resolved:false,iv:null};
+  S.activeAtks.push(atk);
+  S.totalAtks++;
+  NET.triggerAtk(tgt.id);
+  log('atk',ad.name.toUpperCase(),`→ ${tgt.label} | خطر: ${Math.round(prob*100)}%`);
+  renderAtkCard(atk,cfg.hints);
+  CHARTS.recAtk(ad.id);
+  updateAtkBadge();
+  atk.iv=setInterval(()=>{atk.timeLeft--;updTimer(id,atk.timeLeft);if(atk.timeLeft<=0)resolve(id,false);},1000);
+  if(S.totalAtks%5===0)setTimeout(doAI,1200);
+}
+
+function renderAtkCard(atk,hints){
+  const el=document.getElementById('atksEl');
+  const nm=el.querySelector('.no-atk');if(nm)nm.remove();
+  const ad=atk.ad;
+  const dbtns=Object.values(DEF_DEFS).map(d=>{
+    const isOpt=d.id===ad.opt;const onCD=!!S.defCDs[d.id];
+    return `<button class="dbtn${isOpt&&hints?' opt':''}" onclick="doDef('${d.id}','${atk.id}')"
+      id="db_${d.id}_${atk.id}" ${onCD?'disabled':''}>${d.icon} ${d.nameAr}${isOpt&&hints?' ★':''}</button>`;
+  }).join('');
+  const pc=atk.prob>.72?'var(--dan)':atk.prob>.5?'var(--war)':'var(--pri)';
+  const c=document.createElement('div');
+  c.className='atk';c.id=`card_${atk.id}`;
+  c.innerHTML=`
+  <div class="atk-top">
+    <div class="atk-name"><span>${ad.icon}</span><span style="color:${ad.color}">${ad.name}</span><span style="font-size:9px;color:var(--mut)">[${ad.nameAr}]</span></div>
+    <div style="display:flex;align-items:center;gap:7px">
+      <span style="font-size:9px;color:${pc};font-family:'JetBrains Mono',monospace">${Math.round(atk.prob*100)}% خطر</span>
+      <div class="atk-timer" id="t_${atk.id}">${atk.timeLeft}s</div>
+    </div>
+  </div>
+  <div class="atk-info">TARGET: ${atk.tgtLbl} — ${ad.desc}</div>
+  <div class="atk-prog"><div class="atk-bar" id="p_${atk.id}"></div></div>
+  <div class="def-btns">${dbtns}</div>`;
+  el.insertBefore(c,el.firstChild);
+  const st=Date.now();
+  const pi=setInterval(()=>{
+    const rem=Math.max(0,1-(Date.now()-st)/atk.dur);
+    const pb=document.getElementById(`p_${atk.id}`);
+    if(pb)pb.style.width=(rem*100)+'%';
+    if(rem<=0||atk.resolved)clearInterval(pi);
+  },100);
+}
+
+function updTimer(id,tl){
+  const el=document.getElementById(`t_${id}`);
+  if(el){el.textContent=`${tl}s`;el.className='atk-timer'+(tl<=3?' urg':'');}
+}
+
+function doDef(did,aid){
+  const atk=S.activeAtks.find(a=>a.id===aid);
+  if(!atk||atk.resolved)return;
+  const def=DEF_DEFS[did];if(!def||S.defCDs[did])return;
+  const isEff=def.counters.includes(atk.ad.id);
+  const suc=Math.random()<(isEff?def.eff:.32);
+  if(suc){
+    resolve(aid,true,did);
+    log('def',def.name.toUpperCase(),isEff?`✓ دفاع فعّال ضد ${atk.ad.name}`:'✓ دفاع جزئي (غير مثالي)');
+  } else {
+    log('def',def.name.toUpperCase(),'✗ فشل الدفاع — الهجوم مستمر!');
+  }
+  S.defCDs[did]=true;
+  // Disable all buttons for this defense
+  document.querySelectorAll(`[id^="db_${did}_"]`).forEach(b=>b.disabled=true);
+  setTimeout(()=>{delete S.defCDs[did];log('inf','COOLDOWN',`${def.nameAr} متاح مجدداً`);},def.cd);
+}
+
+function resolve(aid,blocked,did){
+  const atk=S.activeAtks.find(a=>a.id===aid);
+  if(!atk||atk.resolved)return;
+  atk.resolved=true;clearInterval(atk.iv);
+  S.history.push({type:atk.ad.id,target:atk.tgtLbl,result:blocked?'blocked':'breached',def:did||'none'});
+  if(blocked){
+    S.defended++;S.score+=10+Math.round(atk.prob*18);
+    CHARTS.recDef();
+    log('def','BLOCKED',`✅ ${atk.ad.name} → صُدّ بنجاح (+${10+Math.round(atk.prob*18)} نقطة)`);
+    NET.triggerDef(atk.target);
+  } else {
+    S.breached++;S.score=Math.max(0,S.score-15);
+    log('brc','BREACH',`❌ اختراق ${atk.tgtLbl} بواسطة ${atk.ad.name} (−15 نقطة)`);
+    NET.triggerBreach(atk.target);
+  }
+  S.activeAtks=S.activeAtks.filter(a=>a.id!==aid);
+  const card=document.getElementById(`card_${aid}`);
+  if(card){card.className=`atk ${blocked?'blocked':'breached'}`;setTimeout(()=>card.remove(),2200);}
+  updateAll();buildHGrid();buildRisk();updateMath();updateAtkBadge();
+  const comp=NET.nodes.filter(n=>n.type!=='internet'&&n.health<=0).length;
+  if(comp>=3)setTimeout(()=>endGame(false),1000);
+}
+
+function buildHGrid(){
+  const el=document.getElementById('hgrid');if(!el||!NET)return;
+  el.innerHTML=NET.nodes.filter(n=>n.type!=='internet').map(n=>{
+    const h=n.health,c=h>70?'#00ff88':h>40?'#ffaa00':'#ff3366';
+    return `<div class="hnode${h<=0?' comp':''}">
+      <div class="ni">${n.icon}</div><div class="nn">${n.label}</div>
+      <div class="hbar"><div class="hfill" style="width:${h}%;background:${c}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function buildRisk(){
+  const el=document.getElementById('riskEl');if(!el)return;
+  const types=[['ddos','DDoS'],['sqli','SQL Inj'],['xss','XSS'],['phishing','Phishing'],['bruteforce','Brute Force']];
+  el.innerHTML=types.map(([t,lb])=>{
+    const cnt=S.history.filter(a=>a.type===t).length;
+    const brc=S.history.filter(a=>a.type===t&&a.result==='breached').length;
+    const sc=Math.min(100,cnt*14+brc*24);
+    const c=sc>70?'var(--dan)':sc>40?'var(--war)':'var(--pri)';
+    return `<div class="risk-row">
+      <div class="risk-lbl">${lb}</div>
+      <div class="risk-wrap"><div class="risk-bar" style="width:${sc}%;background:linear-gradient(90deg,${c},${c}88)"></div></div>
+      <div class="risk-v" style="color:${c}">${sc}%</div>
+    </div>`;
+  }).join('');
+}
+
+function updateMath(){
+  const el=document.getElementById('mathEl');if(!el)return;
+  const n=S.totalAtks||1,b=S.defended,brc=S.breached;
+  const dr=Math.round(b/n*100);
+  const avgHealth=NET?NET.nodes.filter(x=>x.type!=='internet').reduce((s,x)=>s+x.health,0)/Math.max(1,NET.nodes.filter(x=>x.type!=='internet').length):100;
+  const risk=Math.round((100-avgHealth)*.6+(brc/n)*100*.4);
+  el.innerHTML=`
+    <span style="color:var(--sec)">P(دفاع)</span> = ${b}/${n} = <span style="color:var(--pri)">${dr}%</span><br>
+    <span style="color:var(--sec)">P(اختراق)</span> = ${brc}/${n} = <span style="color:var(--dan)">${Math.round(brc/n*100)}%</span><br>
+    <span style="color:var(--sec)">صحة الشبكة</span> = <span style="color:${avgHealth>70?'var(--pri)':avgHealth>40?'var(--war)':'var(--dan)'}">${Math.round(avgHealth)}%</span><br>
+    <span style="color:var(--sec)">مستوى المخاطرة</span> = <span style="color:${risk>60?'var(--dan)':risk>30?'var(--war)':'var(--pri)'}">${risk}%</span><br>
+    <span style="color:var(--sec)">درجة الأداء</span> = <span style="color:var(--war)">${S.score}</span>`;
+}
+
+function updateAtkBadge(){
+  const cnt=S.activeAtks.length;
+  const el=document.getElementById('atkBadge');
+  el.textContent=cnt>0?`${cnt} هجوم نشط!`:'جاهز';
+  el.className=cnt>0?'badge alert':'badge ok';
+  if(cnt===0){
+    const el2=document.getElementById('atksEl');
+    if(!el2.querySelector('.atk'))
+      el2.innerHTML='<div class="no-atk"><div style="font-size:22px;margin-bottom:6px">🛡️</div>لا هجمات نشطة<br>الشبكة محمية...</div>';
+  }
+}
+
+function log(type,cat,msg){
+  S.evCnt++;
+  const now=new Date();
+  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const term=document.getElementById('term');
+  const e=document.createElement('div');e.className='tlog';
+  e.innerHTML=`<span class="tl-t">[${t}]</span><span class="tl-c ${type==='atk'?'atk':type==='def'?'def':type==='brc'?'brc':type==='ai'?'ai':'inf'}">${cat.padEnd(13)}</span><span class="tl-m">${msg}</span>`;
+  term.appendChild(e);term.scrollTop=term.scrollHeight;
+  while(term.children.length>250)term.removeChild(term.firstChild);
+  document.getElementById('evCnt').textContent=`${S.evCnt} حدث`;
+}
+
+function updateAll(){
+  document.getElementById('hScore').textContent=S.score;
+  document.getElementById('hDef').textContent=S.defended;
+  document.getElementById('hBrc').textContent=S.breached;
+  document.getElementById('sbAtk').textContent=S.totalAtks;
+  document.getElementById('sbBlk').textContent=S.defended;
+  document.getElementById('sbBrc').textContent=S.breached;
+  const dr=S.totalAtks>0?Math.round(S.defended/S.totalAtks*100):0;
+  const drEl=document.getElementById('sbDR');drEl.textContent=`${dr}%`;
+  drEl.className=`sv ${dr>70?'g':dr>50?'y':'r'}`;
+  const ah=NET?NET.nodes.filter(n=>n.type!=='internet').reduce((s,n)=>s+n.health,0)/Math.max(1,NET.nodes.filter(n=>n.type!=='internet').length):100;
+  const nhEl=document.getElementById('sbNH');nhEl.textContent=`${Math.round(ah)}%`;
+  nhEl.className=`sv ${ah>70?'g':ah>40?'y':'r'}`;
+  const thr=S.activeAtks.length===0?'LOW':S.activeAtks.length===1?'MEDIUM':S.activeAtks.length>=2?'HIGH':'CRITICAL';
+  const thrEl=document.getElementById('sbThr');thrEl.textContent=thr;
+  thrEl.className=`sv ${thr==='LOW'?'g':thr==='MEDIUM'?'y':'r'}`;
+}
+
+function updateTimer(){
+  const m=Math.floor(S.gameTime/60),s=S.gameTime%60;
+  document.getElementById('hTimer').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if(S.gameTime<=60)document.getElementById('hTimer').style.color='var(--dan)';
+  else if(S.gameTime<=120)document.getElementById('hTimer').style.color='var(--war)';
+}
+
+async function endGame(timeUp){
+  S.running=false;clearTimeouts();
+  const won=timeUp&&S.breached<3;
+  const ov=document.getElementById('endOv');
+  const etEl=document.getElementById('eTitle');
+  etEl.textContent=won?'MISSION COMPLETE':'SYSTEM COMPROMISED';
+  etEl.className=`et ${won?'w':'l'}`;
+  document.getElementById('eMsg').textContent=won?'🎉 أحسنت! حميت الشبكة بنجاح خلال 10 دقائق':'💥 فشلت — تم اختراق 3 أجهزة أو أكثر';
+  document.getElementById('fScore').textContent=S.score;
+  document.getElementById('fDef').textContent=S.defended;
+  document.getElementById('fBrc').textContent=S.breached;
+  document.getElementById('endAIReport').textContent='يتم توليد التقرير...';
+  ov.style.display='flex';
+  if(NET)NET.stop();
+  document.getElementById('sbSt').textContent='ENDED';
+  document.getElementById('sbSt').style.color=won?'var(--pri)':'var(--dan)';
+  await doAI(true);
+}
+
+function restartGame(){
+  document.getElementById('endOv').style.display='none';
+  document.getElementById('startOv').style.display='flex';
+  document.getElementById('aiTxt').innerHTML='<span style="color:var(--mut);font-size:10px;font-family:\'JetBrains Mono\',monospace">في انتظار بيانات الهجمات...</span>';
+  if(NET){NET.stop();NET.nodes=[];NET.edges=[];NET.packets=[];}
+}
+
+// resize
+window.addEventListener('resize',()=>{
+  if(NET&&NET.nodes.length){NET._resize();}
+});
 </script>
 </body>
 </html>
